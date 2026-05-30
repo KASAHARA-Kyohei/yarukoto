@@ -1,0 +1,29 @@
+import type { NodeStatus, NodeType } from "./types";
+
+export function typeBadgeClass(type: NodeType) {
+  switch (type) {
+    case "Group":
+      return "border-sky-300 bg-sky-50 text-sky-900";
+    case "Idea":
+      return "border-yellow-300 bg-yellow-50 text-yellow-900";
+    case "Note":
+      return "border-slate-300 bg-slate-100 text-slate-800";
+    case "Decision":
+      return "border-violet-300 bg-violet-50 text-violet-900";
+    case "Task":
+      return "border-emerald-300 bg-emerald-50 text-emerald-900";
+  }
+}
+
+export function statusBadgeClass(status: NodeStatus) {
+  switch (status) {
+    case "Inbox":
+      return "border-zinc-300 bg-zinc-100 text-zinc-800";
+    case "Next":
+      return "border-sky-300 bg-sky-50 text-sky-900";
+    case "Doing":
+      return "border-amber-300 bg-amber-50 text-amber-900";
+    case "Done":
+      return "border-emerald-300 bg-emerald-50 text-emerald-900";
+  }
+}

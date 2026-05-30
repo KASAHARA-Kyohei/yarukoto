@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, type RefObject } from "react";
-import { DETAIL_FIELDS, type ActivePane, type DetailField } from "@/app/types";
+import {
+  DETAIL_FIELDS,
+  type ActivePane,
+  type DateField,
+  type DetailField,
+  type DetailSelectField,
+  isDateField,
+} from "@/app/types";
 import { getChildren } from "@/domain/nodes/tree";
 import {
   type FlatTreeNode,
@@ -40,8 +47,18 @@ export function getNextDetailField(
 }
 
 export function useKeyboardShortcuts({
+  activeDateField,
   activeDetailField,
   activePane,
+  cancelDateTextEdit,
+  clearActiveDate,
+  closeDatePicker,
+  closeDetailSelect,
+  commitCalendarDate,
+  commitDateTextEdit,
+  commitOpenDetailSelect,
+  cycleStatusValue,
+  cycleTypeValue,
   createChild,
   createRoot,
   createSiblingBelow,
@@ -50,12 +67,22 @@ export function useKeyboardShortcuts({
   expandedIds,
   indentSelected,
   isDetailDialogOpen,
+  isDatePickerOpen,
+  isDateTextEditing,
   isFocusHintOpen,
   isMutating,
   isShortcutHelpOpen,
+  moveCalendarCursorByDays,
+  moveCalendarCursorByMonths,
+  moveCalendarCursorToToday,
+  moveOpenDetailSelect,
   moveSelectedDown,
   moveSelectedUp,
   nodes,
+  openDatePicker,
+  openDateTextEdit,
+  openDetailSelect,
+  openDetailSelectField,
   outdentSelected,
   onCloseDetailDialog,
   onCloseShortcutHelp,
@@ -71,8 +98,18 @@ export function useKeyboardShortcuts({
   toggleExpanded,
   visibleNodes,
 }: {
+  activeDateField: DateField | null;
   activeDetailField: DetailField;
   activePane: ActivePane;
+  cancelDateTextEdit: () => void;
+  clearActiveDate: () => void;
+  closeDatePicker: () => void;
+  closeDetailSelect: () => void;
+  commitCalendarDate: () => void;
+  commitDateTextEdit: () => void;
+  commitOpenDetailSelect: () => void;
+  cycleStatusValue: (direction: 1 | -1) => void;
+  cycleTypeValue: (direction: 1 | -1) => void;
   createChild: () => Promise<unknown>;
   createRoot: () => Promise<unknown>;
   createSiblingBelow: () => Promise<unknown>;
@@ -88,12 +125,22 @@ export function useKeyboardShortcuts({
   expandedIds: Set<string>;
   indentSelected: () => Promise<void>;
   isDetailDialogOpen: boolean;
+  isDatePickerOpen: boolean;
+  isDateTextEditing: boolean;
   isFocusHintOpen: boolean;
   isMutating: boolean;
   isShortcutHelpOpen: boolean;
+  moveCalendarCursorByDays: (amount: number) => void;
+  moveCalendarCursorByMonths: (amount: number) => void;
+  moveCalendarCursorToToday: () => void;
+  moveOpenDetailSelect: (direction: 1 | -1) => void;
   moveSelectedDown: () => Promise<void>;
   moveSelectedUp: () => Promise<void>;
   nodes: YarukotoNode[];
+  openDatePicker: (field: DateField) => void;
+  openDateTextEdit: (field: DateField) => void;
+  openDetailSelect: (field: DetailSelectField) => void;
+  openDetailSelectField: DetailSelectField | null;
   onCloseDetailDialog: () => void;
   onCloseShortcutHelp: () => void;
   onOpenDetailDialog: () => void;
@@ -110,6 +157,16 @@ export function useKeyboardShortcuts({
   visibleNodes: FlatTreeNode[];
 }) {
   const lastDRef = useRef(0);
+
+  const blurActiveDialogElement = useCallback(() => {
+    const activeElement = document.activeElement;
+    if (
+      activeElement instanceof HTMLElement &&
+      activeElement.closest("[data-slot='dialog-content']")
+    ) {
+      activeElement.blur();
+    }
+  }, []);
 
   const movePane = useCallback(
     (direction: 1 | -1) => {
@@ -136,14 +193,44 @@ export function useKeyboardShortcuts({
 
   const moveDetailField = useCallback(
     (direction: 1 | -1) => {
+      blurActiveDialogElement();
       setActiveDetailField(getNextDetailField(activeDetailField, direction));
     },
-    [activeDetailField, setActiveDetailField],
+    [activeDetailField, blurActiveDialogElement, setActiveDetailField],
   );
 
   const focusActiveDetailField = useCallback(() => {
-    detailFieldRefs[activeDetailField].current?.focus();
+    const nextField = detailFieldRefs[activeDetailField].current;
+    const activeElement = document.activeElement;
+
+    if (
+      activeElement instanceof HTMLElement &&
+      activeElement !== nextField &&
+      activeElement.closest("[data-slot='dialog-content']")
+    ) {
+      activeElement.blur();
+    }
+
+    nextField?.focus();
   }, [activeDetailField, detailFieldRefs]);
+
+  const focusDetailField = useCallback(
+    (field: DetailField) => {
+      const nextField = detailFieldRefs[field].current;
+      const activeElement = document.activeElement;
+
+      if (
+        activeElement instanceof HTMLElement &&
+        activeElement !== nextField &&
+        activeElement.closest("[data-slot='dialog-content']")
+      ) {
+        activeElement.blur();
+      }
+
+      nextField?.focus();
+    },
+    [detailFieldRefs],
+  );
 
   const moveSelection = useCallback(
     (direction: 1 | -1) => {
@@ -227,6 +314,66 @@ export function useKeyboardShortcuts({
         run(onOpenFocusHint);
         return;
       }
+      if (isDetailDialogOpen && isDateTextEditing) {
+        switch (event.key) {
+          case "Enter":
+            run(commitDateTextEdit);
+            break;
+          case "Escape":
+            run(cancelDateTextEdit);
+            break;
+        }
+        return;
+      }
+      if (isDetailDialogOpen && isDatePickerOpen) {
+        switch (event.key) {
+          case "h":
+            run(() => moveCalendarCursorByDays(-1));
+            break;
+          case "l":
+            run(() => moveCalendarCursorByDays(1));
+            break;
+          case "j":
+            run(() => moveCalendarCursorByDays(7));
+            break;
+          case "k":
+            run(() => moveCalendarCursorByDays(-7));
+            break;
+          case "H":
+            run(() => moveCalendarCursorByMonths(-1));
+            break;
+          case "L":
+            run(() => moveCalendarCursorByMonths(1));
+            break;
+          case "t":
+            run(moveCalendarCursorToToday);
+            break;
+          case "Enter":
+            run(commitCalendarDate);
+            break;
+          case "Escape":
+            run(closeDatePicker);
+            break;
+        }
+        return;
+      }
+      if (isDetailDialogOpen && openDetailSelectField) {
+        switch (event.key) {
+          case "j":
+            run(() => moveOpenDetailSelect(1));
+            break;
+          case "k":
+            run(() => moveOpenDetailSelect(-1));
+            break;
+          case "Enter":
+            run(commitOpenDetailSelect);
+            break;
+          case "Escape":
+            run(closeDetailSelect);
+            break;
+        }
+        return;
+      }
       if (isDetailDialogOpen) {
         switch (event.key) {
           case "j":
@@ -235,9 +382,46 @@ export function useKeyboardShortcuts({
           case "k":
             run(() => moveDetailField(-1));
             break;
+          case "h":
+            if (activeDetailField === "type") {
+              run(() => cycleTypeValue(-1));
+            } else if (activeDetailField === "status") {
+              run(() => cycleStatusValue(-1));
+            }
+            break;
+          case "l":
+            if (activeDetailField === "type") {
+              run(() => cycleTypeValue(1));
+            } else if (activeDetailField === "status") {
+              run(() => cycleStatusValue(1));
+            }
+            break;
           case "i":
+            if (isDateField(activeDetailField)) {
+              run(() => openDateTextEdit(activeDetailField));
+            } else {
+              run(focusActiveDetailField);
+            }
+            break;
           case "Enter":
-            run(focusActiveDetailField);
+            if (activeDetailField === "type" || activeDetailField === "status") {
+              run(() => {
+                focusDetailField(activeDetailField);
+                openDetailSelect(activeDetailField);
+              });
+            } else if (isDateField(activeDetailField)) {
+              run(() => {
+                focusDetailField(activeDetailField);
+                openDatePicker(activeDetailField);
+              });
+            } else {
+              run(focusActiveDetailField);
+            }
+            break;
+          case "x":
+            if (isDateField(activeDetailField)) {
+              run(clearActiveDate);
+            }
             break;
           case "Escape":
             run(onCloseDetailDialog);
@@ -345,25 +529,48 @@ export function useKeyboardShortcuts({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [
+    activeDateField,
+    activeDetailField,
     activePane,
+    cancelDateTextEdit,
+    clearActiveDate,
+    blurActiveDialogElement,
+    closeDatePicker,
+    closeDetailSelect,
+    commitCalendarDate,
+    commitDateTextEdit,
+    commitOpenDetailSelect,
+    cycleStatusValue,
+    cycleTypeValue,
     createChild,
     createRoot,
     createSiblingBelow,
     deleteSelected,
+    focusDetailField,
     focusActiveDetailField,
     handleH,
     handleL,
     indentSelected,
     isDetailDialogOpen,
+    isDatePickerOpen,
+    isDateTextEditing,
     isFocusHintOpen,
     isMutating,
     isShortcutHelpOpen,
+    moveCalendarCursorByDays,
+    moveCalendarCursorByMonths,
+    moveCalendarCursorToToday,
+    moveOpenDetailSelect,
     moveDetailField,
     moveSelectedDown,
     moveSelectedUp,
     movePane,
     moveRootSelection,
     moveSelection,
+    openDatePicker,
+    openDateTextEdit,
+    openDetailSelect,
+    openDetailSelectField,
     onCloseDetailDialog,
     onCloseShortcutHelp,
     onOpenDetailDialog,

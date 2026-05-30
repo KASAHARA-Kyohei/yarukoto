@@ -10,6 +10,9 @@ export type DetailField =
   | "startDate"
   | "dueDate"
   | "memo";
+export type DetailSelectField = Extract<DetailField, "type" | "status">;
+export type DateField = Extract<DetailField, "startDate" | "dueDate">;
+export type DateEditMode = "calendar" | "text";
 
 export type PendingUndoDelete = {
   deletedAt: number;
@@ -27,3 +30,7 @@ export const DETAIL_FIELDS: DetailField[] = [
   "dueDate",
   "memo",
 ];
+
+export function isDateField(field: DetailField): field is DateField {
+  return field === "startDate" || field === "dueDate";
+}

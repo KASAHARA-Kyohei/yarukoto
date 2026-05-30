@@ -10,10 +10,31 @@ import { ReportView } from "./components/ReportView";
 import { ShortcutHelp } from "./components/ShortcutHelp";
 import { Toolbar } from "./components/Toolbar";
 import { TreeView } from "./components/TreeView";
-import type { ActivePane, CenterView, DetailField } from "@/app/types";
+import { getCycledValue } from "@/app/cycleValue";
+import {
+  addDaysToDateKey,
+  addMonthsToDateKey,
+  getInitialDateKey,
+  parseDateInput,
+} from "@/app/dateEditing";
+import type {
+  ActivePane,
+  CenterView,
+  DateEditMode,
+  DateField,
+  DetailField,
+  DetailSelectField,
+} from "@/app/types";
+import { isDateField } from "@/app/types";
 import { Button } from "@/components/ui/button";
 import { statusBadgeClass } from "@/domain/nodes/nodeAppearance";
-import type { YarukotoNode } from "@/domain/nodes/types";
+import {
+  NODE_STATUSES,
+  NODE_TYPES,
+  type NodeStatus,
+  type NodeType,
+  type YarukotoNode,
+} from "@/domain/nodes/types";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useYarukotoNodes } from "./hooks/useYarukotoNodes";
 import { cn } from "./lib/utils";
@@ -27,6 +48,15 @@ function App() {
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [activeDetailField, setActiveDetailField] =
     useState<DetailField>("title");
+  const [activeDateField, setActiveDateField] = useState<DateField | null>(null);
+  const [dateEditMode, setDateEditMode] = useState<DateEditMode | null>(null);
+  const [dateDraftValue, setDateDraftValue] = useState("");
+  const [dateInputError, setDateInputError] = useState<string | null>(null);
+  const [calendarCursorDate, setCalendarCursorDate] = useState<string | null>(null);
+  const [openDetailSelectField, setOpenDetailSelectField] =
+    useState<DetailSelectField | null>(null);
+  const [statusSelectDraft, setStatusSelectDraft] = useState<NodeStatus | null>(null);
+  const [typeSelectDraft, setTypeSelectDraft] = useState<NodeType | null>(null);
   const shouldFocusTitleRef = useRef(false);
   const dueDateButtonRef = useRef<HTMLButtonElement | null>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -99,6 +129,250 @@ function App() {
     openDetailEditor(await createSiblingBelow());
   }, [createSiblingBelow, openDetailEditor]);
 
+  const getDateFieldValue = useCallback(
+    (field: DateField) => {
+      if (!selectedNode) {
+        return null;
+      }
+      return field === "startDate" ? selectedNode.startDate : selectedNode.dueDate;
+    },
+    [selectedNode],
+  );
+
+  const updateDateField = useCallback(
+    (field: DateField, value: string | null) => {
+      void updateSelected(
+        field === "startDate" ? { startDate: value } : { dueDate: value },
+      );
+    },
+    [updateSelected],
+  );
+
+  const resetDetailSelectState = useCallback(() => {
+    setOpenDetailSelectField(null);
+    setStatusSelectDraft(null);
+    setTypeSelectDraft(null);
+  }, []);
+
+  const openDetailSelect = useCallback(
+    (field: DetailSelectField) => {
+      if (!selectedNode) {
+        return;
+      }
+      if (field === "type") {
+        setTypeSelectDraft(selectedNode.type);
+        setStatusSelectDraft(null);
+      } else {
+        setStatusSelectDraft(selectedNode.status);
+        setTypeSelectDraft(null);
+      }
+      setOpenDetailSelectField(field);
+    },
+    [selectedNode],
+  );
+
+  const closeDetailSelect = useCallback(() => {
+    resetDetailSelectState();
+  }, [resetDetailSelectState]);
+
+  const resetDateInteraction = useCallback(() => {
+    setActiveDateField(null);
+    setDateEditMode(null);
+    setDateDraftValue("");
+    setDateInputError(null);
+    setCalendarCursorDate(null);
+  }, []);
+
+  const openDatePicker = useCallback(
+    (field: DateField) => {
+      const currentValue = getDateFieldValue(field);
+      setActiveDateField(field);
+      setDateEditMode("calendar");
+      setDateDraftValue(currentValue ?? "");
+      setDateInputError(null);
+      setCalendarCursorDate(getInitialDateKey(currentValue));
+    },
+    [getDateFieldValue],
+  );
+
+  const closeDatePicker = useCallback(() => {
+    if (dateEditMode === "calendar") {
+      resetDateInteraction();
+    }
+  }, [dateEditMode, resetDateInteraction]);
+
+  const openDateTextEdit = useCallback(
+    (field: DateField) => {
+      const currentValue = getDateFieldValue(field);
+      setActiveDateField(field);
+      setDateEditMode("text");
+      setDateDraftValue(currentValue ?? "");
+      setDateInputError(null);
+      setCalendarCursorDate(null);
+    },
+    [getDateFieldValue],
+  );
+
+  const cancelDateTextEdit = useCallback(() => {
+    if (dateEditMode === "text") {
+      resetDateInteraction();
+    }
+  }, [dateEditMode, resetDateInteraction]);
+
+  const moveCalendarCursorByDays = useCallback((amount: number) => {
+    setCalendarCursorDate((currentValue) =>
+      addDaysToDateKey(getInitialDateKey(currentValue), amount),
+    );
+  }, []);
+
+  const moveCalendarCursorByMonths = useCallback((amount: number) => {
+    setCalendarCursorDate((currentValue) =>
+      addMonthsToDateKey(getInitialDateKey(currentValue), amount),
+    );
+  }, []);
+
+  const moveCalendarCursorToToday = useCallback(() => {
+    setCalendarCursorDate(getInitialDateKey(null));
+  }, []);
+
+  const commitCalendarDate = useCallback(() => {
+    if (!activeDateField) {
+      return;
+    }
+    updateDateField(activeDateField, getInitialDateKey(calendarCursorDate));
+    resetDateInteraction();
+  }, [activeDateField, calendarCursorDate, resetDateInteraction, updateDateField]);
+
+  const commitDateTextEdit = useCallback(() => {
+    if (!activeDateField) {
+      return;
+    }
+    const result = parseDateInput(dateDraftValue);
+    if (result.error) {
+      setDateInputError(result.error);
+      return;
+    }
+    updateDateField(activeDateField, result.value);
+    resetDateInteraction();
+  }, [activeDateField, dateDraftValue, resetDateInteraction, updateDateField]);
+
+  const clearDateField = useCallback(
+    (field: DateField) => {
+      updateDateField(field, null);
+      if (activeDateField === field) {
+        resetDateInteraction();
+      }
+    },
+    [activeDateField, resetDateInteraction, updateDateField],
+  );
+
+  const clearActiveDate = useCallback(() => {
+    if (!isDateField(activeDetailField)) {
+      return;
+    }
+    clearDateField(activeDetailField);
+  }, [activeDetailField, clearDateField]);
+
+  const handleDateOpenChange = useCallback(
+    (field: DateField, open: boolean) => {
+      if (open) {
+        openDatePicker(field);
+        return;
+      }
+      if (activeDateField === field && dateEditMode === "calendar") {
+        resetDateInteraction();
+      }
+    },
+    [activeDateField, dateEditMode, openDatePicker, resetDateInteraction],
+  );
+
+  const handleDateSelect = useCallback(
+    (field: DateField, dateKey: string) => {
+      updateDateField(field, dateKey);
+      resetDateInteraction();
+    },
+    [resetDateInteraction, updateDateField],
+  );
+
+  const moveOpenDetailSelect = useCallback(
+    (direction: 1 | -1) => {
+      if (!selectedNode || !openDetailSelectField) {
+        return;
+      }
+      if (openDetailSelectField === "type") {
+        setTypeSelectDraft((currentValue) =>
+          getCycledValue(NODE_TYPES, currentValue ?? selectedNode.type, direction),
+        );
+      } else {
+        setStatusSelectDraft((currentValue) =>
+          getCycledValue(
+            NODE_STATUSES,
+            currentValue ?? selectedNode.status,
+            direction,
+          ),
+        );
+      }
+    },
+    [openDetailSelectField, selectedNode],
+  );
+
+  const commitOpenDetailSelect = useCallback(() => {
+    if (!selectedNode || !openDetailSelectField) {
+      return;
+    }
+    if (openDetailSelectField === "type") {
+      const nextType = typeSelectDraft ?? selectedNode.type;
+      resetDetailSelectState();
+      if (nextType !== selectedNode.type) {
+        void updateSelected({ type: nextType });
+      }
+      return;
+    }
+    const nextStatus = statusSelectDraft ?? selectedNode.status;
+    resetDetailSelectState();
+    if (nextStatus !== selectedNode.status) {
+      void updateSelected({ status: nextStatus });
+    }
+  }, [
+    openDetailSelectField,
+    resetDetailSelectState,
+    selectedNode,
+    statusSelectDraft,
+    typeSelectDraft,
+    updateSelected,
+  ]);
+
+  const cycleTypeValue = useCallback(
+    (direction: 1 | -1) => {
+      if (!selectedNode) {
+        return;
+      }
+      updateSelected({
+        type: getCycledValue(NODE_TYPES, selectedNode.type, direction),
+      });
+    },
+    [selectedNode, updateSelected],
+  );
+
+  useEffect(() => {
+    if (!isDetailDialogOpen || !selectedNode) {
+      resetDetailSelectState();
+      resetDateInteraction();
+    }
+  }, [isDetailDialogOpen, resetDateInteraction, resetDetailSelectState, selectedNode?.id]);
+
+  const cycleStatusValue = useCallback(
+    (direction: 1 | -1) => {
+      if (!selectedNode) {
+        return;
+      }
+      updateSelected({
+        status: getCycledValue(NODE_STATUSES, selectedNode.status, direction),
+      });
+    },
+    [selectedNode, updateSelected],
+  );
+
   useEffect(() => {
     if (!isDetailDialogOpen || !selectedNode || !shouldFocusTitleRef.current) {
       return;
@@ -143,8 +417,18 @@ function App() {
   }, [selectedNode]);
 
   useKeyboardShortcuts({
+    activeDateField,
     activeDetailField,
     activePane,
+    cancelDateTextEdit,
+    clearActiveDate,
+    closeDatePicker,
+    closeDetailSelect,
+    commitCalendarDate,
+    commitDateTextEdit,
+    commitOpenDetailSelect,
+    cycleStatusValue,
+    cycleTypeValue,
     createChild: handleCreateChild,
     createRoot: handleCreateRoot,
     createSiblingBelow: handleCreateSiblingBelow,
@@ -153,12 +437,22 @@ function App() {
     expandedIds,
     indentSelected,
     isDetailDialogOpen,
+    isDatePickerOpen: dateEditMode === "calendar",
+    isDateTextEditing: dateEditMode === "text",
     isFocusHintOpen,
     isMutating,
     isShortcutHelpOpen,
+    moveCalendarCursorByDays,
+    moveCalendarCursorByMonths,
+    moveCalendarCursorToToday,
+    moveOpenDetailSelect,
     moveSelectedDown,
     moveSelectedUp,
     nodes,
+    openDatePicker,
+    openDateTextEdit,
+    openDetailSelect,
+    openDetailSelectField,
     onCloseDetailDialog: () => setIsDetailDialogOpen(false),
     onCloseShortcutHelp: () => setIsShortcutHelpOpen(false),
     onOpenDetailDialog: () => openDetailEditor(selectedNode),
@@ -342,6 +636,11 @@ function App() {
       </section>
       <NodeDetailDialog
         activeField={activeDetailField}
+        activeDateField={activeDateField}
+        calendarCursorDate={calendarCursorDate}
+        dateEditMode={dateEditMode}
+        dateInputError={dateInputError}
+        dateTextDraft={dateDraftValue}
         detailFieldRefs={{
           dueDate: dueDateButtonRef,
           memo: memoTextareaRef,
@@ -350,12 +649,54 @@ function App() {
           type: typeTriggerRef,
         }}
         node={selectedNode}
+        onCancelDateTextEdit={cancelDateTextEdit}
+        onClearDateField={clearDateField}
+        onCommitDateTextEdit={commitDateTextEdit}
+        onCloseDetailSelect={closeDetailSelect}
+        onCommitOpenDetailSelect={commitOpenDetailSelect}
+        onDateDraftValueChange={setDateDraftValue}
+        onDateOpenChange={handleDateOpenChange}
+        onDateSelect={handleDateSelect}
+        openDetailSelectField={openDetailSelectField}
         open={isDetailDialogOpen}
+        onMoveOpenDetailSelect={moveOpenDetailSelect}
         saveError={saveError}
         saveStatus={saveStatus}
+        statusValue={
+          openDetailSelectField === "status"
+            ? statusSelectDraft ?? selectedNode?.status ?? NODE_STATUSES[0]
+            : selectedNode?.status ?? NODE_STATUSES[0]
+        }
         titleInputRef={titleInputRef}
+        typeValue={
+          openDetailSelectField === "type"
+            ? typeSelectDraft ?? selectedNode?.type ?? NODE_TYPES[0]
+            : selectedNode?.type ?? NODE_TYPES[0]
+        }
         onActivateField={setActiveDetailField}
         onOpenChange={setIsDetailDialogOpen}
+        onStatusOpenChange={(open) => {
+          if (open) {
+            openDetailSelect("status");
+          } else if (openDetailSelectField === "status") {
+            closeDetailSelect();
+          }
+        }}
+        onStatusValueChange={(value) => {
+          void updateSelected({ status: value });
+          resetDetailSelectState();
+        }}
+        onTypeOpenChange={(open) => {
+          if (open) {
+            openDetailSelect("type");
+          } else if (openDetailSelectField === "type") {
+            closeDetailSelect();
+          }
+        }}
+        onTypeValueChange={(value) => {
+          void updateSelected({ type: value });
+          resetDetailSelectState();
+        }}
         onUpdateNode={(patch) => void updateSelected(patch)}
       />
       {isShortcutHelpOpen ? (

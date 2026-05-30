@@ -10,11 +10,12 @@ import { ReportView } from "./components/ReportView";
 import { ShortcutHelp } from "./components/ShortcutHelp";
 import { Toolbar } from "./components/Toolbar";
 import { TreeView } from "./components/TreeView";
+import type { ActivePane, CenterView, DetailField } from "@/app/types";
 import { Button } from "@/components/ui/button";
+import { statusBadgeClass } from "@/domain/nodes/nodeAppearance";
+import type { YarukotoNode } from "@/domain/nodes/types";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useYarukotoNodes } from "./hooks/useYarukotoNodes";
-import { statusBadgeClass } from "./nodeAppearance";
-import type { ActivePane, CenterView, DetailField, YarukotoNode } from "./types";
 import { cn } from "./lib/utils";
 
 function App() {

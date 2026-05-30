@@ -2,8 +2,8 @@ import {
   type CreateNodeInput,
   type UpdateNodeInput,
   type YarukotoNode,
-} from "../types";
-import { getDescendantIds, sortNodes } from "../tree";
+} from "../domain/nodes/types";
+import { getDescendantIds, sortNodes } from "../domain/nodes/tree";
 import { getNodeDb, migrateNodeSchema, withWriteQueue } from "./nodeDb";
 import { type DbNode, nodeInsertParams, toNode } from "./nodeMapper";
 import { seedNodesIfEmpty } from "./nodeSeed";

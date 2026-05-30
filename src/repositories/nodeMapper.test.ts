@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { nodeInsertParams, toNode, type DbNode } from "./nodeMapper";
-import type { YarukotoNode } from "../types";
+import type { YarukotoNode } from "../domain/nodes/types";
 
 describe("nodeMapper", () => {
   it("maps start_date to startDate", () => {

@@ -1,4 +1,4 @@
-import type { ActivePane, CenterView } from "../types";
+import type { ActivePane, CenterView } from "@/app/types";
 
 export function FooterText({
   activePane,

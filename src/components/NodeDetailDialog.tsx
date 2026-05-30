@@ -1,17 +1,22 @@
 import { type RefObject } from "react";
 import { DatePicker } from "./DatePicker";
 import {
-  NODE_STATUSES,
-  NODE_TYPES,
   type DetailField,
-  type NodeStatus,
-  type NodeType,
   type SaveStatus,
-  type UpdateNodeInput,
-  type YarukotoNode,
-} from "../types";
+} from "@/app/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { isInvalidDateRange } from "@/domain/nodes/period";
+import {
+  NODE_STATUSES,
+  NODE_TYPES,
+} from "@/domain/nodes/types";
+import type {
+  NodeStatus,
+  NodeType,
+  UpdateNodeInput,
+  YarukotoNode,
+} from "@/domain/nodes/types";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +34,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { isInvalidDateRange } from "@/period";
 
 function saveStatusVariant(saveStatus: SaveStatus) {
   if (saveStatus === "error") {

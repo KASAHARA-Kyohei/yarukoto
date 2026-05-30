@@ -3,129 +3,23 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import type { FlatTreeNode } from "../types";
-import { statusBadgeClass, typeBadgeClass } from "@/nodeAppearance";
+import { TreePeriodCell, TreePeriodHeader } from "./TreePeriod";
+import { statusBadgeClass, typeBadgeClass } from "@/domain/nodes/nodeAppearance";
 import {
-  getPeriodBarStyle,
+  getNodePeriodDates,
   getTimelineBoundsFromRanges,
   getTimelineWeekMarkers,
   getTodayLineStyle,
   isInvalidDateRange,
-} from "@/period";
+} from "@/domain/nodes/period";
+import type { FlatTreeNode } from "@/domain/nodes/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { addDays, toDateKey } from "@/utils/date";
 
 const INDENT_STEP = 22;
 const INDENT_START = 18;
 const TREE_ROW_GAP = 20;
 const TREE_COLUMNS = "minmax(320px, 520px) 68px 74px minmax(240px, 1fr)";
-
-function dueState(dueDate: string | null) {
-  if (!dueDate) {
-    return {
-      barClassName: "bg-slate-400/70",
-      textClassName: "text-muted-foreground",
-    };
-  }
-
-  const today = toDateKey(new Date());
-  if (dueDate < today) {
-    return {
-      barClassName: "bg-destructive/80",
-      textClassName: "text-destructive",
-    };
-  }
-  if (dueDate === today) {
-    return {
-      barClassName: "bg-primary",
-      textClassName: "text-primary",
-    };
-  }
-  if (dueDate <= toDateKey(addDays(new Date(), 7))) {
-    return {
-      barClassName: "bg-amber-500",
-      textClassName: "text-amber-800",
-    };
-  }
-  return {
-    barClassName: "bg-emerald-500/80",
-    textClassName: "text-muted-foreground",
-  };
-}
-
-function formatShortDate(dateKey: string) {
-  return dateKey.slice(5).replace("-", "/");
-}
-
-function formatPeriodLabel(startDate: string | null, dueDate: string | null) {
-  if (startDate && dueDate) {
-    const [start, end] =
-      startDate <= dueDate ? [startDate, dueDate] : [dueDate, startDate];
-    return `${formatShortDate(start)}-${formatShortDate(end)}`;
-  }
-  if (startDate) {
-    return `開始 ${formatShortDate(startDate)}`;
-  }
-  if (dueDate) {
-    return `終了 ${formatShortDate(dueDate)}`;
-  }
-  return "期間なし";
-}
-
-function TimelineTrack({
-  aggregateBarStyle,
-  barClassName,
-  barStyle,
-  boundsLabel,
-  isInvalidRange,
-  todayLineStyle,
-  weekMarkers,
-}: {
-  aggregateBarStyle: { left: string; width: string } | null;
-  barClassName: string;
-  barStyle: { left: string; width: string } | null;
-  boundsLabel: string;
-  isInvalidRange: boolean;
-  todayLineStyle: { left: string } | null;
-  weekMarkers: Array<{ dateKey: string; left: string }>;
-}) {
-  return (
-    <div className="relative h-6 overflow-hidden rounded-md bg-muted/55">
-      {weekMarkers.map((marker) => (
-        <span
-          className="absolute inset-y-0 w-px bg-border/45"
-          key={marker.dateKey}
-          style={{ left: marker.left }}
-        />
-      ))}
-      {todayLineStyle ? (
-        <span
-          aria-label="today"
-          className="absolute inset-y-0 w-px bg-primary/80"
-          style={todayLineStyle}
-        />
-      ) : null}
-      {aggregateBarStyle ? (
-        <div
-          aria-label={`${boundsLabel} children`}
-          className="absolute top-3.5 h-1 rounded-full bg-foreground/18"
-          style={aggregateBarStyle}
-        />
-      ) : null}
-      {barStyle ? (
-        <div
-          aria-label={boundsLabel}
-          className={cn(
-            "absolute top-1.5 h-2 rounded-full shadow-[inset_0_-1px_0_rgba(255,255,255,0.18)]",
-            isInvalidRange ? "bg-amber-500" : barClassName,
-          )}
-          style={barStyle}
-        />
-      ) : null}
-    </div>
-  );
-}
 
 function IndentGuides({
   depth,
@@ -194,14 +88,7 @@ export function TreeView({
   const timelineBounds = useMemo(
     () => {
       const ranges = [
-        ...visibleNodes.map(({ node }) =>
-          node.startDate || node.dueDate
-            ? {
-                end: node.dueDate ?? node.startDate ?? "",
-                start: node.startDate ?? node.dueDate ?? "",
-              }
-            : null,
-        ),
+        ...visibleNodes.map(({ node }) => getNodePeriodDates(node)),
         ...visibleNodes.map(({ descendantPeriod }) => descendantPeriod),
       ];
       return getTimelineBoundsFromRanges(ranges);
@@ -232,30 +119,11 @@ export function TreeView({
             <div className="pl-2">Title</div>
             <div>Type</div>
             <div>Status</div>
-            <div className="pr-2">
-              <div className="text-right">Period</div>
-              {timelineBounds ? (
-                <div className="relative mt-1 h-5 overflow-hidden rounded-md bg-muted/35 px-2 text-[10px] normal-case text-muted-foreground">
-                  {weekMarkers.map((marker) => (
-                    <span
-                      className="absolute inset-y-0 w-px bg-border/45"
-                      key={marker.dateKey}
-                      style={{ left: marker.left }}
-                    />
-                  ))}
-                  {todayLineStyle ? (
-                    <span
-                      className="absolute inset-y-0 w-px bg-primary/80"
-                      style={todayLineStyle}
-                    />
-                  ) : null}
-                  <div className="absolute inset-x-2 top-1 flex items-center justify-between">
-                    <span>{formatShortDate(timelineBounds.start)}</span>
-                    <span>{formatShortDate(timelineBounds.end)}</span>
-                  </div>
-                </div>
-              ) : null}
-            </div>
+            <TreePeriodHeader
+              timelineBounds={timelineBounds}
+              todayLineStyle={todayLineStyle}
+              weekMarkers={weekMarkers}
+            />
           </div>
           {visibleNodes.map(
             ({
@@ -269,21 +137,7 @@ export function TreeView({
             }) => {
               const isSelected = node.id === selectedId;
               const isExpanded = expandedIds.has(node.id);
-              const due = dueState(node.dueDate);
-              const periodStyle = getPeriodBarStyle(node, timelineBounds);
-              const aggregateBarStyle = descendantPeriod
-                ? getPeriodBarStyle(descendantPeriod, timelineBounds)
-                : null;
               const isInvalidRange = isInvalidDateRange(node);
-              const periodLabel =
-                node.startDate || node.dueDate
-                  ? formatPeriodLabel(node.startDate, node.dueDate)
-                  : descendantPeriod
-                    ? `子 ${formatPeriodLabel(
-                        descendantPeriod.start,
-                        descendantPeriod.end,
-                      )}`
-                    : "期間なし";
               return (
                 <div
                   className={cn(
@@ -368,43 +222,14 @@ export function TreeView({
                   >
                     {node.status}
                   </Badge>
-                  <div className="mr-2 min-w-0">
-                    <div className="mb-1 flex items-center justify-between gap-2">
-                      {isInvalidRange ? (
-                        <span className="text-[10px] font-medium text-amber-800">
-                          日付逆転
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-muted-foreground/70">
-                          {descendantPeriod && !node.startDate && !node.dueDate
-                            ? "子期間"
-                            : hasChildren && descendantPeriod
-                              ? "親+子"
-                              : "期間"}
-                        </span>
-                      )}
-                      <span
-                        className={cn(
-                          "truncate text-[10px] font-medium",
-                          isInvalidRange
-                            ? "text-amber-800"
-                            : due.textClassName,
-                        )}
-                        title={periodLabel}
-                      >
-                        {periodLabel}
-                      </span>
-                    </div>
-                    <TimelineTrack
-                      aggregateBarStyle={aggregateBarStyle}
-                      barClassName={due.barClassName}
-                      barStyle={periodStyle}
-                      boundsLabel={periodLabel}
-                      isInvalidRange={isInvalidRange}
-                      todayLineStyle={todayLineStyle}
-                      weekMarkers={weekMarkers}
-                    />
-                  </div>
+                  <TreePeriodCell
+                    descendantPeriod={descendantPeriod}
+                    hasChildren={hasChildren}
+                    node={node}
+                    timelineBounds={timelineBounds}
+                    todayLineStyle={todayLineStyle}
+                    weekMarkers={weekMarkers}
+                  />
                 </div>
               );
             },

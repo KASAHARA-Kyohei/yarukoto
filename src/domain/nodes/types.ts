@@ -3,32 +3,10 @@ export const NODE_STATUSES = ["Inbox", "Next", "Doing", "Done"] as const;
 
 export type NodeType = (typeof NODE_TYPES)[number];
 export type NodeStatus = (typeof NODE_STATUSES)[number];
-export type CenterView = "tree" | "calendar" | "report";
-export type SaveStatus = "idle" | "saving" | "saved" | "error";
-export type ActivePane = "projects" | "center";
-export type DetailField =
-  | "title"
-  | "type"
-  | "status"
-  | "startDate"
-  | "dueDate"
-  | "memo";
-export type PendingUndoDelete = {
-  deletedAt: number;
-  expiresAt: number;
-  fallbackId: string | null;
-  nodes: YarukotoNode[];
-  title: string;
+export type PeriodRange = {
+  end: string;
+  start: string;
 };
-
-export const DETAIL_FIELDS: DetailField[] = [
-  "title",
-  "type",
-  "status",
-  "startDate",
-  "dueDate",
-  "memo",
-];
 
 export function isNodeType(value: string): value is NodeType {
   return NODE_TYPES.includes(value as NodeType);
@@ -69,7 +47,7 @@ export type UpdateNodeInput = Partial<
 
 export type FlatTreeNode = {
   childCount: number;
-  descendantPeriod: { start: string; end: string } | null;
+  descendantPeriod: PeriodRange | null;
   guideColumns: boolean[];
   isLastSibling: boolean;
   node: YarukotoNode;

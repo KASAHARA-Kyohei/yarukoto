@@ -1,5 +1,5 @@
 import type Database from "@tauri-apps/plugin-sql";
-import type { YarukotoNode } from "../types";
+import type { YarukotoNode } from "../domain/nodes/types";
 import { nodeInsertParams } from "./nodeMapper";
 
 function createSeedNode(params: Omit<YarukotoNode, "createdAt" | "updatedAt">, now: string) {

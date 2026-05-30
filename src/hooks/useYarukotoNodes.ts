@@ -1,22 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { nodeRepository } from "../repositories/nodeRepository";
-import { getDeleteSelectionFallback } from "../nodeSelection";
+import type { PendingUndoDelete, SaveStatus } from "@/app/types";
 import {
   findRootId,
-  getAncestorIds,
   getRootNodes,
   getScopedNodes,
   getVisibleTree,
-} from "../tree";
-import { createDeleteUndoSnapshot } from "../undo";
-import type {
-  PendingUndoDelete,
-  SaveStatus,
-  UpdateNodeInput,
-  YarukotoNode,
-} from "../types";
-
-const DELETE_UNDO_MS = 8_000;
+} from "@/domain/nodes/tree";
+import type { YarukotoNode } from "@/domain/nodes/types";
+import {
+  getExpandedIdsForLoadedTree,
+  getExpandedIdsForSelection,
+  resolveLoadedTreeState,
+} from "./yarukotoNodeState";
+import { usePendingUndoDeleteExpiry } from "./usePendingUndoDeleteExpiry";
+import { useYarukotoNodeMutations } from "./useYarukotoNodeMutations";
 
 export function useYarukotoNodes() {
   const [nodes, setNodes] = useState<YarukotoNode[]>([]);
@@ -62,42 +60,23 @@ export function useYarukotoNodes() {
 
   const loadNodes = useCallback(async (preferredSelectedId?: string | null) => {
     const nextNodes = await nodeRepository.listNodes();
-    const nextRoots = getRootNodes(nextNodes);
-    const preferredExists =
-      preferredSelectedId &&
-      nextNodes.some((node) => node.id === preferredSelectedId);
-    const currentSelectedId = selectedIdRef.current;
-    const currentActiveRootId = activeRootIdRef.current;
-    const currentExists =
-      currentSelectedId &&
-      nextNodes.some((node) => node.id === currentSelectedId);
-    const candidateSelectedId =
-      (preferredExists ? preferredSelectedId : null) ??
-      (currentExists ? currentSelectedId : null);
-    const candidateRootId =
-      findRootId(nextNodes, candidateSelectedId) ??
-      (currentActiveRootId &&
-      nextRoots.some((node) => node.id === currentActiveRootId)
-        ? currentActiveRootId
-        : nextRoots[0]?.id ?? null);
-    const nextSelectedId =
-      candidateSelectedId ?? candidateRootId ?? nextNodes[0]?.id ?? null;
+    const { activeRootId, nextRoots, selectedId } = resolveLoadedTreeState({
+      currentActiveRootId: activeRootIdRef.current,
+      currentSelectedId: selectedIdRef.current,
+      nextNodes,
+      preferredSelectedId,
+    });
 
     setNodes(nextNodes);
-    setActiveRootId(candidateRootId);
-    setSelectedId(nextSelectedId);
+    setActiveRootId(activeRootId);
+    setSelectedId(selectedId);
     setExpandedIds((current) => {
-      const next =
-        current.size === 0
-          ? new Set(nextNodes.map((node) => node.id))
-          : new Set(current);
-      for (const root of nextRoots) {
-        next.add(root.id);
-      }
-      if (candidateRootId) {
-        next.add(candidateRootId);
-      }
-      return next;
+      return getExpandedIdsForLoadedTree({
+        activeRootId,
+        currentExpandedIds: current,
+        nextNodes,
+        nextRoots,
+      });
     });
   }, []);
 
@@ -123,14 +102,9 @@ export function useYarukotoNodes() {
       const rootId = findRootId(nodes, nodeId);
       if (rootId) {
         setActiveRootId(rootId);
-        setExpandedIds((current) => {
-          const next = new Set(current);
-          next.add(rootId);
-          for (const ancestorId of getAncestorIds(nodes, nodeId)) {
-            next.add(ancestorId);
-          }
-          return next;
-        });
+        setExpandedIds((current) =>
+          getExpandedIdsForSelection(current, nodes, nodeId),
+        );
       }
     },
     [nodes],
@@ -148,18 +122,7 @@ export function useYarukotoNodes() {
     });
   }, []);
 
-  useEffect(() => {
-    if (!pendingUndoDelete) {
-      return;
-    }
-    const remaining = Math.max(0, pendingUndoDelete.expiresAt - Date.now());
-    const timeoutId = window.setTimeout(() => {
-      setPendingUndoDelete((current) =>
-        current?.deletedAt === pendingUndoDelete.deletedAt ? null : current,
-      );
-    }, remaining);
-    return () => window.clearTimeout(timeoutId);
-  }, [pendingUndoDelete]);
+  usePendingUndoDeleteExpiry(pendingUndoDelete, setPendingUndoDelete);
 
   const runAction = useCallback(async <T,>(action: () => Promise<T>) => {
     setActionError(null);
@@ -174,160 +137,31 @@ export function useYarukotoNodes() {
     }
   }, []);
 
-  const createRoot = useCallback(async () => {
-    return await runAction(async () => {
-      const node = await nodeRepository.createNode({
-        parentId: null,
-        title: "新しいプロジェクト",
-        type: "Group",
-        status: "Inbox",
-      });
-      await loadNodes(node.id);
-      return node;
-    });
-  }, [loadNodes, runAction]);
-
-  const createChild = useCallback(async () => {
-    if (!selectedNode) {
-      return null;
-    }
-    return await runAction(async () => {
-      const child = await nodeRepository.createNode({
-        parentId: selectedNode.id,
-        title: "新しいタスク",
-        type: "Task",
-        status: "Inbox",
-      });
-      setExpandedIds((current) => new Set(current).add(selectedNode.id));
-      await loadNodes(child.id);
-      return child;
-    });
-  }, [loadNodes, runAction, selectedNode]);
-
-  const createSiblingBelow = useCallback(async () => {
-    if (!selectedNode) {
-      return null;
-    }
-    return await runAction(async () => {
-      const sibling = await nodeRepository.createNode({
-        parentId: selectedNode.parentId,
-        title: "新しいノード",
-        type: selectedNode.parentId === null ? "Group" : "Task",
-        status: "Inbox",
-        sortOrder: selectedNode.sortOrder + 1,
-      });
-      await loadNodes(sibling.id);
-      return sibling;
-    });
-  }, [loadNodes, runAction, selectedNode]);
-
-  const deleteSelected = useCallback(async () => {
-    if (!selectedNode) {
-      return null;
-    }
-    return await runAction(async () => {
-      const oldParentId = await nodeRepository.deleteNodeCascade(selectedNode.id);
-      const fallback = getDeleteSelectionFallback({
-        deletedNodeId: selectedNode.id,
-        nodes,
-        oldParentId,
-        visibleNodes,
-      });
-      await loadNodes(fallback);
-      const snapshot = createDeleteUndoSnapshot({
-        deletedAt: Date.now(),
-        fallbackId: fallback,
-        node: selectedNode,
-        nodes,
-        ttlMs: DELETE_UNDO_MS,
-      });
-      setPendingUndoDelete(snapshot);
-      return snapshot.nodes;
-    });
-  }, [loadNodes, nodes, runAction, selectedNode, visibleNodes]);
-
-  const clearPendingUndoDelete = useCallback(() => {
-    setPendingUndoDelete(null);
-  }, []);
-
-  const restorePendingDelete = useCallback(async () => {
-    if (!pendingUndoDelete) {
-      return null;
-    }
-    const snapshot = pendingUndoDelete;
-    return await runAction(async () => {
-      await nodeRepository.restoreNodes(snapshot.nodes);
-      setPendingUndoDelete(null);
-      await loadNodes(snapshot.nodes[0]?.id ?? snapshot.fallbackId);
-      return snapshot.nodes;
-    });
-  }, [loadNodes, pendingUndoDelete, runAction]);
-
-  const moveSelectedUp = useCallback(async () => {
-    if (!selectedNode) {
-      return;
-    }
-    await runAction(async () => {
-      await nodeRepository.moveUp(selectedNode.id);
-      await loadNodes(selectedNode.id);
-    });
-  }, [loadNodes, runAction, selectedNode]);
-
-  const moveSelectedDown = useCallback(async () => {
-    if (!selectedNode) {
-      return;
-    }
-    await runAction(async () => {
-      await nodeRepository.moveDown(selectedNode.id);
-      await loadNodes(selectedNode.id);
-    });
-  }, [loadNodes, runAction, selectedNode]);
-
-  const indentSelected = useCallback(async () => {
-    if (!selectedNode) {
-      return;
-    }
-    await runAction(async () => {
-      await nodeRepository.indent(selectedNode.id);
-      await loadNodes(selectedNode.id);
-    });
-  }, [loadNodes, runAction, selectedNode]);
-
-  const outdentSelected = useCallback(async () => {
-    if (!selectedNode) {
-      return;
-    }
-    await runAction(async () => {
-      await nodeRepository.outdent(selectedNode.id);
-      await loadNodes(selectedNode.id);
-    });
-  }, [loadNodes, runAction, selectedNode]);
-
-  const updateSelected = useCallback(
-    async (patch: UpdateNodeInput) => {
-      if (!selectedNode) {
-        return;
-      }
-      const updatedAt = new Date().toISOString();
-      const previousNodes = nodes;
-      setSaveStatus("saving");
-      setSaveError(null);
-      setNodes((current) =>
-        current.map((node) =>
-          node.id === selectedNode.id ? { ...node, ...patch, updatedAt } : node,
-        ),
-      );
-      try {
-        await nodeRepository.updateNode(selectedNode.id, patch);
-        setSaveStatus("saved");
-      } catch (caught) {
-        setNodes(previousNodes);
-        setSaveStatus("error");
-        setSaveError(caught instanceof Error ? caught.message : String(caught));
-      }
-    },
-    [nodes, selectedNode],
-  );
+  const {
+    clearPendingUndoDelete,
+    createChild,
+    createRoot,
+    createSiblingBelow,
+    deleteSelected,
+    indentSelected,
+    moveSelectedDown,
+    moveSelectedUp,
+    outdentSelected,
+    restorePendingDelete,
+    updateSelected,
+  } = useYarukotoNodeMutations({
+    loadNodes,
+    nodes,
+    pendingUndoDelete,
+    runAction,
+    selectedNode,
+    setExpandedIds,
+    setNodes,
+    setPendingUndoDelete,
+    setSaveError,
+    setSaveStatus,
+    visibleNodes,
+  });
 
   return {
     activeRootId,

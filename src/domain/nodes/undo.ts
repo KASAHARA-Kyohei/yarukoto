@@ -1,5 +1,6 @@
 import { getDescendantIds } from "./tree";
-import type { PendingUndoDelete, YarukotoNode } from "./types";
+import type { PendingUndoDelete } from "@/app/types";
+import type { YarukotoNode } from "./types";
 
 export function createDeleteUndoSnapshot({
   deletedAt,

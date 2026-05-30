@@ -1,4 +1,4 @@
-import type { CenterView } from "../types";
+import type { CenterView } from "@/app/types";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const VIEW_LABELS: Array<{ value: CenterView; label: string }> = [

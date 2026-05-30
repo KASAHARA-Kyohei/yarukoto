@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useRef, type RefObject } from "react";
-import { getChildren } from "../tree";
+import { DETAIL_FIELDS, type ActivePane, type DetailField } from "@/app/types";
+import { getChildren } from "@/domain/nodes/tree";
 import {
-  DETAIL_FIELDS,
-  type ActivePane,
-  type DetailField,
   type FlatTreeNode,
   type YarukotoNode,
-} from "../types";
+} from "@/domain/nodes/types";
 
 export function isEditableTagName(tagName: string) {
   return ["INPUT", "TEXTAREA", "SELECT"].includes(tagName);

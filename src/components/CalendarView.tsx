@@ -1,5 +1,5 @@
-import type { YarukotoNode } from "../types";
-import { statusBadgeClass, typeBadgeClass } from "@/nodeAppearance";
+import { statusBadgeClass, typeBadgeClass } from "@/domain/nodes/nodeAppearance";
+import type { YarukotoNode } from "@/domain/nodes/types";
 import { getMonthLabel, toDateKey } from "../utils/date";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

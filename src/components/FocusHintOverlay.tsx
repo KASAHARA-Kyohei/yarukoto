@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFocusHintLabels } from "@/focusHints";
+import { createFocusHintLabels } from "@/app/focusHints";
 
 const FOCUSABLE_SELECTOR = [
   "button:not([disabled])",

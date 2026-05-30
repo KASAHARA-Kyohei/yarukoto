@@ -1,5 +1,5 @@
-import { NODE_STATUSES, NODE_TYPES, type YarukotoNode } from "../types";
-import { statusBadgeClass, typeBadgeClass } from "@/nodeAppearance";
+import { statusBadgeClass, typeBadgeClass } from "@/domain/nodes/nodeAppearance";
+import { NODE_STATUSES, NODE_TYPES, type YarukotoNode } from "@/domain/nodes/types";
 import { Badge } from "@/components/ui/badge";
 import { addDays, toDateKey } from "../utils/date";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

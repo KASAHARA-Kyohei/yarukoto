@@ -3,7 +3,7 @@ import {
   getNextDetailField,
   getNextPane,
   isEditableTagName,
-} from "./hooks/useKeyboardShortcuts";
+} from "./useKeyboardShortcuts";
 
 describe("isEditableTagName", () => {
   it("treats form fields as editable targets", () => {

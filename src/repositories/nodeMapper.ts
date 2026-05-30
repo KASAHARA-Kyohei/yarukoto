@@ -2,7 +2,7 @@ import {
   isNodeStatus,
   isNodeType,
   type YarukotoNode,
-} from "../types";
+} from "../domain/nodes/types";
 
 export type DbNode = {
   id: string;

@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ActivePane } from "@/types";
+import type { ActivePane } from "@/app/types";
 
 const COMMON_SHORTCUTS: Array<[string, string]> = [
   ["Tab / Shift+Tab", "ペイン移動"],

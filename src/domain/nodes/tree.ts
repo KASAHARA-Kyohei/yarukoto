@@ -1,6 +1,5 @@
-import type { FlatTreeNode, YarukotoNode } from "./types";
+import type { FlatTreeNode, PeriodRange, YarukotoNode } from "./types";
 import { getNodePeriodDates, mergePeriodRanges } from "./period";
-import type { PeriodRange } from "./period";
 
 export function sortNodes(nodes: YarukotoNode[]) {
   return [...nodes].sort((a, b) => {
@@ -54,7 +53,7 @@ export function getVisibleTree(
       ? getRootNodes(nodes)
       : nodes.filter((node) => node.id === rootId);
   const result: FlatTreeNode[] = [];
-  const descendantPeriodsById = new Map<string, { start: string; end: string } | null>();
+  const descendantPeriodsById = new Map<string, PeriodRange | null>();
 
   const collectSubtreeRange = (node: YarukotoNode): PeriodRange | null => {
     const children = getChildren(nodes, node.id);

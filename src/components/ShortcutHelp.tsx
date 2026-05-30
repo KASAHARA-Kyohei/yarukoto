@@ -31,9 +31,14 @@ const PANE_SHORTCUTS: Record<ActivePane, Array<[string, string]>> = {
 };
 
 const DIALOG_SHORTCUTS: Array<[string, string]> = [
-  ["j / k", "編集項目選択"],
-  ["i / Enter", "選択項目を編集"],
-  ["Esc", "編集ウィンドウを閉じる"],
+  ["j / k", "編集項目選択 / 一覧中は候補移動 / カレンダーは週移動"],
+  ["h / l", "type / status を変更 / カレンダーは日移動"],
+  ["i", "通常項目にフォーカス / 日付は直接入力"],
+  ["Enter", "通常項目にフォーカス / type,status は一覧 / 日付はカレンダー / 一覧中は確定"],
+  ["H / L / t", "カレンダーで前月 / 翌月 / 今日"],
+  ["x", "日付をクリア"],
+  ["Enter (入力中)", "入力確定してフォーカス解除"],
+  ["Esc", "一覧・カレンダーを閉じる / 編集ウィンドウを閉じる"],
 ];
 
 export function ShortcutHelp({

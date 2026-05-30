@@ -13,7 +13,7 @@ export function FooterText({
   if (view === "tree") {
     return (
       <>
-        Tree: Enter/i 編集 ・ a 子追加 ・ o 下追加 ・ R ルート追加 ・ f フォーカスヒント ・ dd 削除 ・ ? ヘルプ
+        Tree: Enter/i 編集 ・ a 子追加 ・ o 下追加 ・ R ルート追加 ・ f フォーカスヒント ・ dd 削除 ・ Escで閉じる ・ ? ヘルプ
       </>
     );
   }

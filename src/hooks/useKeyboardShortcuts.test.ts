@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getNextCenterView,
   getNextDetailField,
   getNextPane,
   isEditableTagName,
@@ -22,6 +23,14 @@ describe("isEditableTagName", () => {
     expect(getNextPane("center", 1)).toBe("center");
     expect(getNextPane("center", -1)).toBe("projects");
     expect(getNextPane("projects", -1)).toBe("projects");
+  });
+
+  it("moves across center tabs", () => {
+    expect(getNextCenterView("tree", 1)).toBe("calendar");
+    expect(getNextCenterView("calendar", 1)).toBe("report");
+    expect(getNextCenterView("report", 1)).toBe("report");
+    expect(getNextCenterView("report", -1)).toBe("calendar");
+    expect(getNextCenterView("tree", -1)).toBe("tree");
   });
 
   it("moves through detail dialog fields", () => {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 import {
   DETAIL_FIELDS,
   type ActivePane,
+  type CenterView,
   type DateField,
   type DetailField,
   type DetailSelectField,
@@ -34,6 +35,16 @@ export function getNextPane(activePane: ActivePane, direction: 1 | -1) {
   return panes[nextIndex];
 }
 
+export function getNextCenterView(activeView: CenterView, direction: 1 | -1) {
+  const views: CenterView[] = ["tree", "calendar", "report"];
+  const index = views.indexOf(activeView);
+  const nextIndex = Math.min(
+    views.length - 1,
+    Math.max(0, index + direction),
+  );
+  return views[nextIndex];
+}
+
 export function getNextDetailField(
   activeDetailField: DetailField,
   direction: 1 | -1,
@@ -50,6 +61,7 @@ export function useKeyboardShortcuts({
   activeDateField,
   activeDetailField,
   activePane,
+  centerView,
   cancelDateTextEdit,
   clearActiveDate,
   closeDatePicker,
@@ -75,6 +87,8 @@ export function useKeyboardShortcuts({
   moveCalendarCursorByDays,
   moveCalendarCursorByMonths,
   moveCalendarCursorToToday,
+  moveCalendarMonth,
+  moveCenterView,
   moveOpenDetailSelect,
   moveSelectedDown,
   moveSelectedUp,
@@ -90,6 +104,7 @@ export function useKeyboardShortcuts({
   onOpenFocusHint,
   onOpenShortcutHelp,
   roots,
+  resetCalendarMonthToToday,
   selectNode,
   setActiveDetailField,
   setActivePane,
@@ -101,6 +116,7 @@ export function useKeyboardShortcuts({
   activeDateField: DateField | null;
   activeDetailField: DetailField;
   activePane: ActivePane;
+  centerView: CenterView;
   cancelDateTextEdit: () => void;
   clearActiveDate: () => void;
   closeDatePicker: () => void;
@@ -133,6 +149,8 @@ export function useKeyboardShortcuts({
   moveCalendarCursorByDays: (amount: number) => void;
   moveCalendarCursorByMonths: (amount: number) => void;
   moveCalendarCursorToToday: () => void;
+  moveCalendarMonth: (direction: 1 | -1) => void;
+  moveCenterView: (direction: 1 | -1) => void;
   moveOpenDetailSelect: (direction: 1 | -1) => void;
   moveSelectedDown: () => Promise<void>;
   moveSelectedUp: () => Promise<void>;
@@ -148,6 +166,7 @@ export function useKeyboardShortcuts({
   onOpenShortcutHelp: () => void;
   outdentSelected: () => Promise<void>;
   roots: YarukotoNode[];
+  resetCalendarMonthToToday: () => void;
   selectNode: (nodeId: string) => void;
   setActiveDetailField: (field: DetailField) => void;
   setActivePane: (pane: ActivePane) => void;
@@ -430,11 +449,19 @@ export function useKeyboardShortcuts({
         return;
       }
       if (event.ctrlKey && event.key === "h") {
-        run(() => movePane(-1));
+        if (activePane === "center" && centerView === "calendar") {
+          run(() => moveCalendarMonth(-1));
+        }
         return;
       }
       if (event.ctrlKey && event.key === "l") {
-        run(() => movePane(1));
+        if (activePane === "center" && centerView === "calendar") {
+          run(() => moveCalendarMonth(1));
+        }
+        return;
+      }
+      if (event.ctrlKey && event.key === "Tab") {
+        run(() => moveCenterView(event.shiftKey ? -1 : 1));
         return;
       }
       if (event.key === "Tab") {
@@ -468,6 +495,29 @@ export function useKeyboardShortcuts({
             break;
           case "Escape":
             run(() => setActivePane("center"));
+            break;
+        }
+        return;
+      }
+
+      if (centerView === "calendar") {
+        switch (event.key) {
+          case "i":
+          case "Enter":
+            run(onOpenDetailDialog);
+            break;
+          case "t":
+            run(resetCalendarMonthToToday);
+            break;
+        }
+        return;
+      }
+
+      if (centerView === "report") {
+        switch (event.key) {
+          case "i":
+          case "Enter":
+            run(onOpenDetailDialog);
             break;
         }
         return;
@@ -532,6 +582,7 @@ export function useKeyboardShortcuts({
     activeDateField,
     activeDetailField,
     activePane,
+    centerView,
     cancelDateTextEdit,
     clearActiveDate,
     blurActiveDialogElement,
@@ -560,6 +611,8 @@ export function useKeyboardShortcuts({
     moveCalendarCursorByDays,
     moveCalendarCursorByMonths,
     moveCalendarCursorToToday,
+    moveCalendarMonth,
+    moveCenterView,
     moveOpenDetailSelect,
     moveDetailField,
     moveSelectedDown,
@@ -577,6 +630,7 @@ export function useKeyboardShortcuts({
     onOpenFocusHint,
     onOpenShortcutHelp,
     outdentSelected,
+    resetCalendarMonthToToday,
     setActivePane,
   ]);
 }

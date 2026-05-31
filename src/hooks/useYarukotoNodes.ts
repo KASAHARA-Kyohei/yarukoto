@@ -46,7 +46,7 @@ export function useYarukotoNodes() {
     [activeRootId, nodes],
   );
   const calendarNodes = useMemo(
-    () => scopedNodes.filter((node) => node.dueDate),
+    () => scopedNodes.filter((node) => node.startDate || node.dueDate),
     [scopedNodes],
   );
 

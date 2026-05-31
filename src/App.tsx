@@ -8,6 +8,7 @@ import { NodeDetailDialog } from "./components/NodeDetailDialog";
 import { PaneHeader } from "./components/PaneHeader";
 import { ReportView } from "./components/ReportView";
 import { ShortcutHelp } from "./components/ShortcutHelp";
+import { buildTaskProgressMap } from "./domain/nodes/progress";
 import { Toolbar } from "./components/Toolbar";
 import { TreeView } from "./components/TreeView";
 import { getCycledValue } from "@/app/cycleValue";
@@ -106,6 +107,14 @@ function App() {
     updateSelected,
     visibleNodes,
   } = useYarukotoNodes();
+  const taskProgressById = useMemo(
+    () => buildTaskProgressMap(scopedNodes),
+    [scopedNodes],
+  );
+  const selectedTaskProgress = useMemo(
+    () => (selectedNode ? taskProgressById.get(selectedNode.id) ?? null : null),
+    [selectedNode, taskProgressById],
+  );
 
   const openDetailEditor = useCallback((node: YarukotoNode | null) => {
     if (!node) {
@@ -579,6 +588,7 @@ function App() {
             <TreeView
               expandedIds={expandedIds}
               selectedId={selectedId}
+              taskProgressById={taskProgressById}
               visibleNodes={visibleNodes}
               onSelectNode={selectNode}
               onToggleExpanded={toggleExpanded}
@@ -667,6 +677,7 @@ function App() {
             ? statusSelectDraft ?? selectedNode?.status ?? NODE_STATUSES[0]
             : selectedNode?.status ?? NODE_STATUSES[0]
         }
+        taskProgress={selectedTaskProgress}
         titleInputRef={titleInputRef}
         typeValue={
           openDetailSelectField === "type"

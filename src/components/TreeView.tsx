@@ -4,11 +4,15 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { TreePeriodCell, TreePeriodHeader } from "./TreePeriod";
+import { TaskProgressInline } from "./TaskProgress";
 import { statusBadgeClass, typeBadgeClass } from "@/domain/nodes/nodeAppearance";
+import type { TaskProgressInfo } from "@/domain/nodes/progress";
 import {
+  getTimelineMarkers,
   getNodePeriodDates,
   getTimelineBoundsFromRanges,
-  getTimelineWeekMarkers,
+  getTimelineModeFromRanges,
+  getTimelinePeriodColumnMinWidth,
   getTodayLineStyle,
   isInvalidDateRange,
 } from "@/domain/nodes/period";
@@ -19,7 +23,10 @@ import { cn } from "@/lib/utils";
 const INDENT_STEP = 22;
 const INDENT_START = 18;
 const TREE_ROW_GAP = 20;
-const TREE_COLUMNS = "minmax(320px, 520px) 68px 74px minmax(240px, 1fr)";
+
+function getTreeColumns(periodColumnMinWidth: number) {
+  return `minmax(320px, 520px) 68px 74px 92px minmax(${periodColumnMinWidth}px, 1fr)`;
+}
 
 function IndentGuides({
   depth,
@@ -77,31 +84,50 @@ export function TreeView({
   onSelectNode,
   onToggleExpanded,
   selectedId,
+  taskProgressById,
   visibleNodes,
 }: {
   expandedIds: Set<string>;
   onSelectNode: (nodeId: string) => void;
   onToggleExpanded: (nodeId: string) => void;
   selectedId: string | null;
+  taskProgressById: Map<string, TaskProgressInfo>;
   visibleNodes: FlatTreeNode[];
 }) {
-  const timelineBounds = useMemo(
-    () => {
-      const ranges = [
-        ...visibleNodes.map(({ node }) => getNodePeriodDates(node)),
-        ...visibleNodes.map(({ descendantPeriod }) => descendantPeriod),
-      ];
-      return getTimelineBoundsFromRanges(ranges);
-    },
+  const periodRanges = useMemo(
+    () => [
+      ...visibleNodes.map(({ node }) => getNodePeriodDates(node)),
+      ...visibleNodes.map(({ descendantPeriod }) => descendantPeriod),
+    ],
     [visibleNodes],
   );
-  const weekMarkers = useMemo(
-    () => getTimelineWeekMarkers(timelineBounds),
-    [timelineBounds],
+  const timelineMode = useMemo(
+    () => getTimelineModeFromRanges(periodRanges),
+    [periodRanges],
+  );
+  const timelineBounds = useMemo(
+    () => getTimelineBoundsFromRanges(periodRanges),
+    [periodRanges],
+  );
+  const markers = useMemo(
+    () => getTimelineMarkers(timelineBounds, timelineMode),
+    [timelineBounds, timelineMode],
   );
   const todayLineStyle = useMemo(
     () => getTodayLineStyle(timelineBounds),
     [timelineBounds],
+  );
+  const periodColumnMinWidth = useMemo(
+    () => getTimelinePeriodColumnMinWidth(timelineMode),
+    [timelineMode],
+  );
+  const treeColumns = useMemo(
+    () => getTreeColumns(periodColumnMinWidth),
+    [periodColumnMinWidth],
+  );
+  const treeMinWidth = useMemo(
+    () => 320 + 68 + 74 + 92 + periodColumnMinWidth + 40,
+    [periodColumnMinWidth],
   );
 
   return (
@@ -111,18 +137,20 @@ export function TreeView({
           ルートを追加してください。
         </div>
       ) : (
-        <div className="min-w-[720px]">
+        <div style={{ minWidth: `${treeMinWidth}px` }}>
           <div
             className="mb-2 grid items-end gap-y-1 px-2 text-[11px] font-medium uppercase text-muted-foreground/90"
-            style={{ gridTemplateColumns: TREE_COLUMNS }}
+            style={{ gridTemplateColumns: treeColumns }}
           >
             <div className="pl-2">Title</div>
             <div>Type</div>
             <div>Status</div>
+            <div>Progress</div>
             <TreePeriodHeader
+              markers={markers}
               timelineBounds={timelineBounds}
+              timelineMode={timelineMode}
               todayLineStyle={todayLineStyle}
-              weekMarkers={weekMarkers}
             />
           </div>
           {visibleNodes.map(
@@ -138,6 +166,7 @@ export function TreeView({
               const isSelected = node.id === selectedId;
               const isExpanded = expandedIds.has(node.id);
               const isInvalidRange = isInvalidDateRange(node);
+              const taskProgress = taskProgressById.get(node.id) ?? null;
               return (
                 <div
                   className={cn(
@@ -149,7 +178,7 @@ export function TreeView({
                   )}
                   key={node.id}
                   onClick={() => onSelectNode(node.id)}
-                  style={{ gridTemplateColumns: TREE_COLUMNS }}
+                  style={{ gridTemplateColumns: treeColumns }}
                 >
                   <div className="relative flex min-w-0 items-center pl-2">
                     <IndentGuides
@@ -222,13 +251,15 @@ export function TreeView({
                   >
                     {node.status}
                   </Badge>
+                  <div className="min-w-0 pr-2">
+                    <TaskProgressInline progress={taskProgress} />
+                  </div>
                   <TreePeriodCell
                     descendantPeriod={descendantPeriod}
-                    hasChildren={hasChildren}
+                    markers={markers}
                     node={node}
                     timelineBounds={timelineBounds}
                     todayLineStyle={todayLineStyle}
-                    weekMarkers={weekMarkers}
                   />
                 </div>
               );

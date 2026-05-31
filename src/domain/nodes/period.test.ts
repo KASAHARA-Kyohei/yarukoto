@@ -5,7 +5,9 @@ import {
   getPeriodBounds,
   getTimelineBounds,
   getTimelineBoundsFromRanges,
-  getTimelineWeekMarkers,
+  getTimelineMarkers,
+  getTimelineModeFromRanges,
+  getTimelinePeriodColumnMinWidth,
   getTodayLineStyle,
   isInvalidDateRange,
   mergePeriodRanges,
@@ -32,8 +34,11 @@ describe("period helpers", () => {
 
     expect(bounds).toEqual({ start: "2026-06-01", end: "2026-06-10" });
     expect(getPeriodBarStyle({ startDate: "2026-06-01", dueDate: "2026-06-05" }, bounds)).toEqual({
+      endMarkerLeft: "44.44444444444444%",
       left: "0%",
-      width: "44.44444444444444%",
+      truncatedLeft: false,
+      truncatedRight: false,
+      width: "max(6px, 44.44444444444444%)",
     });
   });
 
@@ -42,29 +47,122 @@ describe("period helpers", () => {
     expect(getPeriodBarStyle({ startDate: null, dueDate: null }, null)).toBeNull();
   });
 
-  it("aligns timeline bounds to work weeks", () => {
+  it("selects timeline modes from visible span", () => {
     expect(
-      getTimelineBounds([
-        { startDate: "2026-06-03", dueDate: "2026-06-10" },
-      ]),
+      getTimelineModeFromRanges([{ start: "2026-06-01", end: "2026-06-15" }]),
+    ).toBe("short");
+    expect(
+      getTimelineModeFromRanges([{ start: "2026-06-01", end: "2026-08-15" }]),
+    ).toBe("medium");
+    expect(
+      getTimelineModeFromRanges([{ start: "2026-01-01", end: "2026-10-01" }]),
+    ).toBe("long");
+    expect(
+      getTimelineModeFromRanges([{ start: "2026-01-01", end: "2027-06-01" }]),
+    ).toBe("xlong");
+  });
+
+  it("widens the period column for longer modes", () => {
+    expect(getTimelinePeriodColumnMinWidth("short")).toBe(320);
+    expect(getTimelinePeriodColumnMinWidth("medium")).toBe(520);
+    expect(getTimelinePeriodColumnMinWidth("long")).toBe(720);
+    expect(getTimelinePeriodColumnMinWidth("xlong")).toBe(720);
+  });
+
+  it("aligns short bounds to weeks and medium bounds to months", () => {
+    expect(
+      getTimelineBounds(
+        [{ startDate: "2026-06-03", dueDate: "2026-06-10" }],
+        "2026-06-10",
+      ),
     ).toEqual({
       end: "2026-06-14",
       start: "2026-06-01",
     });
+
+    expect(
+      getTimelineBoundsFromRanges(
+        [{ start: "2026-06-03", end: "2026-08-10" }],
+        "2026-06-10",
+      ),
+    ).toEqual({
+      end: "2026-08-31",
+      start: "2026-06-01",
+    });
   });
 
-  it("returns markers and today line within timeline bounds", () => {
-    const bounds = getTimelineBoundsFromRanges([
+  it("uses a 12-month focus window for xlong ranges", () => {
+    expect(
+      getTimelineBoundsFromRanges(
+        [{ start: "2025-01-01", end: "2027-06-01" }],
+        "2026-05-31",
+      ),
+    ).toEqual({
+      end: "2027-04-30",
+      start: "2026-05-01",
+    });
+  });
+
+  it("returns markers and today line for each mode", () => {
+    const shortBounds = getTimelineBoundsFromRanges([
       { start: "2026-06-01", end: "2026-06-14" },
     ]);
-
-    expect(getTimelineWeekMarkers(bounds)).toEqual([
-      { dateKey: "2026-06-08", left: "53.84615384615385%" },
+    expect(getTimelineMarkers(shortBounds, "short")).toEqual([
+      { dateKey: "2026-06-08", kind: "week", label: null, left: "53.84615384615385%" },
     ]);
-    expect(getTodayLineStyle(bounds, "2026-06-10")).toEqual({
+    expect(getTodayLineStyle(shortBounds, "2026-06-10")).toEqual({
       left: "69.23076923076923%",
     });
-    expect(getTodayLineStyle(bounds, "2026-07-01")).toBeNull();
+
+    const longBounds = getTimelineBoundsFromRanges(
+      [{ start: "2026-01-01", end: "2026-10-01" }],
+      "2026-06-10",
+    );
+    expect(getTimelineMarkers(longBounds, "long")).toEqual(
+      expect.arrayContaining([
+        {
+          dateKey: "2026-04-01",
+          kind: "quarter",
+          label: "2026 Q2",
+          left: expect.any(String),
+        },
+        {
+          dateKey: "2026-05-01",
+          kind: "month",
+          label: null,
+          left: expect.any(String),
+        },
+      ]),
+    );
+  });
+
+  it("clips bars at the focus window edges for xlong", () => {
+    const bounds = getTimelineBoundsFromRanges(
+      [{ start: "2025-01-01", end: "2027-06-01" }],
+      "2026-05-31",
+    );
+
+    const leftClipped = getPeriodBarStyle(
+      { startDate: "2026-01-01", dueDate: "2026-06-15" },
+      bounds,
+    );
+    expect(leftClipped).toMatchObject({
+      left: "0%",
+      truncatedLeft: true,
+      truncatedRight: false,
+    });
+    expect(leftClipped?.endMarkerLeft).toBe("12.362637362637363%");
+    expect(leftClipped?.width).toBe("max(6px, 12.362637362637363%)");
+
+    expect(
+      getPeriodBarStyle({ startDate: "2027-12-01", dueDate: "2028-01-01" }, bounds),
+    ).toEqual({
+      endMarkerLeft: "100%",
+      left: "calc(100% - 10px)",
+      truncatedLeft: false,
+      truncatedRight: true,
+      width: "10px",
+    });
   });
 
   it("merges aggregate child ranges", () => {

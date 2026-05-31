@@ -13,12 +13,12 @@ export function FooterText({
   if (view === "tree") {
     return (
       <>
-        Tree: Enter/i 編集 ・ a 子追加 ・ o 下追加 ・ R ルート追加 ・ f フォーカスヒント ・ dd 削除 ・ Escで閉じる ・ ? ヘルプ
+        Tree: Enter/i 編集 ・ a 子追加 ・ o 下追加 ・ R ルート追加 ・ Ctrl+Tab タブ切替 ・ Tab ペイン移動 ・ ? ヘルプ
       </>
     );
   }
   if (view === "calendar") {
-    return <>期限日があるノードを月表示します。予定をクリックすると詳細を開きます。</>;
+    return <>Calendar: Ctrl+Tab タブ切替 ・ Ctrl+h/l 前月/翌月 ・ t 今月 ・ 期間バーと単日カードを月表示します。</>;
   }
-  return <>現在のプロジェクト配下を集計します。件数や期限状況からノードへ移動できます。</>;
+  return <>Report: Ctrl+Tab タブ切替 ・ Tab ペイン移動 ・ 集計結果から選択ノードを開けます。</>;
 }

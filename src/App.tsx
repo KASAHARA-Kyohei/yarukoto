@@ -8,6 +8,7 @@ import { NodeDetailDialog } from "./components/NodeDetailDialog";
 import { PaneHeader } from "./components/PaneHeader";
 import { ReportView } from "./components/ReportView";
 import { ShortcutHelp } from "./components/ShortcutHelp";
+import { buildTaskProgressMap } from "./domain/nodes/progress";
 import { Toolbar } from "./components/Toolbar";
 import { TreeView } from "./components/TreeView";
 import { getCycledValue } from "@/app/cycleValue";
@@ -36,6 +37,7 @@ import {
   type YarukotoNode,
 } from "@/domain/nodes/types";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { getNextCenterView } from "./hooks/useKeyboardShortcuts";
 import { useYarukotoNodes } from "./hooks/useYarukotoNodes";
 import { cn } from "./lib/utils";
 
@@ -106,6 +108,14 @@ function App() {
     updateSelected,
     visibleNodes,
   } = useYarukotoNodes();
+  const taskProgressById = useMemo(
+    () => buildTaskProgressMap(scopedNodes),
+    [scopedNodes],
+  );
+  const selectedTaskProgress = useMemo(
+    () => (selectedNode ? taskProgressById.get(selectedNode.id) ?? null : null),
+    [selectedNode, taskProgressById],
+  );
 
   const openDetailEditor = useCallback((node: YarukotoNode | null) => {
     if (!node) {
@@ -373,6 +383,18 @@ function App() {
     [selectedNode, updateSelected],
   );
 
+  const moveCenterView = useCallback((direction: 1 | -1) => {
+    setCenterView((current) => getNextCenterView(current, direction));
+  }, []);
+
+  const moveCalendarMonth = useCallback((direction: 1 | -1) => {
+    setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + direction, 1));
+  }, []);
+
+  const resetCalendarMonthToToday = useCallback(() => {
+    setCalendarMonth(new Date());
+  }, []);
+
   useEffect(() => {
     if (!isDetailDialogOpen || !selectedNode || !shouldFocusTitleRef.current) {
       return;
@@ -420,6 +442,7 @@ function App() {
     activeDateField,
     activeDetailField,
     activePane,
+    centerView,
     cancelDateTextEdit,
     clearActiveDate,
     closeDatePicker,
@@ -445,6 +468,8 @@ function App() {
     moveCalendarCursorByDays,
     moveCalendarCursorByMonths,
     moveCalendarCursorToToday,
+    moveCalendarMonth,
+    moveCenterView,
     moveOpenDetailSelect,
     moveSelectedDown,
     moveSelectedUp,
@@ -460,6 +485,7 @@ function App() {
     onOpenShortcutHelp: () => setIsShortcutHelpOpen(true),
     outdentSelected,
     roots,
+    resetCalendarMonthToToday,
     selectNode,
     setActiveDetailField,
     setActivePane,
@@ -579,6 +605,7 @@ function App() {
             <TreeView
               expandedIds={expandedIds}
               selectedId={selectedId}
+              taskProgressById={taskProgressById}
               visibleNodes={visibleNodes}
               onSelectNode={selectNode}
               onToggleExpanded={toggleExpanded}
@@ -596,7 +623,7 @@ function App() {
               />
             ) : null}
             {centerView === "report" ? (
-              <ReportView nodes={scopedNodes} onSelectNode={selectNode} />
+              <ReportView nodes={scopedNodes} selectedId={selectedId} onSelectNode={selectNode} />
             ) : null}
           </>
         )}
@@ -667,6 +694,7 @@ function App() {
             ? statusSelectDraft ?? selectedNode?.status ?? NODE_STATUSES[0]
             : selectedNode?.status ?? NODE_STATUSES[0]
         }
+        taskProgress={selectedTaskProgress}
         titleInputRef={titleInputRef}
         typeValue={
           openDetailSelectField === "type"
@@ -702,6 +730,7 @@ function App() {
       {isShortcutHelpOpen ? (
         <ShortcutHelp
           activePane={activePane}
+          centerView={centerView}
           isDetailDialogOpen={isDetailDialogOpen}
           onClose={() => setIsShortcutHelpOpen(false)}
         />

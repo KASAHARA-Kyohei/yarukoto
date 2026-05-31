@@ -1,5 +1,6 @@
 import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
 import { DatePicker } from "./DatePicker";
+import { TaskProgressDetail } from "./TaskProgress";
 import {
   type DateEditMode,
   type DateField,
@@ -10,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { isInvalidDateRange } from "@/domain/nodes/period";
+import type { TaskProgressInfo } from "@/domain/nodes/progress";
 import {
   NODE_STATUSES,
   NODE_TYPES,
@@ -102,6 +104,7 @@ export function NodeDetailDialog({
   saveError,
   saveStatus,
   statusValue,
+  taskProgress,
   titleInputRef,
   typeValue,
 }: {
@@ -140,6 +143,7 @@ export function NodeDetailDialog({
   saveError: string | null;
   saveStatus: SaveStatus;
   statusValue: NodeStatus;
+  taskProgress: TaskProgressInfo | null;
   titleInputRef: RefObject<HTMLInputElement | null>;
   typeValue: NodeType;
 }) {
@@ -234,6 +238,7 @@ export function NodeDetailDialog({
                   </SelectContent>
                 </Select>
               </label>
+              <TaskProgressDetail progress={taskProgress} />
               <label
                 className={cn(
                   "grid gap-1.5 text-sm font-medium",

@@ -1,13 +1,18 @@
 import type { PeriodRange, YarukotoNode } from "./types";
 import { addDays, daysBetween, parseDateKey, toDateKey } from "../../utils/date";
 
+export type TimelineMode = "short" | "medium" | "long" | "xlong";
+
 export type PeriodBounds = {
   end: string;
   start: string;
 };
 
 export type PeriodBarStyle = {
+  endMarkerLeft: string;
   left: string;
+  truncatedLeft: boolean;
+  truncatedRight: boolean;
   width: string;
 };
 
@@ -15,8 +20,10 @@ export type TimelineLineStyle = {
   left: string;
 };
 
-export type TimelineWeekMarker = {
+export type TimelineMarker = {
   dateKey: string;
+  kind: "month" | "quarter" | "week";
+  label: string | null;
   left: string;
 };
 
@@ -99,18 +106,32 @@ export function formatPeriodLabel(startDate: string | null, dueDate: string | nu
 export function mergePeriodRanges(
   ranges: Array<PeriodRange | null | undefined>,
 ): PeriodRange | null {
-  const values = ranges.filter((range): range is PeriodRange => range !== null && range !== undefined);
+  const values = ranges.filter(
+    (range): range is PeriodRange => range !== null && range !== undefined,
+  );
   if (values.length === 0) {
     return null;
   }
   return {
-    end: values.reduce((latest, range) => (range.end > latest ? range.end : latest), values[0].end),
-    start: values.reduce((earliest, range) => (range.start < earliest ? range.start : earliest), values[0].start),
+    end: values.reduce(
+      (latest, range) => (range.end > latest ? range.end : latest),
+      values[0].end,
+    ),
+    start: values.reduce(
+      (earliest, range) => (range.start < earliest ? range.start : earliest),
+      values[0].start,
+    ),
   };
 }
 
 export function getPeriodBounds(nodes: Array<Pick<YarukotoNode, "dueDate" | "startDate">>) {
   return mergePeriodRanges(nodes.map(getNodePeriodDates));
+}
+
+function addMonths(dateKey: string, amount: number) {
+  const next = parseDateKey(dateKey);
+  next.setMonth(next.getMonth() + amount);
+  return toDateKey(next);
 }
 
 function alignToWeekStart(dateKey: string) {
@@ -125,23 +146,119 @@ function alignToWeekEnd(dateKey: string) {
   return toDateKey(addDays(date, offset));
 }
 
-export function getTimelineBoundsFromRanges(
+function alignToMonthStart(dateKey: string) {
+  const date = parseDateKey(dateKey);
+  return toDateKey(new Date(date.getFullYear(), date.getMonth(), 1));
+}
+
+function alignToMonthEnd(dateKey: string) {
+  const date = parseDateKey(dateKey);
+  return toDateKey(new Date(date.getFullYear(), date.getMonth() + 1, 0));
+}
+
+function getQuarterLabel(dateKey: string) {
+  const date = parseDateKey(dateKey);
+  return `${date.getFullYear()} Q${Math.floor(date.getMonth() / 3) + 1}`;
+}
+
+export function getTimelineModeFromRanges(
   ranges: Array<PeriodRange | null | undefined>,
-): PeriodBounds | null {
+): TimelineMode | null {
   const merged = mergePeriodRanges(ranges);
   if (!merged) {
     return null;
   }
+  const totalDays = Math.max(
+    0,
+    daysBetween(parseDateKey(merged.start), parseDateKey(merged.end)),
+  );
+  if (totalDays <= 45) {
+    return "short";
+  }
+  if (totalDays <= 180) {
+    return "medium";
+  }
+  if (totalDays <= 365) {
+    return "long";
+  }
+  return "xlong";
+}
+
+export function getTimelinePeriodColumnMinWidth(mode: TimelineMode | null) {
+  switch (mode) {
+    case "medium":
+      return 520;
+    case "long":
+    case "xlong":
+      return 720;
+    case "short":
+    default:
+      return 320;
+  }
+}
+
+function getXlongBounds(merged: PeriodRange, todayKey: string): PeriodBounds {
+  if (todayKey < merged.start) {
+    const start = alignToMonthStart(merged.start);
+    return {
+      end: alignToMonthEnd(addMonths(start, 11)),
+      start,
+    };
+  }
+
+  if (todayKey > merged.end) {
+    const end = alignToMonthEnd(merged.end);
+    const endMonthStart = alignToMonthStart(end);
+    const start = alignToMonthStart(addMonths(endMonthStart, -11));
+    return { end, start };
+  }
+
+  const start = alignToMonthStart(todayKey);
   return {
-    end: alignToWeekEnd(merged.end),
-    start: alignToWeekStart(merged.start),
+    end: alignToMonthEnd(addMonths(start, 11)),
+    start,
   };
+}
+
+export function getTimelineBoundsForMode(
+  merged: PeriodRange,
+  mode: TimelineMode,
+  todayKey = toDateKey(new Date()),
+): PeriodBounds {
+  switch (mode) {
+    case "short":
+      return {
+        end: alignToWeekEnd(merged.end),
+        start: alignToWeekStart(merged.start),
+      };
+    case "medium":
+    case "long":
+      return {
+        end: alignToMonthEnd(merged.end),
+        start: alignToMonthStart(merged.start),
+      };
+    case "xlong":
+      return getXlongBounds(merged, todayKey);
+  }
+}
+
+export function getTimelineBoundsFromRanges(
+  ranges: Array<PeriodRange | null | undefined>,
+  todayKey = toDateKey(new Date()),
+): PeriodBounds | null {
+  const merged = mergePeriodRanges(ranges);
+  const mode = getTimelineModeFromRanges(ranges);
+  if (!merged || !mode) {
+    return null;
+  }
+  return getTimelineBoundsForMode(merged, mode, todayKey);
 }
 
 export function getTimelineBounds(
   nodes: Array<Pick<YarukotoNode, "dueDate" | "startDate">>,
+  todayKey = toDateKey(new Date()),
 ): PeriodBounds | null {
-  return getTimelineBoundsFromRanges(nodes.map(getNodePeriodDates));
+  return getTimelineBoundsFromRanges(nodes.map(getNodePeriodDates), todayKey);
 }
 
 export function getTimelinePosition(bounds: PeriodBounds | null, dateKey: string) {
@@ -167,23 +284,56 @@ export function getTodayLineStyle(
   return left ? { left } : null;
 }
 
-export function getTimelineWeekMarkers(bounds: PeriodBounds | null) {
-  if (!bounds) {
+export function getTimelineMarkers(
+  bounds: PeriodBounds | null,
+  mode: TimelineMode | null,
+): TimelineMarker[] {
+  if (!bounds || !mode) {
     return [];
   }
 
-  const totalDays = Math.max(
-    1,
-    daysBetween(parseDateKey(bounds.start), parseDateKey(bounds.end)),
-  );
-  const markers: TimelineWeekMarker[] = [];
+  const markers: TimelineMarker[] = [];
 
-  for (let offset = 7; offset < totalDays; offset += 7) {
-    const date = addDays(parseDateKey(bounds.start), offset);
-    markers.push({
-      dateKey: toDateKey(date),
-      left: `${(offset / totalDays) * 100}%`,
-    });
+  if (mode === "short") {
+    const totalDays = Math.max(
+      1,
+      daysBetween(parseDateKey(bounds.start), parseDateKey(bounds.end)),
+    );
+    for (let offset = 7; offset < totalDays; offset += 7) {
+      const date = addDays(parseDateKey(bounds.start), offset);
+      markers.push({
+        dateKey: toDateKey(date),
+        kind: "week",
+        label: null,
+        left: `${(offset / totalDays) * 100}%`,
+      });
+    }
+    return markers;
+  }
+
+  let current = parseDateKey(alignToMonthStart(bounds.start));
+  current.setMonth(current.getMonth() + 1);
+  while (toDateKey(current) < bounds.end) {
+    const dateKey = toDateKey(current);
+    const left = getTimelinePosition(bounds, dateKey);
+    if (left) {
+      if (mode === "medium") {
+        markers.push({
+          dateKey,
+          kind: "month",
+          label: `${current.getMonth() + 1}月`,
+          left,
+        });
+      } else {
+        markers.push({
+          dateKey,
+          kind: current.getMonth() % 3 === 0 ? "quarter" : "month",
+          label: current.getMonth() % 3 === 0 ? getQuarterLabel(dateKey) : null,
+          left,
+        });
+      }
+    }
+    current.setMonth(current.getMonth() + 1);
   }
 
   return markers;
@@ -200,23 +350,55 @@ export function getPeriodBarStyle(
   if (!bounds || !range) {
     return null;
   }
+
   const totalDays = Math.max(
     1,
     daysBetween(parseDateKey(bounds.start), parseDateKey(bounds.end)),
   );
-  const offsetDays = Math.max(
+
+  if (range.end < bounds.start) {
+    return {
+      endMarkerLeft: "0%",
+      left: "0px",
+      truncatedLeft: true,
+      truncatedRight: false,
+      width: "10px",
+    };
+  }
+
+  if (range.start > bounds.end) {
+    return {
+      endMarkerLeft: "100%",
+      left: "calc(100% - 10px)",
+      truncatedLeft: false,
+      truncatedRight: true,
+      width: "10px",
+    };
+  }
+
+  const clippedStart = range.start < bounds.start ? bounds.start : range.start;
+  const clippedEnd = range.end > bounds.end ? bounds.end : range.end;
+  const leftDays = Math.max(
     0,
-    daysBetween(parseDateKey(bounds.start), parseDateKey(range.start)),
+    daysBetween(parseDateKey(bounds.start), parseDateKey(clippedStart)),
   );
-  const durationDays = Math.max(
+  const visibleDays = Math.max(
+    0.35,
+    daysBetween(parseDateKey(clippedStart), parseDateKey(clippedEnd)),
+  );
+  const endDays = Math.max(
     0,
-    daysBetween(parseDateKey(range.start), parseDateKey(range.end)),
+    daysBetween(parseDateKey(bounds.start), parseDateKey(clippedEnd)),
   );
-  const left = Math.min(100, (offsetDays / totalDays) * 100);
-  const width = Math.max(4, ((durationDays || 0.35) / totalDays) * 100);
+  const leftPercent = (leftDays / totalDays) * 100;
+  const widthPercent = (visibleDays / totalDays) * 100;
+  const endPercent = (endDays / totalDays) * 100;
 
   return {
-    left: `${left}%`,
-    width: `${Math.min(100 - left, width)}%`,
+    endMarkerLeft: `${Math.max(0, Math.min(100, endPercent))}%`,
+    left: `${Math.max(0, Math.min(100, leftPercent))}%`,
+    truncatedLeft: range.start < bounds.start,
+    truncatedRight: range.end > bounds.end,
+    width: `max(6px, ${Math.min(100 - leftPercent, widthPercent)}%)`,
   };
 }

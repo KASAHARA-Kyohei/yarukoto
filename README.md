@@ -164,3 +164,7 @@ Tree:
 - サンプルデータは空 DB のときだけ投入します
 - 手動確認項目は [MANUAL_TEST.md](./MANUAL_TEST.md) を参照してください
 - Node.js `22.11.0` では Vite の警告が出ます。`22.12+` への更新を推奨します
+
+## License
+
+Apache License 2.0. See [LICENSE](./LICENSE).

@@ -50,14 +50,20 @@ function App() {
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [activeDetailField, setActiveDetailField] =
     useState<DetailField>("title");
-  const [activeDateField, setActiveDateField] = useState<DateField | null>(null);
+  const [activeDateField, setActiveDateField] = useState<DateField | null>(
+    null,
+  );
   const [dateEditMode, setDateEditMode] = useState<DateEditMode | null>(null);
   const [dateDraftValue, setDateDraftValue] = useState("");
   const [dateInputError, setDateInputError] = useState<string | null>(null);
-  const [calendarCursorDate, setCalendarCursorDate] = useState<string | null>(null);
+  const [calendarCursorDate, setCalendarCursorDate] = useState<string | null>(
+    null,
+  );
   const [openDetailSelectField, setOpenDetailSelectField] =
     useState<DetailSelectField | null>(null);
-  const [statusSelectDraft, setStatusSelectDraft] = useState<NodeStatus | null>(null);
+  const [statusSelectDraft, setStatusSelectDraft] = useState<NodeStatus | null>(
+    null,
+  );
   const [typeSelectDraft, setTypeSelectDraft] = useState<NodeType | null>(null);
   const shouldFocusTitleRef = useRef(false);
   const dueDateButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -113,7 +119,8 @@ function App() {
     [scopedNodes],
   );
   const selectedTaskProgress = useMemo(
-    () => (selectedNode ? taskProgressById.get(selectedNode.id) ?? null : null),
+    () =>
+      selectedNode ? (taskProgressById.get(selectedNode.id) ?? null) : null,
     [selectedNode, taskProgressById],
   );
 
@@ -144,7 +151,9 @@ function App() {
       if (!selectedNode) {
         return null;
       }
-      return field === "startDate" ? selectedNode.startDate : selectedNode.dueDate;
+      return field === "startDate"
+        ? selectedNode.startDate
+        : selectedNode.dueDate;
     },
     [selectedNode],
   );
@@ -251,7 +260,12 @@ function App() {
     }
     updateDateField(activeDateField, getInitialDateKey(calendarCursorDate));
     resetDateInteraction();
-  }, [activeDateField, calendarCursorDate, resetDateInteraction, updateDateField]);
+  }, [
+    activeDateField,
+    calendarCursorDate,
+    resetDateInteraction,
+    updateDateField,
+  ]);
 
   const commitDateTextEdit = useCallback(() => {
     if (!activeDateField) {
@@ -311,7 +325,11 @@ function App() {
       }
       if (openDetailSelectField === "type") {
         setTypeSelectDraft((currentValue) =>
-          getCycledValue(NODE_TYPES, currentValue ?? selectedNode.type, direction),
+          getCycledValue(
+            NODE_TYPES,
+            currentValue ?? selectedNode.type,
+            direction,
+          ),
         );
       } else {
         setStatusSelectDraft((currentValue) =>
@@ -369,7 +387,12 @@ function App() {
       resetDetailSelectState();
       resetDateInteraction();
     }
-  }, [isDetailDialogOpen, resetDateInteraction, resetDetailSelectState, selectedNode?.id]);
+  }, [
+    isDetailDialogOpen,
+    resetDateInteraction,
+    resetDetailSelectState,
+    selectedNode?.id,
+  ]);
 
   const cycleStatusValue = useCallback(
     (direction: 1 | -1) => {
@@ -388,7 +411,10 @@ function App() {
   }, []);
 
   const moveCalendarMonth = useCallback((direction: 1 | -1) => {
-    setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + direction, 1));
+    setCalendarMonth(
+      (current) =>
+        new Date(current.getFullYear(), current.getMonth() + direction, 1),
+    );
   }, []);
 
   const resetCalendarMonthToToday = useCallback(() => {
@@ -407,29 +433,26 @@ function App() {
     return () => window.clearTimeout(timeoutId);
   }, [isDetailDialogOpen, selectedNode]);
 
-  const handleFocusHintFocused = useCallback(
-    (element: HTMLElement) => {
-      const pane = element.closest<HTMLElement>("[data-app-pane]")?.dataset
-        .appPane as ActivePane | undefined;
-      if (pane) {
-        setActivePane(pane);
-      }
-      if (element === titleInputRef.current) {
-        setActiveDetailField("title");
-      } else if (element === typeTriggerRef.current) {
-        setActiveDetailField("type");
-      } else if (element === statusTriggerRef.current) {
-        setActiveDetailField("status");
-      } else if (element === startDateButtonRef.current) {
-        setActiveDetailField("startDate");
-      } else if (element === dueDateButtonRef.current) {
-        setActiveDetailField("dueDate");
-      } else if (element === memoTextareaRef.current) {
-        setActiveDetailField("memo");
-      }
-    },
-    [],
-  );
+  const handleFocusHintFocused = useCallback((element: HTMLElement) => {
+    const pane = element.closest<HTMLElement>("[data-app-pane]")?.dataset
+      .appPane as ActivePane | undefined;
+    if (pane) {
+      setActivePane(pane);
+    }
+    if (element === titleInputRef.current) {
+      setActiveDetailField("title");
+    } else if (element === typeTriggerRef.current) {
+      setActiveDetailField("type");
+    } else if (element === statusTriggerRef.current) {
+      setActiveDetailField("status");
+    } else if (element === startDateButtonRef.current) {
+      setActiveDetailField("startDate");
+    } else if (element === dueDateButtonRef.current) {
+      setActiveDetailField("dueDate");
+    } else if (element === memoTextareaRef.current) {
+      setActiveDetailField("memo");
+    }
+  }, []);
 
   useEffect(() => {
     if (!selectedNode) {
@@ -623,18 +646,22 @@ function App() {
               />
             ) : null}
             {centerView === "report" ? (
-              <ReportView nodes={scopedNodes} selectedId={selectedId} onSelectNode={selectNode} />
+              <ReportView
+                nodes={scopedNodes}
+                selectedId={selectedId}
+                onSelectNode={selectNode}
+              />
             ) : null}
           </>
         )}
         <footer className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
           {actionError ? (
-            <span className="text-destructive">操作に失敗しました: {actionError}</span>
+            <span className="text-destructive">
+              操作に失敗しました: {actionError}
+            </span>
           ) : pendingUndoDelete ? (
             <span className="inline-flex items-center gap-2">
-              <span>
-                「{pendingUndoDelete.title}」を削除しました
-              </span>
+              <span>「{pendingUndoDelete.title}」を削除しました</span>
               <Button
                 className="h-6 px-2 text-xs"
                 size="sm"
@@ -691,15 +718,15 @@ function App() {
         saveStatus={saveStatus}
         statusValue={
           openDetailSelectField === "status"
-            ? statusSelectDraft ?? selectedNode?.status ?? NODE_STATUSES[0]
-            : selectedNode?.status ?? NODE_STATUSES[0]
+            ? (statusSelectDraft ?? selectedNode?.status ?? NODE_STATUSES[0])
+            : (selectedNode?.status ?? NODE_STATUSES[0])
         }
         taskProgress={selectedTaskProgress}
         titleInputRef={titleInputRef}
         typeValue={
           openDetailSelectField === "type"
-            ? typeSelectDraft ?? selectedNode?.type ?? NODE_TYPES[0]
-            : selectedNode?.type ?? NODE_TYPES[0]
+            ? (typeSelectDraft ?? selectedNode?.type ?? NODE_TYPES[0])
+            : (selectedNode?.type ?? NODE_TYPES[0])
         }
         onActivateField={setActiveDetailField}
         onOpenChange={setIsDetailDialogOpen}

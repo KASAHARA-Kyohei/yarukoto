@@ -69,7 +69,8 @@ export function useKeyboardShortcuts({
   cycleStatusValue,
   cycleTypeValue,
   createChild,
-  createRoot,
+  createRootAndEdit,
+  createRootInProjects,
   createSiblingBelow,
   deleteSelected,
   detailFieldRefs,
@@ -100,6 +101,8 @@ export function useKeyboardShortcuts({
   onOpenDetailDialog,
   onOpenFocusHint,
   onOpenShortcutHelp,
+  pendingUndoDelete,
+  restorePendingDelete,
   roots,
   resetCalendarMonthToToday,
   selectNode,
@@ -124,7 +127,8 @@ export function useKeyboardShortcuts({
   cycleStatusValue: (direction: 1 | -1) => void;
   cycleTypeValue: (direction: 1 | -1) => void;
   createChild: () => Promise<unknown>;
-  createRoot: () => Promise<unknown>;
+  createRootAndEdit: () => Promise<unknown>;
+  createRootInProjects: () => Promise<unknown>;
   createSiblingBelow: () => Promise<unknown>;
   deleteSelected: () => Promise<unknown>;
   detailFieldRefs: {
@@ -161,6 +165,8 @@ export function useKeyboardShortcuts({
   onOpenDetailDialog: () => void;
   onOpenFocusHint: () => void;
   onOpenShortcutHelp: () => void;
+  pendingUndoDelete: { title: string } | null;
+  restorePendingDelete: () => Promise<unknown>;
   outdentSelected: () => Promise<void>;
   roots: YarukotoNode[];
   resetCalendarMonthToToday: () => void;
@@ -330,6 +336,10 @@ export function useKeyboardShortcuts({
         run(onOpenFocusHint);
         return;
       }
+      if (event.key === "u" && pendingUndoDelete) {
+        run(restorePendingDelete);
+        return;
+      }
       if (isDetailDialogOpen && isDateTextEditing) {
         switch (event.key) {
           case "Enter":
@@ -465,8 +475,8 @@ export function useKeyboardShortcuts({
         run(() => movePane(event.shiftKey ? -1 : 1));
         return;
       }
-      if (event.key === "R") {
-        run(createRoot);
+      if (event.key === "R" && activePane !== "projects") {
+        run(createRootAndEdit);
         return;
       }
 
@@ -487,8 +497,7 @@ export function useKeyboardShortcuts({
             run(() => setActivePane("center"));
             break;
           case "o":
-          case "a":
-            run(createRoot);
+            run(createRootInProjects);
             break;
           case "Escape":
             run(() => setActivePane("center"));
@@ -591,7 +600,8 @@ export function useKeyboardShortcuts({
     cycleStatusValue,
     cycleTypeValue,
     createChild,
-    createRoot,
+    createRootAndEdit,
+    createRootInProjects,
     createSiblingBelow,
     deleteSelected,
     focusDetailField,
@@ -626,8 +636,10 @@ export function useKeyboardShortcuts({
     onOpenDetailDialog,
     onOpenFocusHint,
     onOpenShortcutHelp,
+    pendingUndoDelete,
     outdentSelected,
     resetCalendarMonthToToday,
+    restorePendingDelete,
     setActivePane,
   ]);
 }

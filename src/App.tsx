@@ -136,6 +136,11 @@ function App() {
     openDetailEditor(await createRoot());
   }, [createRoot, openDetailEditor]);
 
+  const handleCreateRootInProjects = useCallback(async () => {
+    await createRoot();
+    setActivePane("projects");
+  }, [createRoot]);
+
   const handleCreateChild = useCallback(async () => {
     openDetailEditor(await createChild());
   }, [createChild, openDetailEditor]);
@@ -462,7 +467,8 @@ function App() {
     cycleStatusValue,
     cycleTypeValue,
     createChild: handleCreateChild,
-    createRoot: handleCreateRoot,
+    createRootAndEdit: handleCreateRoot,
+    createRootInProjects: handleCreateRootInProjects,
     createSiblingBelow: handleCreateSiblingBelow,
     deleteSelected,
     detailFieldRefs,
@@ -492,9 +498,11 @@ function App() {
     onOpenDetailDialog: () => openDetailEditor(selectedNode),
     onOpenFocusHint: () => setIsFocusHintOpen(true),
     onOpenShortcutHelp: () => setIsShortcutHelpOpen(true),
+    pendingUndoDelete,
     outdentSelected,
     roots,
     resetCalendarMonthToToday,
+    restorePendingDelete,
     selectNode,
     setActiveDetailField,
     setActivePane,

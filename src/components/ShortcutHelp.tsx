@@ -6,7 +6,7 @@ import type { ActivePane, CenterView } from "@/app/types";
 const COMMON_SHORTCUTS: Array<[string, string]> = [
   ["Tab / Shift+Tab", "ペイン移動"],
   ["Ctrl+Tab / Ctrl+Shift+Tab", "中央タブ切替"],
-  ["R", "ルート追加"],
+  ["u", "削除直後なら元に戻す"],
   ["f", "表示中の操作対象を選んでフォーカス"],
   ["?", "このヘルプを開く/閉じる"],
   ["Esc", "閉じる / フォーカス解除"],
@@ -14,15 +14,16 @@ const COMMON_SHORTCUTS: Array<[string, string]> = [
 
 const PROJECT_SHORTCUTS: Array<[string, string]> = [
   ["j / k", "プロジェクト選択"],
-  ["a / o / R", "ルート追加"],
+  ["o", "ルート追加してProjectsに留まる"],
   ["l / Enter", "中央ペインへ"],
 ];
 
 const TREE_SHORTCUTS: Array<[string, string]> = [
   ["j / k", "ノード選択"],
   ["h / l", "折りたたみ / 展開"],
-  ["a", "子追加してタイトル編集"],
-  ["o", "下に追加してタイトル編集"],
+  ["a", "子追加して編集ウィンドウを開く"],
+  ["o", "下に追加して編集ウィンドウを開く"],
+  ["R", "ルート追加して編集ウィンドウを開く"],
   ["Enter / i", "編集ウィンドウを開く"],
   ["dd", "削除"],
   ["J / K", "上下移動"],
@@ -46,7 +47,8 @@ const DIALOG_SHORTCUTS: Array<[string, string]> = [
   ["Enter", "通常項目にフォーカス / type,status は一覧 / 日付はカレンダー / 一覧中は確定"],
   ["H / L / t", "カレンダーで前月 / 翌月 / 今日"],
   ["x", "日付をクリア"],
-  ["Enter (入力中)", "入力確定してフォーカス解除"],
+  ["Enter (title入力中)", "1回目はそのまま / 2回目でフォーカス解除"],
+  ["Enter (memo入力中)", "入力確定してフォーカス解除"],
   ["Esc", "一覧・カレンダーを閉じる / 編集ウィンドウを閉じる"],
 ];
 

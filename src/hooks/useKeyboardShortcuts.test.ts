@@ -28,9 +28,9 @@ describe("isEditableTagName", () => {
   it("moves across center tabs", () => {
     expect(getNextCenterView("tree", 1)).toBe("calendar");
     expect(getNextCenterView("calendar", 1)).toBe("report");
-    expect(getNextCenterView("report", 1)).toBe("report");
+    expect(getNextCenterView("report", 1)).toBe("tree");
     expect(getNextCenterView("report", -1)).toBe("calendar");
-    expect(getNextCenterView("tree", -1)).toBe("tree");
+    expect(getNextCenterView("tree", -1)).toBe("report");
   });
 
   it("moves through detail dialog fields", () => {

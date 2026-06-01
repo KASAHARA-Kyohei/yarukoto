@@ -397,9 +397,6 @@ export function NodeDetailDialog({
                 {saveError ? (
                   <div className="text-destructive">{saveError}</div>
                 ) : null}
-                <div>ID: {node.id}</div>
-                <div>created: {node.createdAt}</div>
-                <div>updated: {node.updatedAt}</div>
               </CardContent>
             </Card>
           </form>

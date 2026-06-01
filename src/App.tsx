@@ -65,7 +65,6 @@ function App() {
     null,
   );
   const [typeSelectDraft, setTypeSelectDraft] = useState<NodeType | null>(null);
-  const shouldFocusTitleRef = useRef(false);
   const dueDateButtonRef = useRef<HTMLButtonElement | null>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const startDateButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -131,7 +130,6 @@ function App() {
     setActivePane("center");
     setIsDetailDialogOpen(true);
     setActiveDetailField("title");
-    shouldFocusTitleRef.current = true;
   }, []);
 
   const handleCreateRoot = useCallback(async () => {
@@ -420,18 +418,6 @@ function App() {
   const resetCalendarMonthToToday = useCallback(() => {
     setCalendarMonth(new Date());
   }, []);
-
-  useEffect(() => {
-    if (!isDetailDialogOpen || !selectedNode || !shouldFocusTitleRef.current) {
-      return;
-    }
-    const timeoutId = window.setTimeout(() => {
-      titleInputRef.current?.focus();
-      titleInputRef.current?.select();
-      shouldFocusTitleRef.current = false;
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [isDetailDialogOpen, selectedNode]);
 
   const handleFocusHintFocused = useCallback((element: HTMLElement) => {
     const pane = element.closest<HTMLElement>("[data-app-pane]")?.dataset

@@ -1,4 +1,9 @@
-import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
+import {
+  useEffect,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type RefObject,
+} from "react";
 import { DatePicker } from "./DatePicker";
 import { TaskProgressDetail } from "./TaskProgress";
 import {
@@ -74,6 +79,10 @@ function blurEditableOnEnter(
   event.currentTarget.blur();
 }
 
+export function shouldBlurTitleOnEnter(isAwaitingSecondEnter: boolean) {
+  return isAwaitingSecondEnter;
+}
+
 export function NodeDetailDialog({
   activeDateField,
   activeField,
@@ -147,11 +156,33 @@ export function NodeDetailDialog({
   titleInputRef: RefObject<HTMLInputElement | null>;
   typeValue: NodeType;
 }) {
+  const [isAwaitingSecondTitleEnter, setIsAwaitingSecondTitleEnter] =
+    useState(false);
+
+  useEffect(() => {
+    setIsAwaitingSecondTitleEnter(false);
+  }, [node?.id, open]);
+
   const fieldClass = (field: DetailField) =>
     cn(
       "rounded-md p-1 -m-1 transition-colors",
       activeField === field && "bg-accent/60 ring-1 ring-primary/30",
     );
+
+  const handleTitleEnter = (
+    event: ReactKeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+    event.preventDefault();
+    if (shouldBlurTitleOnEnter(isAwaitingSecondTitleEnter)) {
+      setIsAwaitingSecondTitleEnter(false);
+      event.currentTarget.blur();
+      return;
+    }
+    setIsAwaitingSecondTitleEnter(true);
+  };
 
   const handleSelectContentKeyDown = (
     event: ReactKeyboardEvent<HTMLDivElement>,
@@ -184,6 +215,7 @@ export function NodeDetailDialog({
     <Dialog open={open && Boolean(node)} onOpenChange={onOpenChange}>
       <DialogContent
         className="w-[min(500px,calc(100vw-32px))]"
+        onOpenAutoFocus={(event) => event.preventDefault()}
         onEscapeKeyDown={blurEditableOnEscape}
       >
         <DialogHeader>
@@ -204,9 +236,14 @@ export function NodeDetailDialog({
               title
               <Input
                 onChange={(event) =>
-                  onUpdateNode({ title: event.currentTarget.value })
+                  {
+                    setIsAwaitingSecondTitleEnter(false);
+                    onUpdateNode({ title: event.currentTarget.value });
+                  }
                 }
-                onKeyDown={blurEditableOnEnter}
+                onBlur={() => setIsAwaitingSecondTitleEnter(false)}
+                onFocus={() => setIsAwaitingSecondTitleEnter(false)}
+                onKeyDown={handleTitleEnter}
                 ref={titleInputRef}
                 value={node.title}
               />

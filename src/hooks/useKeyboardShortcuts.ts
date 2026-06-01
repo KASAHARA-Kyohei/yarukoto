@@ -38,10 +38,7 @@ export function getNextPane(activePane: ActivePane, direction: 1 | -1) {
 export function getNextCenterView(activeView: CenterView, direction: 1 | -1) {
   const views: CenterView[] = ["tree", "calendar", "report"];
   const index = views.indexOf(activeView);
-  const nextIndex = Math.min(
-    views.length - 1,
-    Math.max(0, index + direction),
-  );
+  const nextIndex = (index + direction + views.length) % views.length;
   return views[nextIndex];
 }
 

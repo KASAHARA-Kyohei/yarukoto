@@ -366,7 +366,7 @@ export function NodeDetailDialog({
               </label>
             </div>
             {isInvalidDateRange(node) ? (
-              <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <div className="rounded-md border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive">
                 開始日が終了日より後になっています。保存はできますが、期間表示は警告色になります。
               </div>
             ) : null}

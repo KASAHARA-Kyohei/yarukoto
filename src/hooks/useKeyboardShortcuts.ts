@@ -66,6 +66,7 @@ export function useKeyboardShortcuts({
   commitCalendarDate,
   commitDateTextEdit,
   commitOpenDetailSelect,
+  cycleTheme,
   cycleStatusValue,
   cycleTypeValue,
   createChild,
@@ -124,6 +125,7 @@ export function useKeyboardShortcuts({
   commitCalendarDate: () => void;
   commitDateTextEdit: () => void;
   commitOpenDetailSelect: () => void;
+  cycleTheme: () => void;
   cycleStatusValue: (direction: 1 | -1) => void;
   cycleTypeValue: (direction: 1 | -1) => void;
   createChild: () => Promise<unknown>;
@@ -328,6 +330,10 @@ export function useKeyboardShortcuts({
         void action();
       };
 
+      if (event.ctrlKey && event.key === "t") {
+        run(cycleTheme);
+        return;
+      }
       if (event.key === "?") {
         run(onOpenShortcutHelp);
         return;
@@ -597,6 +603,7 @@ export function useKeyboardShortcuts({
     commitCalendarDate,
     commitDateTextEdit,
     commitOpenDetailSelect,
+    cycleTheme,
     cycleStatusValue,
     cycleTypeValue,
     createChild,

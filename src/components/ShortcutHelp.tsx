@@ -6,6 +6,7 @@ import type { ActivePane, CenterView } from "@/app/types";
 const COMMON_SHORTCUTS: Array<[string, string]> = [
   ["Tab / Shift+Tab", "ペイン移動"],
   ["Ctrl+Tab / Ctrl+Shift+Tab", "中央タブ切替"],
+  ["Ctrl+t", "テーマ切替"],
   ["u", "削除直後なら元に戻す"],
   ["f", "表示中の操作対象を選んでフォーカス"],
   ["?", "このヘルプを開く/閉じる"],

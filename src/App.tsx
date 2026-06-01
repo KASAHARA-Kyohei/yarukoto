@@ -8,6 +8,7 @@ import { NodeDetailDialog } from "./components/NodeDetailDialog";
 import { PaneHeader } from "./components/PaneHeader";
 import { ReportView } from "./components/ReportView";
 import { ShortcutHelp } from "./components/ShortcutHelp";
+import { ThemeSwitcher } from "./components/ThemeSwitcher";
 import { buildTaskProgressMap } from "./domain/nodes/progress";
 import { Toolbar } from "./components/Toolbar";
 import { TreeView } from "./components/TreeView";
@@ -38,10 +39,12 @@ import {
 } from "@/domain/nodes/types";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { getNextCenterView } from "./hooks/useKeyboardShortcuts";
+import { useTheme } from "./hooks/useTheme";
 import { useYarukotoNodes } from "./hooks/useYarukotoNodes";
 import { cn } from "./lib/utils";
 
 function App() {
+  const { cycleTheme, setThemeId, themeId } = useTheme();
   const [activePane, setActivePane] = useState<ActivePane>("center");
   const [centerView, setCenterView] = useState<CenterView>("tree");
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
@@ -464,6 +467,7 @@ function App() {
     commitCalendarDate,
     commitDateTextEdit,
     commitOpenDetailSelect,
+    cycleTheme,
     cycleStatusValue,
     cycleTypeValue,
     createChild: handleCreateChild,
@@ -576,15 +580,18 @@ function App() {
           ))}
         </div>
         <div className="border-t border-border p-2">
-          <Button
-            className="w-full"
-            disabled={isMutating}
-            variant="outline"
-            onClick={() => void handleCreateRoot()}
-            type="button"
-          >
-            {isMutating ? "追加中..." : "ルート追加"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              className="min-w-0 flex-1"
+              disabled={isMutating}
+              variant="outline"
+              onClick={() => void handleCreateRoot()}
+              type="button"
+            >
+              {isMutating ? "追加中..." : "ルート追加"}
+            </Button>
+            <ThemeSwitcher themeId={themeId} onChangeTheme={setThemeId} />
+          </div>
         </div>
       </aside>
 

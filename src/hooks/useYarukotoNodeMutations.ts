@@ -43,7 +43,7 @@ export function useYarukotoNodeMutations({
     return await runAction(async () => {
       const node = await nodeRepository.createNode({
         parentId: null,
-        title: "新しいプロジェクト",
+        title: "",
         type: "Group",
         status: "Inbox",
       });
@@ -59,7 +59,7 @@ export function useYarukotoNodeMutations({
     return await runAction(async () => {
       const child = await nodeRepository.createNode({
         parentId: selectedNode.id,
-        title: "新しいタスク",
+        title: "",
         type: "Task",
         status: "Inbox",
       });
@@ -76,7 +76,7 @@ export function useYarukotoNodeMutations({
     return await runAction(async () => {
       const sibling = await nodeRepository.createNode({
         parentId: selectedNode.parentId,
-        title: "新しいノード",
+        title: "",
         type: selectedNode.parentId === null ? "Group" : "Task",
         status: "Inbox",
         sortOrder: selectedNode.sortOrder + 1,

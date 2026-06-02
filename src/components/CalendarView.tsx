@@ -7,6 +7,7 @@ import {
   type CalendarRangeSegment,
   type CalendarWeekModel,
 } from "@/domain/nodes/calendar";
+import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
 import type { YarukotoNode } from "@/domain/nodes/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -86,6 +87,7 @@ function CalendarRangeBar({
   segment: CalendarRangeSegment;
 }) {
   const surface = getStatusSurface(segment.node.status);
+  const title = getNodeDisplayTitle(segment.node);
 
   return (
     <button
@@ -98,14 +100,14 @@ function CalendarRangeBar({
       )}
       data-node-focus-id={segment.node.id}
       style={getRangeStyle(segment)}
-      title={`${segment.node.title} (${segment.segmentStart} - ${segment.segmentEnd})`}
+      title={`${title} (${segment.segmentStart} - ${segment.segmentEnd})`}
       type="button"
       onClick={() => onSelectNode(segment.node.id)}
     >
       {segment.showsTitle ? (
-        <span className="truncate">{segment.node.title}</span>
+        <span className="truncate">{title}</span>
       ) : (
-        <span className="sr-only">{segment.node.title}</span>
+        <span className="sr-only">{title}</span>
       )}
     </button>
   );
@@ -121,6 +123,7 @@ function CalendarSingleDayItem({
   onSelectNode: (nodeId: string) => void;
 }) {
   const surface = getStatusSurface(item.node.status, item.kind === "invalid");
+  const title = getNodeDisplayTitle(item.node);
 
   return (
     <button
@@ -130,14 +133,14 @@ function CalendarSingleDayItem({
         isSelected && "ring-2 ring-primary/45",
       )}
       data-node-focus-id={item.node.id}
-      title={item.node.title}
+      title={title}
       type="button"
       onClick={() => onSelectNode(item.node.id)}
     >
       <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded bg-background/65 px-1 text-[9px] font-semibold text-muted-foreground">
         {getSingleDayKindLabel(item.kind)}
       </span>
-      <span className="truncate font-medium">{item.node.title}</span>
+      <span className="truncate font-medium">{title}</span>
     </button>
   );
 }

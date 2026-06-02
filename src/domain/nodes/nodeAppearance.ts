@@ -1,4 +1,8 @@
-import type { NodeStatus, NodeType } from "./types";
+import type { NodeStatus, NodeType, YarukotoNode } from "./types";
+
+export function getNodeDisplayTitle(node: Pick<YarukotoNode, "title">) {
+  return node.title.trim() === "" ? "無題" : node.title;
+}
 
 export function typeBadgeClass(type: NodeType) {
   switch (type) {

@@ -29,7 +29,10 @@ import type {
 } from "@/app/types";
 import { isDateField } from "@/app/types";
 import { Button } from "@/components/ui/button";
-import { statusBadgeClass } from "@/domain/nodes/nodeAppearance";
+import {
+  getNodeDisplayTitle,
+  statusBadgeClass,
+} from "@/domain/nodes/nodeAppearance";
 import {
   NODE_STATUSES,
   NODE_TYPES,
@@ -452,7 +455,7 @@ function App() {
     if (!selectedNode) {
       return;
     }
-    document.title = `${selectedNode.title} - yarukoto`;
+    document.title = `${getNodeDisplayTitle(selectedNode)} - yarukoto`;
   }, [selectedNode]);
 
   useKeyboardShortcuts({
@@ -565,7 +568,9 @@ function App() {
               onClick={() => selectNode(root.id)}
               type="button"
             >
-              <span className="block truncate font-medium">{root.title}</span>
+              <span className="block truncate font-medium">
+                {getNodeDisplayTitle(root)}
+              </span>
               <span
                 className={cn(
                   "inline-flex rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
@@ -662,7 +667,9 @@ function App() {
             </span>
           ) : pendingUndoDelete ? (
             <span className="inline-flex items-center gap-2">
-              <span>「{pendingUndoDelete.title}」を削除しました</span>
+              <span>
+                「{getNodeDisplayTitle(pendingUndoDelete)}」を削除しました
+              </span>
               <Button
                 className="h-6 px-2 text-xs"
                 size="sm"

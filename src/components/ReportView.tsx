@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { statusBadgeClass, typeBadgeClass } from "@/domain/nodes/nodeAppearance";
+import {
+  getNodeDisplayTitle,
+  statusBadgeClass,
+  typeBadgeClass,
+} from "@/domain/nodes/nodeAppearance";
 import { buildReportModel } from "@/domain/nodes/report";
 import { NODE_STATUSES, NODE_TYPES, type YarukotoNode } from "@/domain/nodes/types";
 import { Badge } from "@/components/ui/badge";
@@ -262,7 +266,7 @@ function FocusRow({
       >
         {tag}
       </span>
-      <span className="truncate font-medium">{node.title}</span>
+      <span className="truncate font-medium">{getNodeDisplayTitle(node)}</span>
       <span className="text-right text-muted-foreground">{node.dueDate ?? "期限なし"}</span>
     </button>
   );
@@ -292,7 +296,7 @@ function NodeRow({
       >
         {node.status}
       </Badge>
-      <span className="truncate font-medium">{node.title}</span>
+      <span className="truncate font-medium">{getNodeDisplayTitle(node)}</span>
       <span className="text-right text-muted-foreground">{node.dueDate ?? "期限なし"}</span>
     </button>
   );
@@ -339,5 +343,4 @@ function Breakdown({
     </Card>
   );
 }
-
 

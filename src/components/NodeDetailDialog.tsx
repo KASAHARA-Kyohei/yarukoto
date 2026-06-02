@@ -15,6 +15,7 @@ import {
 } from "@/app/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
 import { isInvalidDateRange } from "@/domain/nodes/period";
 import type { TaskProgressInfo } from "@/domain/nodes/progress";
 import {
@@ -221,7 +222,7 @@ export function NodeDetailDialog({
         <DialogHeader>
           <DialogTitle>ノード編集</DialogTitle>
           <DialogDescription>
-            {node ? node.title : "編集するノードを選択してください。"}
+            {node ? getNodeDisplayTitle(node) : "編集するノードを選択してください。"}
           </DialogDescription>
         </DialogHeader>
         {node ? (
@@ -244,6 +245,7 @@ export function NodeDetailDialog({
                 onBlur={() => setIsAwaitingSecondTitleEnter(false)}
                 onFocus={() => setIsAwaitingSecondTitleEnter(false)}
                 onKeyDown={handleTitleEnter}
+                placeholder="タイトルを入力"
                 ref={titleInputRef}
                 value={node.title}
               />

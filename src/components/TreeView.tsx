@@ -5,7 +5,11 @@ import {
 } from "lucide-react";
 import { TreePeriodCell, TreePeriodHeader } from "./TreePeriod";
 import { TaskProgressInline } from "./TaskProgress";
-import { statusBadgeClass, typeBadgeClass } from "@/domain/nodes/nodeAppearance";
+import {
+  getNodeDisplayTitle,
+  statusBadgeClass,
+  typeBadgeClass,
+} from "@/domain/nodes/nodeAppearance";
 import type { TaskProgressInfo } from "@/domain/nodes/progress";
 import {
   getTimelineMarkers,
@@ -224,7 +228,9 @@ export function TreeView({
                         data-node-focus-id={node.id}
                         type="button"
                       >
-                        <span className="font-medium">{node.title}</span>
+                        <span className="font-medium">
+                          {getNodeDisplayTitle(node)}
+                        </span>
                         {hasChildren ? (
                           <span className="ml-2 rounded-full border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                             {childCount}

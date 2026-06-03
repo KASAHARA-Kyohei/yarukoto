@@ -4,7 +4,13 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type RefObject,
 } from "react";
-import { DatePicker } from "./DatePicker";
+import {
+  DetailFieldShell,
+  NodeDateField,
+  NodeStatusSelectField,
+  NodeTypeSelectField,
+  SaveStatusCard,
+} from "./NodeDetailDialogFields";
 import { TaskProgressDetail } from "./TaskProgress";
 import {
   type DateEditMode,
@@ -13,15 +19,9 @@ import {
   type DetailField,
   type SaveStatus,
 } from "@/app/types";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
 import { isInvalidDateRange } from "@/domain/nodes/period";
 import type { TaskProgressInfo } from "@/domain/nodes/progress";
-import {
-  NODE_STATUSES,
-  NODE_TYPES,
-} from "@/domain/nodes/types";
 import type {
   NodeStatus,
   NodeType,
@@ -36,53 +36,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-
-function saveStatusVariant(saveStatus: SaveStatus) {
-  if (saveStatus === "error") {
-    return "destructive";
-  }
-  if (saveStatus === "saved") {
-    return "secondary";
-  }
-  return "outline";
-}
-
-function blurEditableOnEscape(event: Event) {
-  const activeElement = document.activeElement;
-  if (!(activeElement instanceof HTMLElement)) {
-    return;
-  }
-  if (
-    ["INPUT", "TEXTAREA", "SELECT"].includes(activeElement.tagName) ||
-    activeElement.closest("[data-keyboard-editing='true']")
-  ) {
-    event.preventDefault();
-    activeElement.blur();
-  }
-}
-
-function blurEditableOnEnter(
-  event: ReactKeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-) {
-  if (event.key !== "Enter") {
-    return;
-  }
-  event.preventDefault();
-  event.currentTarget.blur();
-}
-
-export function shouldBlurTitleOnEnter(isAwaitingSecondEnter: boolean) {
-  return isAwaitingSecondEnter;
-}
+import {
+  blurEditableOnEnter,
+  blurEditableOnEscape,
+  shouldBlurTitleOnEnter,
+} from "./nodeDetailDialogUtils";
 
 export function NodeDetailDialog({
   activeDateField,
@@ -164,12 +123,6 @@ export function NodeDetailDialog({
     setIsAwaitingSecondTitleEnter(false);
   }, [node?.id, open]);
 
-  const fieldClass = (field: DetailField) =>
-    cn(
-      "rounded-md p-1 -m-1 transition-colors",
-      activeField === field && "bg-accent/60 ring-1 ring-primary/30",
-    );
-
   const handleTitleEnter = (
     event: ReactKeyboardEvent<HTMLInputElement>,
   ) => {
@@ -230,18 +183,17 @@ export function NodeDetailDialog({
             className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4"
             onSubmit={(event) => event.preventDefault()}
           >
-            <label
-              className={cn("grid gap-1.5 text-sm font-medium", fieldClass("title"))}
-              onMouseDown={() => onActivateField("title")}
+            <DetailFieldShell
+              activeField={activeField}
+              field="title"
+              label="title"
+              onActivateField={onActivateField}
             >
-              title
               <Input
-                onChange={(event) =>
-                  {
-                    setIsAwaitingSecondTitleEnter(false);
-                    onUpdateNode({ title: event.currentTarget.value });
-                  }
-                }
+                onChange={(event) => {
+                  setIsAwaitingSecondTitleEnter(false);
+                  onUpdateNode({ title: event.currentTarget.value });
+                }}
                 onBlur={() => setIsAwaitingSecondTitleEnter(false)}
                 onFocus={() => setIsAwaitingSecondTitleEnter(false)}
                 onKeyDown={handleTitleEnter}
@@ -249,137 +201,83 @@ export function NodeDetailDialog({
                 ref={titleInputRef}
                 value={node.title}
               />
-            </label>
+            </DetailFieldShell>
             <div className="grid gap-3">
-              <label
-                className={cn(
-                  "grid gap-1.5 text-sm font-medium",
-                  fieldClass("type"),
-                )}
-                onMouseDown={() => onActivateField("type")}
-              >
-                type
-                <Select
-                  open={openDetailSelectField === "type"}
-                  value={typeValue}
-                  onOpenChange={onTypeOpenChange}
-                  onValueChange={(value) => onTypeValueChange(value as NodeType)}
-                >
-                  <SelectTrigger ref={detailFieldRefs.type}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent onKeyDownCapture={handleSelectContentKeyDown}>
-                    {NODE_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </label>
+              <NodeTypeSelectField
+                activeField={activeField}
+                openDetailSelectField={openDetailSelectField}
+                triggerRef={detailFieldRefs.type}
+                typeValue={typeValue}
+                onActivateField={onActivateField}
+                onContentKeyDown={handleSelectContentKeyDown}
+                onOpenChange={onTypeOpenChange}
+                onValueChange={onTypeValueChange}
+              />
               <TaskProgressDetail progress={taskProgress} />
-              <label
-                className={cn(
-                  "grid gap-1.5 text-sm font-medium",
-                  fieldClass("status"),
-                )}
-                onMouseDown={() => onActivateField("status")}
-              >
-                status
-                <Select
-                  open={openDetailSelectField === "status"}
-                  value={statusValue}
-                  onOpenChange={onStatusOpenChange}
-                  onValueChange={(value) =>
-                    onStatusValueChange(value as NodeStatus)
-                  }
-                >
-                  <SelectTrigger ref={detailFieldRefs.status}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent onKeyDownCapture={handleSelectContentKeyDown}>
-                    {NODE_STATUSES.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </label>
-              <label
-                className={cn(
-                  "grid gap-1.5 text-sm font-medium",
-                  fieldClass("startDate"),
-                )}
-                onMouseDown={() => onActivateField("startDate")}
-              >
-                開始日
-                <DatePicker
-                  calendarCursorDate={
-                    activeDateField === "startDate" ? calendarCursorDate : null
-                  }
-                  clearLabel="開始日を削除"
-                  error={activeDateField === "startDate" ? dateInputError : null}
-                  mode={activeDateField === "startDate" ? dateEditMode : null}
-                  onCancelTextEdit={onCancelDateTextEdit}
-                  onClear={() => onClearDateField("startDate")}
-                  onCommitTextEdit={onCommitDateTextEdit}
-                  onDraftValueChange={onDateDraftValueChange}
-                  onOpenChange={(open) => onDateOpenChange("startDate", open)}
-                  onSelectDate={(dateKey) => onDateSelect("startDate", dateKey)}
-                  placeholder="開始日なし"
-                  textInputValue={
-                    activeDateField === "startDate"
-                      ? dateTextDraft
-                      : node.startDate ?? ""
-                  }
-                  triggerRef={detailFieldRefs.startDate}
-                  value={node.startDate}
-                />
-              </label>
-              <label
-                className={cn(
-                  "grid gap-1.5 text-sm font-medium",
-                  fieldClass("dueDate"),
-                )}
-                onMouseDown={() => onActivateField("dueDate")}
-              >
-                終了日
-                <DatePicker
-                  calendarCursorDate={
-                    activeDateField === "dueDate" ? calendarCursorDate : null
-                  }
-                  clearLabel="終了日を削除"
-                  error={activeDateField === "dueDate" ? dateInputError : null}
-                  mode={activeDateField === "dueDate" ? dateEditMode : null}
-                  onCancelTextEdit={onCancelDateTextEdit}
-                  onClear={() => onClearDateField("dueDate")}
-                  onCommitTextEdit={onCommitDateTextEdit}
-                  onDraftValueChange={onDateDraftValueChange}
-                  onOpenChange={(open) => onDateOpenChange("dueDate", open)}
-                  onSelectDate={(dateKey) => onDateSelect("dueDate", dateKey)}
-                  placeholder="終了日なし"
-                  textInputValue={
-                    activeDateField === "dueDate" ? dateTextDraft : node.dueDate ?? ""
-                  }
-                  triggerRef={detailFieldRefs.dueDate}
-                  value={node.dueDate}
-                />
-              </label>
+              <NodeStatusSelectField
+                activeField={activeField}
+                openDetailSelectField={openDetailSelectField}
+                statusValue={statusValue}
+                triggerRef={detailFieldRefs.status}
+                onActivateField={onActivateField}
+                onContentKeyDown={handleSelectContentKeyDown}
+                onOpenChange={onStatusOpenChange}
+                onValueChange={onStatusValueChange}
+              />
+              <NodeDateField
+                activeDateField={activeDateField}
+                activeField={activeField}
+                calendarCursorDate={calendarCursorDate}
+                clearLabel="開始日を削除"
+                dateEditMode={dateEditMode}
+                dateInputError={dateInputError}
+                dateTextDraft={dateTextDraft}
+                field="startDate"
+                label="開始日"
+                node={node}
+                placeholder="開始日なし"
+                triggerRef={detailFieldRefs.startDate}
+                onActivateField={onActivateField}
+                onCancelDateTextEdit={onCancelDateTextEdit}
+                onClearDateField={onClearDateField}
+                onCommitDateTextEdit={onCommitDateTextEdit}
+                onDateDraftValueChange={onDateDraftValueChange}
+                onDateOpenChange={onDateOpenChange}
+                onDateSelect={onDateSelect}
+              />
+              <NodeDateField
+                activeDateField={activeDateField}
+                activeField={activeField}
+                calendarCursorDate={calendarCursorDate}
+                clearLabel="終了日を削除"
+                dateEditMode={dateEditMode}
+                dateInputError={dateInputError}
+                dateTextDraft={dateTextDraft}
+                field="dueDate"
+                label="終了日"
+                node={node}
+                placeholder="終了日なし"
+                triggerRef={detailFieldRefs.dueDate}
+                onActivateField={onActivateField}
+                onCancelDateTextEdit={onCancelDateTextEdit}
+                onClearDateField={onClearDateField}
+                onCommitDateTextEdit={onCommitDateTextEdit}
+                onDateDraftValueChange={onDateDraftValueChange}
+                onDateOpenChange={onDateOpenChange}
+                onDateSelect={onDateSelect}
+              />
             </div>
             {isInvalidDateRange(node) ? (
               <div className="rounded-md border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive">
                 開始日が終了日より後になっています。保存はできますが、期間表示は警告色になります。
               </div>
             ) : null}
-            <label
-              className={cn(
-                "grid gap-1.5 text-sm font-medium",
-                fieldClass("memo"),
-              )}
-              onMouseDown={() => onActivateField("memo")}
+            <DetailFieldShell
+              activeField={activeField}
+              field="memo"
+              label="memo"
+              onActivateField={onActivateField}
             >
-              memo
               <Textarea
                 className="min-h-48 resize-y leading-6"
                 onChange={(event) =>
@@ -389,18 +287,8 @@ export function NodeDetailDialog({
                 ref={detailFieldRefs.memo}
                 value={node.memo}
               />
-            </label>
-            <Card className="bg-card/80">
-              <CardContent className="space-y-1 p-3 text-xs leading-5 text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span>save</span>
-                  <Badge variant={saveStatusVariant(saveStatus)}>{saveStatus}</Badge>
-                </div>
-                {saveError ? (
-                  <div className="text-destructive">{saveError}</div>
-                ) : null}
-              </CardContent>
-            </Card>
+            </DetailFieldShell>
+            <SaveStatusCard saveError={saveError} saveStatus={saveStatus} />
           </form>
         ) : null}
       </DialogContent>

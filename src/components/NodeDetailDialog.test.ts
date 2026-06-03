@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldBlurTitleOnEnter } from "./NodeDetailDialog";
+import { shouldBlurTitleOnEnter } from "./nodeDetailDialogUtils";
 
 describe("shouldBlurTitleOnEnter", () => {
   it("keeps title input focused on the first Enter", () => {

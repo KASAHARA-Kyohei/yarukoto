@@ -11,6 +11,7 @@
 - ノード編集は常時サイドバーではなくモーダルで実施
 - 中央ビューは `Tree / Calendar / Report`
 - Tree の右端 `period` 列は、軽量ミニガント表示
+- テーマは `Light / Tokyo Night / Soft Light` を切り替え可能
 
 ## 主な機能
 
@@ -30,15 +31,21 @@
   - `startDate` / `dueDate` を設定可能
   - Tree 上で期間バー表示
   - 親ノードでは子孫期間の集約バー表示
-  - `today` 線と週区切り表示
+  - 表示期間に応じて日 / 月 / 四半期の目盛りを切り替え
+  - `today` 線と期限マーカー表示
+- タスク進捗
+  - `Task` ノードのみ進捗率を表示
+  - 葉 `Task` は `status` から自動計算
+  - 子 `Task` を持つ `Task` は直下の子 `Task` から自動集計
 - 補助ビュー
-  - `Calendar`: 終了日ベースの月表示
-  - `Report`: ステータスや期限の集計表示
+  - `Calendar`: 開始日 / 終了日を月表示
+  - `Report`: ステータス、期限、完了状況の集計表示
 - 操作性
   - Vim ライク操作
   - ボタン操作
   - Focus hint (`f`)
   - 削除 Undo
+  - テーマ切替
 
 ## 技術スタック
 
@@ -75,6 +82,12 @@ npm test
 npm run build
 ```
 
+Tauri アプリを配布用にビルドする場合:
+
+```bash
+npm run tauri build
+```
+
 Rust 側の確認:
 
 ```bash
@@ -87,8 +100,9 @@ cargo check
 共通:
 
 - `Tab` / `Shift+Tab`: ペイン移動
-- `Ctrl+h` / `Ctrl+l`: 左右ペイン移動
-- `R`: ルート追加
+- `Ctrl+Tab` / `Ctrl+Shift+Tab`: 中央タブ切替
+- `Ctrl+t`: テーマ切替
+- `u`: 削除直後なら元に戻す
 - `f`: 表示中の操作対象へフォーカス
 - `?`: ショートカット一覧
 - `Esc`: 閉じる / フォーカス解除
@@ -96,6 +110,7 @@ cargo check
 Projects:
 
 - `j` / `k`: プロジェクト選択
+- `o`: ルート追加して Projects に留まる
 - `l` / `Enter`: 中央ペインへ
 
 Tree:
@@ -104,16 +119,33 @@ Tree:
 - `h` / `l`: 折りたたみ / 展開
 - `a`: 子追加
 - `o`: 同階層の下に追加
+- `R`: ルート追加
 - `Enter` / `i`: 編集モーダルを開く
 - `dd`: 削除
 - `J` / `K`: 上下移動
 - `>` / `<`: 階層変更
 
+Calendar:
+
+- `Ctrl+h` / `Ctrl+l`: 前月 / 翌月
+- `t`: 今月へ戻る
+- `Enter` / `i`: 選択中ノードの編集モーダルを開く
+
+Report:
+
+- `Enter` / `i`: 選択中ノードの編集モーダルを開く
+
 編集モーダル:
 
 - `j` / `k`: 編集項目選択
-- `i` / `Enter`: 項目編集
-- `Esc`: モーダルを閉じる
+- `h` / `l`: `type` / `status` を変更
+- `i`: 通常項目にフォーカス、日付は直接入力
+- `Enter`: 通常項目にフォーカス、`type` / `status` は一覧、日付はカレンダー
+- 日付カレンダー中の `h` / `l`: 前日 / 翌日
+- 日付カレンダー中の `j` / `k`: 翌週 / 前週
+- 日付カレンダー中の `H` / `L` / `t`: 前月 / 翌月 / 今日
+- 日付項目の `x`: 日付クリア
+- `Esc`: 一覧・カレンダーを閉じる / モーダルを閉じる
 
 ## データ設計
 
@@ -153,8 +185,10 @@ Tree:
 - `src/components`: UI
 - `src/hooks`: 状態管理とショートカット
 - `src/repositories`: SQLite Repository 層
-- `src/tree.ts`: ツリー整形
-- `src/period.ts`: 期間表示ロジック
+- `src/domain/nodes/tree.ts`: ツリー整形
+- `src/domain/nodes/period.ts`: 期間表示ロジック
+- `src/domain/nodes/progress.ts`: タスク進捗の派生計算
+- `src/app`: アプリ共通の型、テーマ、入力補助ロジック
 - `src-tauri`: Tauri / Rust 側
 
 ## 補足
@@ -163,6 +197,7 @@ Tree:
 - 既存 DB には migration を適用します
 - サンプルデータは空 DB のときだけ投入します
 - 手動確認項目は [MANUAL_TEST.md](./MANUAL_TEST.md) を参照してください
+- GitHub Actions で macOS / Windows の Tauri bundle を作成できます
 - Node.js `22.11.0` では Vite の警告が出ます。`22.12+` への更新を推奨します
 
 ## License

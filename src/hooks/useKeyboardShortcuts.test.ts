@@ -1,10 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   getNextCenterView,
   getNextDetailField,
   getNextPane,
   isEditableTagName,
 } from "./useKeyboardShortcuts";
+import {
+  handleDatePickerShortcut,
+  handleProjectsShortcut,
+  handleTreeViewShortcut,
+} from "./keyboardShortcutHandlers";
 
 describe("isEditableTagName", () => {
   it("treats form fields as editable targets", () => {
@@ -38,5 +43,86 @@ describe("isEditableTagName", () => {
     expect(getNextDetailField("dueDate", 1)).toBe("memo");
     expect(getNextDetailField("title", -1)).toBe("title");
     expect(getNextDetailField("memo", 1)).toBe("memo");
+  });
+
+  it("routes date picker movement shortcuts", () => {
+    const run = vi.fn((action: () => void) => action());
+    const moveCalendarCursorByDays = vi.fn();
+
+    expect(
+      handleDatePickerShortcut({
+        key: "j",
+        run,
+        closeDatePicker: vi.fn(),
+        commitCalendarDate: vi.fn(),
+        moveCalendarCursorByDays,
+        moveCalendarCursorByMonths: vi.fn(),
+        moveCalendarCursorToToday: vi.fn(),
+      }),
+    ).toBe(true);
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(moveCalendarCursorByDays).toHaveBeenCalledWith(7);
+  });
+
+  it("routes project pane root creation through o", () => {
+    const run = vi.fn((action: () => void) => action());
+    const createRootInProjects = vi.fn();
+
+    expect(
+      handleProjectsShortcut({
+        key: "o",
+        run,
+        createRootInProjects,
+        moveRootSelection: vi.fn(),
+        setActivePane: vi.fn(),
+      }),
+    ).toBe(true);
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(createRootInProjects).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps dd as a two-step tree delete shortcut", () => {
+    const run = vi.fn((action: () => void) => action());
+    const deleteSelected = vi.fn();
+
+    handleTreeViewShortcut({
+      key: "d",
+      run,
+      createChild: vi.fn(),
+      createSiblingBelow: vi.fn(),
+      deleteSelected,
+      handleH: vi.fn(),
+      handleL: vi.fn(),
+      indentSelected: vi.fn(),
+      moveSelectedDown: vi.fn(),
+      moveSelectedUp: vi.fn(),
+      moveSelection: vi.fn(),
+      onCloseDetailDialog: vi.fn(),
+      onOpenDetailDialog: vi.fn(),
+      outdentSelected: vi.fn(),
+      registerDeleteKey: () => false,
+    });
+    handleTreeViewShortcut({
+      key: "d",
+      run,
+      createChild: vi.fn(),
+      createSiblingBelow: vi.fn(),
+      deleteSelected,
+      handleH: vi.fn(),
+      handleL: vi.fn(),
+      indentSelected: vi.fn(),
+      moveSelectedDown: vi.fn(),
+      moveSelectedUp: vi.fn(),
+      moveSelection: vi.fn(),
+      onCloseDetailDialog: vi.fn(),
+      onOpenDetailDialog: vi.fn(),
+      outdentSelected: vi.fn(),
+      registerDeleteKey: () => true,
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(deleteSelected).toHaveBeenCalledTimes(1);
   });
 });

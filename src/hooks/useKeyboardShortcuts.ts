@@ -6,13 +6,22 @@ import {
   type DateField,
   type DetailField,
   type DetailSelectField,
-  isDateField,
 } from "@/app/types";
 import { getChildren } from "@/domain/nodes/tree";
 import {
   type FlatTreeNode,
   type YarukotoNode,
 } from "@/domain/nodes/types";
+import {
+  handleCalendarViewShortcut,
+  handleDatePickerShortcut,
+  handleDateTextShortcut,
+  handleDetailDialogShortcut,
+  handleDetailSelectShortcut,
+  handleProjectsShortcut,
+  handleReportViewShortcut,
+  handleTreeViewShortcut,
+} from "./keyboardShortcutHandlers";
 
 export function isEditableTagName(tagName: string) {
   return ["INPUT", "TEXTAREA", "SELECT"].includes(tagName);
@@ -347,118 +356,52 @@ export function useKeyboardShortcuts({
         return;
       }
       if (isDetailDialogOpen && isDateTextEditing) {
-        switch (event.key) {
-          case "Enter":
-            run(commitDateTextEdit);
-            break;
-          case "Escape":
-            run(cancelDateTextEdit);
-            break;
-        }
+        handleDateTextShortcut({
+          key: event.key,
+          run,
+          cancelDateTextEdit,
+          commitDateTextEdit,
+        });
         return;
       }
       if (isDetailDialogOpen && isDatePickerOpen) {
-        switch (event.key) {
-          case "h":
-            run(() => moveCalendarCursorByDays(-1));
-            break;
-          case "l":
-            run(() => moveCalendarCursorByDays(1));
-            break;
-          case "j":
-            run(() => moveCalendarCursorByDays(7));
-            break;
-          case "k":
-            run(() => moveCalendarCursorByDays(-7));
-            break;
-          case "H":
-            run(() => moveCalendarCursorByMonths(-1));
-            break;
-          case "L":
-            run(() => moveCalendarCursorByMonths(1));
-            break;
-          case "t":
-            run(moveCalendarCursorToToday);
-            break;
-          case "Enter":
-            run(commitCalendarDate);
-            break;
-          case "Escape":
-            run(closeDatePicker);
-            break;
-        }
+        handleDatePickerShortcut({
+          key: event.key,
+          run,
+          closeDatePicker,
+          commitCalendarDate,
+          moveCalendarCursorByDays,
+          moveCalendarCursorByMonths,
+          moveCalendarCursorToToday,
+        });
         return;
       }
       if (isDetailDialogOpen && openDetailSelectField) {
-        switch (event.key) {
-          case "j":
-            run(() => moveOpenDetailSelect(1));
-            break;
-          case "k":
-            run(() => moveOpenDetailSelect(-1));
-            break;
-          case "Enter":
-            run(commitOpenDetailSelect);
-            break;
-          case "Escape":
-            run(closeDetailSelect);
-            break;
-        }
+        handleDetailSelectShortcut({
+          key: event.key,
+          run,
+          closeDetailSelect,
+          commitOpenDetailSelect,
+          moveOpenDetailSelect,
+        });
         return;
       }
       if (isDetailDialogOpen) {
-        switch (event.key) {
-          case "j":
-            run(() => moveDetailField(1));
-            break;
-          case "k":
-            run(() => moveDetailField(-1));
-            break;
-          case "h":
-            if (activeDetailField === "type") {
-              run(() => cycleTypeValue(-1));
-            } else if (activeDetailField === "status") {
-              run(() => cycleStatusValue(-1));
-            }
-            break;
-          case "l":
-            if (activeDetailField === "type") {
-              run(() => cycleTypeValue(1));
-            } else if (activeDetailField === "status") {
-              run(() => cycleStatusValue(1));
-            }
-            break;
-          case "i":
-            if (isDateField(activeDetailField)) {
-              run(() => openDateTextEdit(activeDetailField));
-            } else {
-              run(focusActiveDetailField);
-            }
-            break;
-          case "Enter":
-            if (activeDetailField === "type" || activeDetailField === "status") {
-              run(() => {
-                focusDetailField(activeDetailField);
-                openDetailSelect(activeDetailField);
-              });
-            } else if (isDateField(activeDetailField)) {
-              run(() => {
-                focusDetailField(activeDetailField);
-                openDatePicker(activeDetailField);
-              });
-            } else {
-              run(focusActiveDetailField);
-            }
-            break;
-          case "x":
-            if (isDateField(activeDetailField)) {
-              run(clearActiveDate);
-            }
-            break;
-          case "Escape":
-            run(onCloseDetailDialog);
-            break;
-        }
+        handleDetailDialogShortcut({
+          activeDetailField,
+          key: event.key,
+          run,
+          clearActiveDate,
+          cycleStatusValue,
+          cycleTypeValue,
+          focusActiveDetailField,
+          focusDetailField,
+          moveDetailField,
+          onCloseDetailDialog,
+          openDatePicker,
+          openDateTextEdit,
+          openDetailSelect,
+        });
         return;
       }
       if (event.ctrlKey && event.key === "h") {
@@ -491,101 +434,60 @@ export function useKeyboardShortcuts({
       }
 
       if (activePane === "projects") {
-        switch (event.key) {
-          case "j":
-            run(() => moveRootSelection(1));
-            break;
-          case "k":
-            run(() => moveRootSelection(-1));
-            break;
-          case "l":
-          case "Enter":
-            run(() => setActivePane("center"));
-            break;
-          case "o":
-            run(createRootInProjects);
-            break;
-          case "Escape":
-            run(() => setActivePane("center"));
-            break;
-        }
+        handleProjectsShortcut({
+          key: event.key,
+          run,
+          createRootInProjects,
+          moveRootSelection,
+          setActivePane,
+        });
         return;
       }
 
       if (centerView === "calendar") {
-        switch (event.key) {
-          case "i":
-          case "Enter":
-            run(onOpenDetailDialog);
-            break;
-          case "t":
-            run(resetCalendarMonthToToday);
-            break;
-        }
+        handleCalendarViewShortcut({
+          key: event.key,
+          run,
+          onOpenDetailDialog,
+          resetCalendarMonthToToday,
+        });
         return;
       }
 
       if (centerView === "report") {
-        switch (event.key) {
-          case "i":
-          case "Enter":
-            run(onOpenDetailDialog);
-            break;
-        }
+        handleReportViewShortcut({
+          key: event.key,
+          run,
+          onOpenDetailDialog,
+        });
         return;
       }
 
-      switch (event.key) {
-        case "j":
-          run(() => moveSelection(1));
-          break;
-        case "k":
-          run(() => moveSelection(-1));
-          break;
-        case "h":
-          run(handleH);
-          break;
-        case "l":
-          run(handleL);
-          break;
-        case "i":
-          run(onOpenDetailDialog);
-          break;
-        case "Enter":
-          run(onOpenDetailDialog);
-          break;
-        case "a":
-          run(createChild);
-          break;
-        case "o":
-          run(createSiblingBelow);
-          break;
-        case "d": {
+      handleTreeViewShortcut({
+        key: event.key,
+        run,
+        createChild,
+        createSiblingBelow,
+        deleteSelected,
+        handleH,
+        handleL,
+        indentSelected,
+        moveSelectedDown,
+        moveSelectedUp,
+        moveSelection,
+        onCloseDetailDialog,
+        onOpenDetailDialog,
+        outdentSelected,
+        registerDeleteKey: () => {
           const currentTime = Date.now();
           if (currentTime - lastDRef.current < 650) {
-            run(deleteSelected);
             lastDRef.current = 0;
-          } else {
-            lastDRef.current = currentTime;
+            return true;
           }
-          break;
-        }
-        case "J":
-          run(moveSelectedDown);
-          break;
-        case "K":
-          run(moveSelectedUp);
-          break;
-        case ">":
-          run(indentSelected);
-          break;
-        case "<":
-          run(outdentSelected);
-          break;
-        case "Escape":
-          run(onCloseDetailDialog);
-          break;
-      }
+          lastDRef.current = currentTime;
+          return false;
+        },
+      });
     };
 
     window.addEventListener("keydown", onKeyDown);

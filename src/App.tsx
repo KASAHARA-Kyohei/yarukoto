@@ -5,43 +5,24 @@ import { CenterHeader } from "./components/CenterHeader";
 import { FocusHintOverlay } from "./components/FocusHintOverlay";
 import { FooterText } from "./components/FooterText";
 import { NodeDetailDialog } from "./components/NodeDetailDialog";
-import { PaneHeader } from "./components/PaneHeader";
+import { ProjectsPane } from "./components/ProjectsPane";
 import { ReportView } from "./components/ReportView";
 import { ShortcutHelp } from "./components/ShortcutHelp";
-import { ThemeSwitcher } from "./components/ThemeSwitcher";
 import { buildTaskProgressMap } from "./domain/nodes/progress";
 import { Toolbar } from "./components/Toolbar";
 import { TreeView } from "./components/TreeView";
-import { getCycledValue } from "@/app/cycleValue";
-import {
-  addDaysToDateKey,
-  addMonthsToDateKey,
-  getInitialDateKey,
-  parseDateInput,
-} from "@/app/dateEditing";
 import type {
   ActivePane,
   CenterView,
-  DateEditMode,
-  DateField,
   DetailField,
-  DetailSelectField,
 } from "@/app/types";
-import { isDateField } from "@/app/types";
 import { Button } from "@/components/ui/button";
-import {
-  getNodeDisplayTitle,
-  statusBadgeClass,
-} from "@/domain/nodes/nodeAppearance";
-import {
-  NODE_STATUSES,
-  NODE_TYPES,
-  type NodeStatus,
-  type NodeType,
-  type YarukotoNode,
-} from "@/domain/nodes/types";
+import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
+import type { YarukotoNode } from "@/domain/nodes/types";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { getNextCenterView } from "./hooks/useKeyboardShortcuts";
+import { useDateEditingState } from "./hooks/useDateEditingState";
+import { useDetailSelectState } from "./hooks/useDetailSelectState";
 import { useTheme } from "./hooks/useTheme";
 import { useYarukotoNodes } from "./hooks/useYarukotoNodes";
 import { cn } from "./lib/utils";
@@ -56,21 +37,6 @@ function App() {
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [activeDetailField, setActiveDetailField] =
     useState<DetailField>("title");
-  const [activeDateField, setActiveDateField] = useState<DateField | null>(
-    null,
-  );
-  const [dateEditMode, setDateEditMode] = useState<DateEditMode | null>(null);
-  const [dateDraftValue, setDateDraftValue] = useState("");
-  const [dateInputError, setDateInputError] = useState<string | null>(null);
-  const [calendarCursorDate, setCalendarCursorDate] = useState<string | null>(
-    null,
-  );
-  const [openDetailSelectField, setOpenDetailSelectField] =
-    useState<DetailSelectField | null>(null);
-  const [statusSelectDraft, setStatusSelectDraft] = useState<NodeStatus | null>(
-    null,
-  );
-  const [typeSelectDraft, setTypeSelectDraft] = useState<NodeType | null>(null);
   const dueDateButtonRef = useRef<HTMLButtonElement | null>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const startDateButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -128,6 +94,51 @@ function App() {
       selectedNode ? (taskProgressById.get(selectedNode.id) ?? null) : null,
     [selectedNode, taskProgressById],
   );
+  const {
+    activeDateField,
+    calendarCursorDate,
+    cancelDateTextEdit,
+    clearActiveDate,
+    clearDateField,
+    closeDatePicker,
+    commitCalendarDate,
+    commitDateTextEdit,
+    dateDraftValue,
+    dateEditMode,
+    dateInputError,
+    handleDateOpenChange,
+    handleDateSelect,
+    moveCalendarCursorByDays,
+    moveCalendarCursorByMonths,
+    moveCalendarCursorToToday,
+    openDatePicker,
+    openDateTextEdit,
+    resetDateInteraction,
+    setDateDraftValue,
+  } = useDateEditingState({
+    activeDetailField,
+    selectedNode,
+    updateSelected,
+  });
+  const {
+    closeDetailSelect,
+    commitOpenDetailSelect,
+    cycleStatusValue,
+    cycleTypeValue,
+    handleStatusOpenChange,
+    handleStatusValueChange,
+    handleTypeOpenChange,
+    handleTypeValueChange,
+    moveOpenDetailSelect,
+    openDetailSelect,
+    openDetailSelectField,
+    resetDetailSelectState,
+    statusValue,
+    typeValue,
+  } = useDetailSelectState({
+    selectedNode,
+    updateSelected,
+  });
 
   const openDetailEditor = useCallback((node: YarukotoNode | null) => {
     if (!node) {
@@ -155,242 +166,6 @@ function App() {
     openDetailEditor(await createSiblingBelow());
   }, [createSiblingBelow, openDetailEditor]);
 
-  const getDateFieldValue = useCallback(
-    (field: DateField) => {
-      if (!selectedNode) {
-        return null;
-      }
-      return field === "startDate"
-        ? selectedNode.startDate
-        : selectedNode.dueDate;
-    },
-    [selectedNode],
-  );
-
-  const updateDateField = useCallback(
-    (field: DateField, value: string | null) => {
-      void updateSelected(
-        field === "startDate" ? { startDate: value } : { dueDate: value },
-      );
-    },
-    [updateSelected],
-  );
-
-  const resetDetailSelectState = useCallback(() => {
-    setOpenDetailSelectField(null);
-    setStatusSelectDraft(null);
-    setTypeSelectDraft(null);
-  }, []);
-
-  const openDetailSelect = useCallback(
-    (field: DetailSelectField) => {
-      if (!selectedNode) {
-        return;
-      }
-      if (field === "type") {
-        setTypeSelectDraft(selectedNode.type);
-        setStatusSelectDraft(null);
-      } else {
-        setStatusSelectDraft(selectedNode.status);
-        setTypeSelectDraft(null);
-      }
-      setOpenDetailSelectField(field);
-    },
-    [selectedNode],
-  );
-
-  const closeDetailSelect = useCallback(() => {
-    resetDetailSelectState();
-  }, [resetDetailSelectState]);
-
-  const resetDateInteraction = useCallback(() => {
-    setActiveDateField(null);
-    setDateEditMode(null);
-    setDateDraftValue("");
-    setDateInputError(null);
-    setCalendarCursorDate(null);
-  }, []);
-
-  const openDatePicker = useCallback(
-    (field: DateField) => {
-      const currentValue = getDateFieldValue(field);
-      setActiveDateField(field);
-      setDateEditMode("calendar");
-      setDateDraftValue(currentValue ?? "");
-      setDateInputError(null);
-      setCalendarCursorDate(getInitialDateKey(currentValue));
-    },
-    [getDateFieldValue],
-  );
-
-  const closeDatePicker = useCallback(() => {
-    if (dateEditMode === "calendar") {
-      resetDateInteraction();
-    }
-  }, [dateEditMode, resetDateInteraction]);
-
-  const openDateTextEdit = useCallback(
-    (field: DateField) => {
-      const currentValue = getDateFieldValue(field);
-      setActiveDateField(field);
-      setDateEditMode("text");
-      setDateDraftValue(currentValue ?? "");
-      setDateInputError(null);
-      setCalendarCursorDate(null);
-    },
-    [getDateFieldValue],
-  );
-
-  const cancelDateTextEdit = useCallback(() => {
-    if (dateEditMode === "text") {
-      resetDateInteraction();
-    }
-  }, [dateEditMode, resetDateInteraction]);
-
-  const moveCalendarCursorByDays = useCallback((amount: number) => {
-    setCalendarCursorDate((currentValue) =>
-      addDaysToDateKey(getInitialDateKey(currentValue), amount),
-    );
-  }, []);
-
-  const moveCalendarCursorByMonths = useCallback((amount: number) => {
-    setCalendarCursorDate((currentValue) =>
-      addMonthsToDateKey(getInitialDateKey(currentValue), amount),
-    );
-  }, []);
-
-  const moveCalendarCursorToToday = useCallback(() => {
-    setCalendarCursorDate(getInitialDateKey(null));
-  }, []);
-
-  const commitCalendarDate = useCallback(() => {
-    if (!activeDateField) {
-      return;
-    }
-    updateDateField(activeDateField, getInitialDateKey(calendarCursorDate));
-    resetDateInteraction();
-  }, [
-    activeDateField,
-    calendarCursorDate,
-    resetDateInteraction,
-    updateDateField,
-  ]);
-
-  const commitDateTextEdit = useCallback(() => {
-    if (!activeDateField) {
-      return;
-    }
-    const result = parseDateInput(dateDraftValue);
-    if (result.error) {
-      setDateInputError(result.error);
-      return;
-    }
-    updateDateField(activeDateField, result.value);
-    resetDateInteraction();
-  }, [activeDateField, dateDraftValue, resetDateInteraction, updateDateField]);
-
-  const clearDateField = useCallback(
-    (field: DateField) => {
-      updateDateField(field, null);
-      if (activeDateField === field) {
-        resetDateInteraction();
-      }
-    },
-    [activeDateField, resetDateInteraction, updateDateField],
-  );
-
-  const clearActiveDate = useCallback(() => {
-    if (!isDateField(activeDetailField)) {
-      return;
-    }
-    clearDateField(activeDetailField);
-  }, [activeDetailField, clearDateField]);
-
-  const handleDateOpenChange = useCallback(
-    (field: DateField, open: boolean) => {
-      if (open) {
-        openDatePicker(field);
-        return;
-      }
-      if (activeDateField === field && dateEditMode === "calendar") {
-        resetDateInteraction();
-      }
-    },
-    [activeDateField, dateEditMode, openDatePicker, resetDateInteraction],
-  );
-
-  const handleDateSelect = useCallback(
-    (field: DateField, dateKey: string) => {
-      updateDateField(field, dateKey);
-      resetDateInteraction();
-    },
-    [resetDateInteraction, updateDateField],
-  );
-
-  const moveOpenDetailSelect = useCallback(
-    (direction: 1 | -1) => {
-      if (!selectedNode || !openDetailSelectField) {
-        return;
-      }
-      if (openDetailSelectField === "type") {
-        setTypeSelectDraft((currentValue) =>
-          getCycledValue(
-            NODE_TYPES,
-            currentValue ?? selectedNode.type,
-            direction,
-          ),
-        );
-      } else {
-        setStatusSelectDraft((currentValue) =>
-          getCycledValue(
-            NODE_STATUSES,
-            currentValue ?? selectedNode.status,
-            direction,
-          ),
-        );
-      }
-    },
-    [openDetailSelectField, selectedNode],
-  );
-
-  const commitOpenDetailSelect = useCallback(() => {
-    if (!selectedNode || !openDetailSelectField) {
-      return;
-    }
-    if (openDetailSelectField === "type") {
-      const nextType = typeSelectDraft ?? selectedNode.type;
-      resetDetailSelectState();
-      if (nextType !== selectedNode.type) {
-        void updateSelected({ type: nextType });
-      }
-      return;
-    }
-    const nextStatus = statusSelectDraft ?? selectedNode.status;
-    resetDetailSelectState();
-    if (nextStatus !== selectedNode.status) {
-      void updateSelected({ status: nextStatus });
-    }
-  }, [
-    openDetailSelectField,
-    resetDetailSelectState,
-    selectedNode,
-    statusSelectDraft,
-    typeSelectDraft,
-    updateSelected,
-  ]);
-
-  const cycleTypeValue = useCallback(
-    (direction: 1 | -1) => {
-      if (!selectedNode) {
-        return;
-      }
-      updateSelected({
-        type: getCycledValue(NODE_TYPES, selectedNode.type, direction),
-      });
-    },
-    [selectedNode, updateSelected],
-  );
-
   useEffect(() => {
     if (!isDetailDialogOpen || !selectedNode) {
       resetDetailSelectState();
@@ -402,18 +177,6 @@ function App() {
     resetDetailSelectState,
     selectedNode?.id,
   ]);
-
-  const cycleStatusValue = useCallback(
-    (direction: 1 | -1) => {
-      if (!selectedNode) {
-        return;
-      }
-      updateSelected({
-        status: getCycledValue(NODE_STATUSES, selectedNode.status, direction),
-      });
-    },
-    [selectedNode, updateSelected],
-  );
 
   const moveCenterView = useCallback((direction: 1 | -1) => {
     setCenterView((current) => getNextCenterView(current, direction));
@@ -540,65 +303,17 @@ function App() {
 
   return (
     <main className="flex h-full min-h-0 bg-background text-foreground">
-      <aside
-        className={cn(
-          "relative flex w-64 shrink-0 flex-col border-r border-border bg-muted/80 ring-inset transition-[box-shadow,background-color]",
-          activePane === "projects"
-            ? "bg-secondary"
-            : "after:pointer-events-none after:absolute after:inset-0 after:bg-foreground/7 after:content-['']",
-        )}
-        data-app-pane="projects"
-        onMouseDown={() => setActivePane("projects")}
-      >
-        <PaneHeader title="Projects" />
-        <div className="flex-1 overflow-y-auto p-2">
-          {roots.map((root) => (
-            <button
-              className={cn(
-                "mb-1 block w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
-                activeRootId === root.id
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-card",
-                activePane === "projects" &&
-                  activeRootId === root.id &&
-                  "ring-2 ring-primary/30 ring-offset-1 ring-offset-muted",
-              )}
-              data-project-focus-id={root.id}
-              key={root.id}
-              onClick={() => selectNode(root.id)}
-              type="button"
-            >
-              <span className="block truncate font-medium">
-                {getNodeDisplayTitle(root)}
-              </span>
-              <span
-                className={cn(
-                  "inline-flex rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
-                  activeRootId === root.id
-                    ? "border-primary-foreground/20 bg-primary-foreground/12 text-primary-foreground"
-                    : statusBadgeClass(root.status),
-                )}
-              >
-                {root.status}
-              </span>
-            </button>
-          ))}
-        </div>
-        <div className="border-t border-border p-2">
-          <div className="flex gap-2">
-            <Button
-              className="min-w-0 flex-1"
-              disabled={isMutating}
-              variant="outline"
-              onClick={() => void handleCreateRoot()}
-              type="button"
-            >
-              {isMutating ? "追加中..." : "ルート追加"}
-            </Button>
-            <ThemeSwitcher themeId={themeId} onChangeTheme={setThemeId} />
-          </div>
-        </div>
-      </aside>
+      <ProjectsPane
+        activePane={activePane}
+        activeRootId={activeRootId}
+        isMutating={isMutating}
+        roots={roots}
+        themeId={themeId}
+        onActivate={() => setActivePane("projects")}
+        onChangeTheme={setThemeId}
+        onCreateRoot={() => void handleCreateRoot()}
+        onSelectRoot={selectNode}
+      />
 
       <section
         className={cn(
@@ -724,42 +439,16 @@ function App() {
         onMoveOpenDetailSelect={moveOpenDetailSelect}
         saveError={saveError}
         saveStatus={saveStatus}
-        statusValue={
-          openDetailSelectField === "status"
-            ? (statusSelectDraft ?? selectedNode?.status ?? NODE_STATUSES[0])
-            : (selectedNode?.status ?? NODE_STATUSES[0])
-        }
+        statusValue={statusValue}
         taskProgress={selectedTaskProgress}
         titleInputRef={titleInputRef}
-        typeValue={
-          openDetailSelectField === "type"
-            ? (typeSelectDraft ?? selectedNode?.type ?? NODE_TYPES[0])
-            : (selectedNode?.type ?? NODE_TYPES[0])
-        }
+        typeValue={typeValue}
         onActivateField={setActiveDetailField}
         onOpenChange={setIsDetailDialogOpen}
-        onStatusOpenChange={(open) => {
-          if (open) {
-            openDetailSelect("status");
-          } else if (openDetailSelectField === "status") {
-            closeDetailSelect();
-          }
-        }}
-        onStatusValueChange={(value) => {
-          void updateSelected({ status: value });
-          resetDetailSelectState();
-        }}
-        onTypeOpenChange={(open) => {
-          if (open) {
-            openDetailSelect("type");
-          } else if (openDetailSelectField === "type") {
-            closeDetailSelect();
-          }
-        }}
-        onTypeValueChange={(value) => {
-          void updateSelected({ type: value });
-          resetDetailSelectState();
-        }}
+        onStatusOpenChange={handleStatusOpenChange}
+        onStatusValueChange={handleStatusValueChange}
+        onTypeOpenChange={handleTypeOpenChange}
+        onTypeValueChange={handleTypeValueChange}
         onUpdateNode={(patch) => void updateSelected(patch)}
       />
       {isShortcutHelpOpen ? (

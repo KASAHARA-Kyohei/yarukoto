@@ -88,6 +88,20 @@ Tauri アプリを配布用にビルドする場合:
 npm run tauri build
 ```
 
+macOS で自分でビルドした未署名アプリが Gatekeeper に止められる場合は、手元確認用に quarantine 属性を外すと開けることがあります。
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/yarukoto.app"
+```
+
+`Applications` に移していない場合は、実際の `.app` のパスを指定します。
+
+```bash
+xattr -dr com.apple.quarantine "src-tauri/target/release/bundle/macos/yarukoto.app"
+```
+
+これは自分でビルドしたアプリをローカルで確認するための回避策です。配布する場合は、本来は署名と notarization を整える必要があります。
+
 Rust 側の確認:
 
 ```bash

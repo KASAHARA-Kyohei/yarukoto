@@ -1,6 +1,8 @@
 import {
   useEffect,
+  useRef,
   useState,
+  type ChangeEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type RefObject,
 } from "react";
@@ -40,7 +42,8 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   blurEditableOnEnter,
   blurEditableOnEscape,
-  shouldBlurTitleOnEnter,
+  isImeCompositionEnter,
+  resolveTitleEnterKey,
 } from "./nodeDetailDialogUtils";
 
 export function NodeDetailDialog({
@@ -118,9 +121,19 @@ export function NodeDetailDialog({
 }) {
   const [isAwaitingSecondTitleEnter, setIsAwaitingSecondTitleEnter] =
     useState(false);
+  const isTitleComposingRef = useRef(false);
+  const pendingTitleCompositionEnterRef = useRef(false);
+  const preserveTitleEnterOnNextChangeRef = useRef(false);
+
+  const resetTitleEnterState = () => {
+    pendingTitleCompositionEnterRef.current = false;
+    preserveTitleEnterOnNextChangeRef.current = false;
+    setIsAwaitingSecondTitleEnter(false);
+  };
 
   useEffect(() => {
-    setIsAwaitingSecondTitleEnter(false);
+    isTitleComposingRef.current = false;
+    resetTitleEnterState();
   }, [node?.id, open]);
 
   const handleTitleEnter = (
@@ -130,11 +143,38 @@ export function NodeDetailDialog({
       return;
     }
     event.preventDefault();
-    if (shouldBlurTitleOnEnter(isAwaitingSecondTitleEnter)) {
-      setIsAwaitingSecondTitleEnter(false);
+    const isImeEnter =
+      isTitleComposingRef.current || isImeCompositionEnter(event.nativeEvent);
+    const next = resolveTitleEnterKey({
+      isAwaitingSecondEnter: isAwaitingSecondTitleEnter,
+      isImeEnter,
+    });
+    pendingTitleCompositionEnterRef.current = isImeEnter;
+    preserveTitleEnterOnNextChangeRef.current =
+      next.shouldPreserveOnNextChange;
+    setIsAwaitingSecondTitleEnter(next.isAwaitingSecondEnter);
+    if (next.shouldBlur) {
       event.currentTarget.blur();
+    }
+  };
+
+  const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (preserveTitleEnterOnNextChangeRef.current) {
+      preserveTitleEnterOnNextChangeRef.current = false;
+      setIsAwaitingSecondTitleEnter(true);
+    } else {
+      setIsAwaitingSecondTitleEnter(false);
+    }
+    onUpdateNode({ title: event.currentTarget.value });
+  };
+
+  const handleTitleCompositionEnd = () => {
+    isTitleComposingRef.current = false;
+    if (!pendingTitleCompositionEnterRef.current) {
       return;
     }
+    pendingTitleCompositionEnterRef.current = false;
+    preserveTitleEnterOnNextChangeRef.current = true;
     setIsAwaitingSecondTitleEnter(true);
   };
 
@@ -190,12 +230,14 @@ export function NodeDetailDialog({
               onActivateField={onActivateField}
             >
               <Input
-                onChange={(event) => {
-                  setIsAwaitingSecondTitleEnter(false);
-                  onUpdateNode({ title: event.currentTarget.value });
+                onChange={handleTitleChange}
+                onBlur={resetTitleEnterState}
+                onCompositionEnd={handleTitleCompositionEnd}
+                onCompositionStart={() => {
+                  isTitleComposingRef.current = true;
+                  resetTitleEnterState();
                 }}
-                onBlur={() => setIsAwaitingSecondTitleEnter(false)}
-                onFocus={() => setIsAwaitingSecondTitleEnter(false)}
+                onFocus={resetTitleEnterState}
                 onKeyDown={handleTitleEnter}
                 placeholder="タイトルを入力"
                 ref={titleInputRef}

@@ -38,3 +38,41 @@ export function blurEditableOnEnter(
 export function shouldBlurTitleOnEnter(isAwaitingSecondEnter: boolean) {
   return isAwaitingSecondEnter;
 }
+
+export function isImeCompositionEnter({
+  isComposing,
+  keyCode,
+}: {
+  isComposing?: boolean;
+  keyCode?: number;
+}) {
+  return Boolean(isComposing) || keyCode === 229;
+}
+
+export function resolveTitleEnterKey({
+  isAwaitingSecondEnter,
+  isImeEnter,
+}: {
+  isAwaitingSecondEnter: boolean;
+  isImeEnter: boolean;
+}) {
+  if (isImeEnter) {
+    return {
+      isAwaitingSecondEnter: true,
+      shouldBlur: false,
+      shouldPreserveOnNextChange: true,
+    };
+  }
+  if (shouldBlurTitleOnEnter(isAwaitingSecondEnter)) {
+    return {
+      isAwaitingSecondEnter: false,
+      shouldBlur: true,
+      shouldPreserveOnNextChange: false,
+    };
+  }
+  return {
+    isAwaitingSecondEnter: true,
+    shouldBlur: false,
+    shouldPreserveOnNextChange: false,
+  };
+}

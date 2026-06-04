@@ -143,10 +143,10 @@ export function TreeView({
       ) : (
         <div style={{ minWidth: `${treeMinWidth}px` }}>
           <div
-            className="mb-2 grid items-end gap-y-1 px-2 text-[11px] font-medium uppercase text-muted-foreground/90"
+            className="mb-2 grid items-end gap-y-1 text-[11px] font-medium uppercase text-muted-foreground/90"
             style={{ gridTemplateColumns: treeColumns }}
           >
-            <div className="pl-2">Title</div>
+            <div className="pl-4">Title</div>
             <div>Type</div>
             <div>Status</div>
             <div>Progress</div>

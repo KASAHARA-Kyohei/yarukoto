@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import {
   formatPeriodLabel,
@@ -28,6 +29,10 @@ function TrackMarkers({ markers }: { markers: TimelineMarker[] }) {
       ))}
     </>
   );
+}
+
+function TimelineRail({ children }: { children: ReactNode }) {
+  return <div className="absolute inset-y-0 inset-x-2">{children}</div>;
 }
 
 function TruncationMarks({
@@ -86,70 +91,72 @@ function TimelineTrack({
 
   return (
     <div className="relative h-6 overflow-hidden rounded-md bg-muted/55">
-      <TrackMarkers markers={markers} />
-      {todayLineStyle ? (
-        <span
-          aria-label="today"
-          className="absolute inset-y-0 z-[1] w-px bg-primary/80"
-          style={todayLineStyle}
-        />
-      ) : null}
-      {aggregateBarStyle ? (
-        <>
-          <div
-            aria-label={`${boundsLabel} children`}
-            className="absolute top-3.5 h-1 rounded-full bg-foreground/18"
-            style={aggregateBarStyle}
-          />
-          {aggregateBarStyle.truncatedLeft ? (
-            <TruncationMarks
-              barClassName="bg-foreground/25"
-              side="left"
-              top={14}
-            />
-          ) : null}
-          {aggregateBarStyle.truncatedRight ? (
-            <TruncationMarks
-              barClassName="bg-foreground/25"
-              side="right"
-              top={14}
-            />
-          ) : null}
-        </>
-      ) : null}
-      {barStyle ? (
-        <>
-          <div
-            aria-label={boundsLabel}
-            className={cn(
-              "absolute top-1.5 h-2 rounded-full shadow-[inset_0_-1px_0_rgba(255,255,255,0.18)]",
-              effectiveBarClassName,
-            )}
-            style={barStyle}
-          />
+      <TimelineRail>
+        <TrackMarkers markers={markers} />
+        {todayLineStyle ? (
           <span
-            className={cn(
-              "absolute top-2 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-background shadow-sm",
-              effectiveBarClassName,
-            )}
-            style={{ left: barStyle.endMarkerLeft }}
+            aria-label="today"
+            className="absolute inset-y-0 z-[1] w-px bg-primary/80"
+            style={todayLineStyle}
           />
-          {barStyle.truncatedLeft ? (
-            <TruncationMarks
-              barClassName={effectiveBarClassName}
-              side="left"
-              top={4}
+        ) : null}
+        {aggregateBarStyle ? (
+          <>
+            <div
+              aria-label={`${boundsLabel} children`}
+              className="absolute top-3.5 h-1 rounded-full bg-foreground/18"
+              style={aggregateBarStyle}
             />
-          ) : null}
-          {barStyle.truncatedRight ? (
-            <TruncationMarks
-              barClassName={effectiveBarClassName}
-              side="right"
-              top={4}
+            {aggregateBarStyle.truncatedLeft ? (
+              <TruncationMarks
+                barClassName="bg-foreground/25"
+                side="left"
+                top={14}
+              />
+            ) : null}
+            {aggregateBarStyle.truncatedRight ? (
+              <TruncationMarks
+                barClassName="bg-foreground/25"
+                side="right"
+                top={14}
+              />
+            ) : null}
+          </>
+        ) : null}
+        {barStyle ? (
+          <>
+            <div
+              aria-label={boundsLabel}
+              className={cn(
+                "absolute top-1.5 h-2 rounded-full shadow-[inset_0_-1px_0_rgba(255,255,255,0.18)]",
+                effectiveBarClassName,
+              )}
+              style={barStyle}
             />
-          ) : null}
-        </>
-      ) : null}
+            <span
+              className={cn(
+                "absolute top-2 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-background shadow-sm",
+                effectiveBarClassName,
+              )}
+              style={{ left: barStyle.endMarkerLeft }}
+            />
+            {barStyle.truncatedLeft ? (
+              <TruncationMarks
+                barClassName={effectiveBarClassName}
+                side="left"
+                top={4}
+              />
+            ) : null}
+            {barStyle.truncatedRight ? (
+              <TruncationMarks
+                barClassName={effectiveBarClassName}
+                side="right"
+                top={4}
+              />
+            ) : null}
+          </>
+        ) : null}
+      </TimelineRail>
     </div>
   );
 }
@@ -195,17 +202,19 @@ export function TreePeriodHeader({
   return (
     <div className="pr-2">
       {timelineBounds ? (
-        <div className="relative h-7 overflow-hidden rounded-md bg-muted/25 px-2 text-[10px] normal-case text-muted-foreground/90">
-          <TrackMarkers markers={markers} />
-          {todayLineStyle ? (
-            <span
-              className="absolute inset-y-0 z-[1] w-px bg-primary/80"
-              style={todayLineStyle}
-            />
-          ) : null}
-          {timelineMode === "medium" || timelineMode === "long" || timelineMode === "xlong" ? (
-            <TimelineLabels markers={markers} />
-          ) : null}
+        <div className="relative h-7 overflow-hidden rounded-md bg-muted/25 text-[10px] normal-case text-muted-foreground/90">
+          <TimelineRail>
+            <TrackMarkers markers={markers} />
+            {todayLineStyle ? (
+              <span
+                className="absolute inset-y-0 z-[1] w-px bg-primary/80"
+                style={todayLineStyle}
+              />
+            ) : null}
+            {timelineMode === "medium" || timelineMode === "long" || timelineMode === "xlong" ? (
+              <TimelineLabels markers={markers} />
+            ) : null}
+          </TimelineRail>
           <div className="absolute inset-x-2 bottom-0.5 flex items-center justify-between">
             <span>{formatShortDate(timelineBounds.start)}</span>
             <span>{formatShortDate(timelineBounds.end)}</span>

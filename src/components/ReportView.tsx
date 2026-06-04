@@ -125,11 +125,6 @@ export function ReportView({
             </div>
             <span className="text-xs text-muted-foreground">{model.doneRate}%</span>
           </div>
-          <p className="mb-2 text-xs text-muted-foreground">
-            {model.doneTaskCount > 0
-              ? "完了済みのタスクがあります。流れは良いです。"
-              : "まだ完了タスクはありません。Doing から1つ終わらせましょう。"}
-          </p>
           {model.recentlyDoneTasks.length > 0 && (
             <div className="space-y-1">
               {model.recentlyDoneTasks.map((node) => (
@@ -343,4 +338,3 @@ function Breakdown({
     </Card>
   );
 }
-

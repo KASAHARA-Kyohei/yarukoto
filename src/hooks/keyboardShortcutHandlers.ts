@@ -281,8 +281,10 @@ export function handleTreeViewShortcut({
   moveSelectedDown,
   moveSelectedUp,
   moveSelection,
+  onCopyLlmReview,
   onCloseDetailDialog,
   onOpenDetailDialog,
+  onOpenLlmImport,
   outdentSelected,
   registerDeleteKey,
 }: {
@@ -297,8 +299,10 @@ export function handleTreeViewShortcut({
   moveSelectedDown: () => Promise<void>;
   moveSelectedUp: () => Promise<void>;
   moveSelection: (direction: 1 | -1) => void;
+  onCopyLlmReview: () => Promise<void>;
   onCloseDetailDialog: () => void;
   onOpenDetailDialog: () => void;
+  onOpenLlmImport: () => Promise<void>;
   outdentSelected: () => Promise<void>;
   registerDeleteKey: () => boolean;
 }) {
@@ -324,6 +328,12 @@ export function handleTreeViewShortcut({
       break;
     case "o":
       run(createSiblingBelow);
+      break;
+    case "y":
+      run(onCopyLlmReview);
+      break;
+    case "p":
+      run(onOpenLlmImport);
       break;
     case "d":
       if (registerDeleteKey()) {

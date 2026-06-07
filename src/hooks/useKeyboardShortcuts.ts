@@ -90,6 +90,7 @@ export function useKeyboardShortcuts({
   isDatePickerOpen,
   isDateTextEditing,
   isFocusHintOpen,
+  isLlmImportOpen,
   isMutating,
   isShortcutHelpOpen,
   moveCalendarCursorByDays,
@@ -109,7 +110,9 @@ export function useKeyboardShortcuts({
   onCloseDetailDialog,
   onCloseShortcutHelp,
   onOpenDetailDialog,
+  onCopyLlmReview,
   onOpenFocusHint,
+  onOpenLlmImport,
   onOpenShortcutHelp,
   pendingUndoDelete,
   restorePendingDelete,
@@ -156,6 +159,7 @@ export function useKeyboardShortcuts({
   isDatePickerOpen: boolean;
   isDateTextEditing: boolean;
   isFocusHintOpen: boolean;
+  isLlmImportOpen: boolean;
   isMutating: boolean;
   isShortcutHelpOpen: boolean;
   moveCalendarCursorByDays: (amount: number) => void;
@@ -174,7 +178,9 @@ export function useKeyboardShortcuts({
   onCloseDetailDialog: () => void;
   onCloseShortcutHelp: () => void;
   onOpenDetailDialog: () => void;
+  onCopyLlmReview: () => Promise<void>;
   onOpenFocusHint: () => void;
+  onOpenLlmImport: () => Promise<void>;
   onOpenShortcutHelp: () => void;
   pendingUndoDelete: { title: string } | null;
   restorePendingDelete: () => Promise<unknown>;
@@ -322,6 +328,9 @@ export function useKeyboardShortcuts({
         return;
       }
       if (isFocusHintOpen) {
+        return;
+      }
+      if (isLlmImportOpen) {
         return;
       }
       if (isEditableTarget(event.target)) {
@@ -475,8 +484,10 @@ export function useKeyboardShortcuts({
         moveSelectedDown,
         moveSelectedUp,
         moveSelection,
+        onCopyLlmReview,
         onCloseDetailDialog,
         onOpenDetailDialog,
+        onOpenLlmImport,
         outdentSelected,
         registerDeleteKey: () => {
           const currentTime = Date.now();
@@ -522,6 +533,7 @@ export function useKeyboardShortcuts({
     isDatePickerOpen,
     isDateTextEditing,
     isFocusHintOpen,
+    isLlmImportOpen,
     isMutating,
     isShortcutHelpOpen,
     moveCalendarCursorByDays,
@@ -543,7 +555,9 @@ export function useKeyboardShortcuts({
     onCloseDetailDialog,
     onCloseShortcutHelp,
     onOpenDetailDialog,
+    onCopyLlmReview,
     onOpenFocusHint,
+    onOpenLlmImport,
     onOpenShortcutHelp,
     pendingUndoDelete,
     outdentSelected,

@@ -99,8 +99,10 @@ describe("isEditableTagName", () => {
       moveSelectedDown: vi.fn(),
       moveSelectedUp: vi.fn(),
       moveSelection: vi.fn(),
+      onCopyLlmReview: vi.fn(),
       onCloseDetailDialog: vi.fn(),
       onOpenDetailDialog: vi.fn(),
+      onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
       registerDeleteKey: () => false,
     });
@@ -116,13 +118,48 @@ describe("isEditableTagName", () => {
       moveSelectedDown: vi.fn(),
       moveSelectedUp: vi.fn(),
       moveSelection: vi.fn(),
+      onCopyLlmReview: vi.fn(),
       onCloseDetailDialog: vi.fn(),
       onOpenDetailDialog: vi.fn(),
+      onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
       registerDeleteKey: () => true,
     });
 
     expect(run).toHaveBeenCalledTimes(1);
     expect(deleteSelected).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["y", "copy"],
+    ["p", "import"],
+  ])("routes %s to the LLM %s action", (key) => {
+    const run = vi.fn((action: () => void) => action());
+    const onCopyLlmReview = vi.fn();
+    const onOpenLlmImport = vi.fn();
+
+    handleTreeViewShortcut({
+      key,
+      run,
+      createChild: vi.fn(),
+      createSiblingBelow: vi.fn(),
+      deleteSelected: vi.fn(),
+      handleH: vi.fn(),
+      handleL: vi.fn(),
+      indentSelected: vi.fn(),
+      moveSelectedDown: vi.fn(),
+      moveSelectedUp: vi.fn(),
+      moveSelection: vi.fn(),
+      onCopyLlmReview,
+      onCloseDetailDialog: vi.fn(),
+      onOpenDetailDialog: vi.fn(),
+      onOpenLlmImport,
+      outdentSelected: vi.fn(),
+      registerDeleteKey: () => false,
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(onCopyLlmReview).toHaveBeenCalledTimes(key === "y" ? 1 : 0);
+    expect(onOpenLlmImport).toHaveBeenCalledTimes(key === "p" ? 1 : 0);
   });
 });

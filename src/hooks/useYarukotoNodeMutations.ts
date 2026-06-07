@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { PendingUndoDelete, SaveStatus } from "@/app/types";
 import { getDeleteSelectionFallback } from "@/domain/nodes/nodeSelection";
 import { createDeleteUndoSnapshot } from "@/domain/nodes/undo";
+import type { LlmTreeDocument } from "@/domain/nodes/llmTree";
 import { nodeRepository } from "../repositories/nodeRepository";
 import type {
   FlatTreeNode,
@@ -85,6 +86,17 @@ export function useYarukotoNodeMutations({
       return sibling;
     });
   }, [loadNodes, runAction, selectedNode]);
+
+  const importTree = useCallback(
+    async (document: LlmTreeDocument) => {
+      return await runAction(async () => {
+        const root = await nodeRepository.importTree(document);
+        await loadNodes(root.id);
+        return root;
+      });
+    },
+    [loadNodes, runAction],
+  );
 
   const deleteSelected = useCallback(async () => {
     if (!selectedNode) {
@@ -201,6 +213,7 @@ export function useYarukotoNodeMutations({
     createSiblingBelow,
     deleteSelected,
     indentSelected,
+    importTree,
     moveSelectedDown,
     moveSelectedUp,
     outdentSelected,

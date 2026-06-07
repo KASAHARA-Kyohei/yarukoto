@@ -3,6 +3,10 @@ import {
   type UpdateNodeInput,
   type YarukotoNode,
 } from "../domain/nodes/types";
+import {
+  flattenLlmTreeDocument,
+  type LlmTreeDocument,
+} from "../domain/nodes/llmTree";
 import { getDescendantIds, sortNodes } from "../domain/nodes/tree";
 import { getNodeDb, migrateNodeSchema, withWriteQueue } from "./nodeDb";
 import { type DbNode, nodeInsertParams, toNode } from "./nodeMapper";
@@ -66,6 +70,31 @@ export class NodeRepository {
       await this.normalizeSortOrder(node.parentId);
     });
     return node;
+  }
+
+  async importTree(document: LlmTreeDocument) {
+    const nodes = flattenLlmTreeDocument(document);
+    const db = await getNodeDb();
+    const valuesPerNode = 11;
+    const placeholders = nodes
+      .map((_, nodeIndex) => {
+        const offset = nodeIndex * valuesPerNode;
+        return `(${Array.from(
+          { length: valuesPerNode },
+          (__, valueIndex) => `$${offset + valueIndex + 1}`,
+        ).join(", ")})`;
+      })
+      .join(", ");
+
+    await withWriteQueue(async () => {
+      await db.execute(
+        `INSERT INTO nodes (
+          id, parent_id, title, type, status, memo, start_date, due_date, sort_order, created_at, updated_at
+        ) VALUES ${placeholders}`,
+        nodes.flatMap(nodeInsertParams),
+      );
+    });
+    return nodes[0];
   }
 
   async updateNode(id: string, input: UpdateNodeInput) {

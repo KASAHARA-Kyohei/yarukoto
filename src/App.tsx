@@ -5,6 +5,7 @@ import { CenterHeader } from "./components/CenterHeader";
 import { FocusHintOverlay } from "./components/FocusHintOverlay";
 import { FooterText } from "./components/FooterText";
 import { NodeDetailDialog } from "./components/NodeDetailDialog";
+import { LlmTreeImportDialog } from "./components/LlmTreeImportDialog";
 import { ProjectsPane } from "./components/ProjectsPane";
 import { ReportView } from "./components/ReportView";
 import { ShortcutHelp } from "./components/ShortcutHelp";
@@ -24,6 +25,7 @@ import { getNextCenterView } from "./hooks/useKeyboardShortcuts";
 import { useDateEditingState } from "./hooks/useDateEditingState";
 import { useDetailSelectState } from "./hooks/useDetailSelectState";
 import { useTheme } from "./hooks/useTheme";
+import { useLlmTreeExchange } from "./hooks/useLlmTreeExchange";
 import { useYarukotoNodes } from "./hooks/useYarukotoNodes";
 import { cn } from "./lib/utils";
 
@@ -66,6 +68,7 @@ function App() {
     error,
     expandedIds,
     indentSelected,
+    importTree,
     isLoading,
     isMutating,
     moveSelectedDown,
@@ -85,6 +88,21 @@ function App() {
     updateSelected,
     visibleNodes,
   } = useYarukotoNodes();
+  const {
+    clipboardError,
+    copyReview,
+    importText,
+    isImportOpen,
+    notice: llmExchangeNotice,
+    openImport,
+    setIsImportOpen,
+    submitImport,
+    updateImportText,
+  } = useLlmTreeExchange({
+    activeRootId,
+    importTree,
+    nodes,
+  });
   const taskProgressById = useMemo(
     () => buildTaskProgressMap(scopedNodes),
     [scopedNodes],
@@ -248,6 +266,7 @@ function App() {
     isDatePickerOpen: dateEditMode === "calendar",
     isDateTextEditing: dateEditMode === "text",
     isFocusHintOpen,
+    isLlmImportOpen: isImportOpen,
     isMutating,
     isShortcutHelpOpen,
     moveCalendarCursorByDays,
@@ -266,7 +285,9 @@ function App() {
     onCloseDetailDialog: () => setIsDetailDialogOpen(false),
     onCloseShortcutHelp: () => setIsShortcutHelpOpen(false),
     onOpenDetailDialog: () => openDetailEditor(selectedNode),
+    onCopyLlmReview: copyReview,
     onOpenFocusHint: () => setIsFocusHintOpen(true),
+    onOpenLlmImport: openImport,
     onOpenShortcutHelp: () => setIsShortcutHelpOpen(true),
     pendingUndoDelete,
     outdentSelected,
@@ -335,6 +356,7 @@ function App() {
         {centerView === "tree" ? (
           <>
             <Toolbar
+              canExport={activeRootId !== null}
               disabled={!selectedNode || isMutating}
               isLoading={isMutating}
               onEdit={() => openDetailEditor(selectedNode)}
@@ -342,9 +364,11 @@ function App() {
               onAddSibling={() => void handleCreateSiblingBelow()}
               onDelete={() => void deleteSelected()}
               onIndent={() => void indentSelected()}
+              onImport={() => void openImport()}
               onMoveDown={() => void moveSelectedDown()}
               onMoveUp={() => void moveSelectedUp()}
               onOutdent={() => void outdentSelected()}
+              onExport={() => void copyReview()}
             />
             <TreeView
               expandedIds={expandedIds}
@@ -379,6 +403,14 @@ function App() {
           {actionError ? (
             <span className="text-destructive">
               操作に失敗しました: {actionError}
+            </span>
+          ) : llmExchangeNotice ? (
+            <span
+              className={
+                llmExchangeNotice.kind === "error" ? "text-destructive" : undefined
+              }
+            >
+              {llmExchangeNotice.text}
             </span>
           ) : pendingUndoDelete ? (
             <span className="inline-flex items-center gap-2">
@@ -450,6 +482,22 @@ function App() {
         onTypeOpenChange={handleTypeOpenChange}
         onTypeValueChange={handleTypeValueChange}
         onUpdateNode={(patch) => void updateSelected(patch)}
+      />
+      <LlmTreeImportDialog
+        clipboardError={clipboardError}
+        isImporting={isMutating}
+        open={isImportOpen}
+        text={importText}
+        onImport={(document) => {
+          void submitImport(document).then((root) => {
+            if (root) {
+              setActivePane("center");
+              setCenterView("tree");
+            }
+          });
+        }}
+        onOpenChange={setIsImportOpen}
+        onTextChange={updateImportText}
       />
       {isShortcutHelpOpen ? (
         <ShortcutHelp

@@ -47,7 +47,7 @@ export function useLlmTreeExchange({
       await writeText(buildLlmReviewText(document));
       setNotice({
         kind: "success",
-        text: "LLMレビュー用のプロジェクト情報をコピーしました。",
+        text: "レビュー依頼をコピーしました。AIチャットに貼り付けてください。",
       });
     } catch (error) {
       setNotice({

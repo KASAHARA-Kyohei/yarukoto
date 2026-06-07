@@ -1,10 +1,13 @@
+import { useState } from "react";
 import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  Bot,
   Loader2,
   ListPlus,
+  MoreHorizontal,
   Pencil,
   ClipboardPaste,
   Copy,
@@ -12,6 +15,11 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export function Toolbar({
   disabled,
@@ -44,29 +52,21 @@ export function Toolbar({
 }) {
   const AddIcon = isLoading ? Loader2 : Plus;
   const SiblingIcon = isLoading ? Loader2 : ListPlus;
+  const [isArrangeOpen, setIsArrangeOpen] = useState(false);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+  const runArrangeAction = (action: () => void) => {
+    setIsArrangeOpen(false);
+    action();
+  };
+
+  const runReviewAction = (action: () => void) => {
+    setIsReviewOpen(false);
+    action();
+  };
 
   return (
-    <div className="flex shrink-0 flex-wrap gap-2 border-b border-border bg-muted/70 p-2">
-      <Button
-        disabled={!canExport || isLoading}
-        onClick={onExport}
-        size="sm"
-        type="button"
-        variant="outline"
-      >
-        <Copy className="h-3.5 w-3.5" />
-        LLM用コピー
-      </Button>
-      <Button
-        disabled={isLoading}
-        onClick={onImport}
-        size="sm"
-        type="button"
-        variant="outline"
-      >
-        <ClipboardPaste className="h-3.5 w-3.5" />
-        LLM結果取込
-      </Button>
+    <div className="flex shrink-0 items-center gap-2 border-b border-border bg-muted/70 px-3 py-2">
       <Button disabled={disabled} onClick={onEdit} size="sm" type="button" variant="default">
         <Pencil className="h-3.5 w-3.5" />
         編集
@@ -79,32 +79,138 @@ export function Toolbar({
         <SiblingIcon className={isLoading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
         下追加
       </Button>
-      <Button disabled={disabled} onClick={onMoveUp} size="sm" type="button" variant="outline">
-        <ArrowUp className="h-3.5 w-3.5" />
-        上へ
-      </Button>
-      <Button disabled={disabled} onClick={onMoveDown} size="sm" type="button" variant="outline">
-        <ArrowDown className="h-3.5 w-3.5" />
-        下へ
-      </Button>
-      <Button disabled={disabled} onClick={onIndent} size="sm" type="button" variant="outline">
-        <ArrowRight className="h-3.5 w-3.5" />
-        子階層へ
-      </Button>
-      <Button disabled={disabled} onClick={onOutdent} size="sm" type="button" variant="outline">
-        <ArrowLeft className="h-3.5 w-3.5" />
-        親階層へ
-      </Button>
-      <Button
-        disabled={disabled}
-        onClick={onDelete}
-        size="sm"
-        type="button"
-        variant="destructive"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-        削除
-      </Button>
+      <Popover open={isArrangeOpen} onOpenChange={setIsArrangeOpen}>
+        <PopoverTrigger asChild>
+          <Button disabled={disabled} size="sm" type="button" variant="outline">
+            <MoreHorizontal className="h-3.5 w-3.5" />
+            整理
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-44 p-1">
+          <ToolbarMenuItem
+            icon={ArrowUp}
+            label="上へ移動"
+            onClick={() => runArrangeAction(onMoveUp)}
+          />
+          <ToolbarMenuItem
+            icon={ArrowDown}
+            label="下へ移動"
+            onClick={() => runArrangeAction(onMoveDown)}
+          />
+          <ToolbarMenuItem
+            icon={ArrowRight}
+            label="子階層へ"
+            onClick={() => runArrangeAction(onIndent)}
+          />
+          <ToolbarMenuItem
+            icon={ArrowLeft}
+            label="親階層へ"
+            onClick={() => runArrangeAction(onOutdent)}
+          />
+          <div className="my-1 border-t border-border" />
+          <ToolbarMenuItem
+            destructive
+            icon={Trash2}
+            label="削除"
+            onClick={() => runArrangeAction(onDelete)}
+          />
+        </PopoverContent>
+      </Popover>
+      <div className="ml-auto">
+        <Popover open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+          <PopoverTrigger asChild>
+            <Button disabled={isLoading} size="sm" type="button" variant="outline">
+              <Bot className="h-3.5 w-3.5" />
+              AIレビュー
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-80 p-2">
+            <p className="px-2 pb-2 text-xs leading-relaxed text-muted-foreground">
+              プロジェクトをAIチャットで見直し、整理された結果を別プロジェクトとして戻せます。
+            </p>
+            <ReviewMenuItem
+              disabled={!canExport}
+              icon={Copy}
+              label="レビュー依頼をコピー"
+              shortcut="y"
+              description="現在のプロジェクトとAI向けの指示をコピー"
+              onClick={() => runReviewAction(onExport)}
+            />
+            <ReviewMenuItem
+              icon={ClipboardPaste}
+              label="レビュー結果を取り込む"
+              shortcut="p"
+              description="AIの返答を新しいプロジェクトとして作成"
+              onClick={() => runReviewAction(onImport)}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
+  );
+}
+
+function ToolbarMenuItem({
+  destructive = false,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  destructive?: boolean;
+  icon: typeof ArrowUp;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      className={destructive ? "w-full justify-start text-destructive" : "w-full justify-start"}
+      size="sm"
+      type="button"
+      variant="ghost"
+      onClick={onClick}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+    </Button>
+  );
+}
+
+function ReviewMenuItem({
+  description,
+  disabled = false,
+  icon: Icon,
+  label,
+  onClick,
+  shortcut,
+}: {
+  description: string;
+  disabled?: boolean;
+  icon: typeof Copy;
+  label: string;
+  onClick: () => void;
+  shortcut: string;
+}) {
+  return (
+    <button
+      className="flex w-full items-start gap-3 rounded-md px-2 py-2.5 text-left transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
+      disabled={disabled}
+      type="button"
+      onClick={onClick}
+    >
+      <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-border bg-background">
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-2 text-sm font-medium">
+          {label}
+          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            {shortcut}
+          </kbd>
+        </span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+          {description}
+        </span>
+      </span>
+    </button>
   );
 }

@@ -62,7 +62,7 @@ export function LlmTreeImportDialog({
         <DialogHeader>
           <DialogTitle>LLMレビュー結果を取り込む</DialogTitle>
           <DialogDescription>
-            LLMが返したJSONを確認し、新しいプロジェクトとして作成します。
+            AIチャットの返答を貼り付け、新しいプロジェクトとして作成します。元のプロジェクトは変更されません。
           </DialogDescription>
         </DialogHeader>
         <div className="grid min-h-0 gap-3 p-4">
@@ -70,7 +70,7 @@ export function LlmTreeImportDialog({
             autoFocus
             className="min-h-80 resize-y font-mono text-xs"
             data-keyboard-editing="true"
-            placeholder="yarukoto-tree形式のJSONを貼り付けてください"
+            placeholder="AIチャットが返したJSONを貼り付けてください"
             value={text}
             onChange={(event) => onTextChange(event.target.value)}
           />

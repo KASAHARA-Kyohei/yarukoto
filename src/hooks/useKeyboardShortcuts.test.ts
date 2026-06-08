@@ -7,6 +7,7 @@ import {
 } from "./useKeyboardShortcuts";
 import {
   handleDatePickerShortcut,
+  handleKanbanViewShortcut,
   handleProjectsShortcut,
   handleTreeViewShortcut,
 } from "./keyboardShortcutHandlers";
@@ -31,11 +32,12 @@ describe("isEditableTagName", () => {
   });
 
   it("moves across center tabs", () => {
-    expect(getNextCenterView("tree", 1)).toBe("calendar");
+    expect(getNextCenterView("tree", 1)).toBe("kanban");
+    expect(getNextCenterView("kanban", 1)).toBe("calendar");
     expect(getNextCenterView("calendar", 1)).toBe("report");
     expect(getNextCenterView("report", 1)).toBe("tree");
     expect(getNextCenterView("report", -1)).toBe("calendar");
-    expect(getNextCenterView("tree", -1)).toBe("report");
+    expect(getNextCenterView("kanban", -1)).toBe("tree");
   });
 
   it("moves through detail dialog fields", () => {
@@ -81,6 +83,44 @@ describe("isEditableTagName", () => {
 
     expect(run).toHaveBeenCalledTimes(1);
     expect(createRootInProjects).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["j", "down"],
+    ["k", "up"],
+    ["h", "left"],
+    ["l", "right"],
+  ] as const)("routes kanban %s to %s selection", (key, direction) => {
+    const run = vi.fn((action: () => void) => action());
+    const moveKanbanSelection = vi.fn();
+
+    handleKanbanViewShortcut({
+      key,
+      run,
+      moveKanbanSelection,
+      moveKanbanStatus: vi.fn(),
+      onOpenDetailDialog: vi.fn(),
+    });
+
+    expect(moveKanbanSelection).toHaveBeenCalledWith(direction);
+  });
+
+  it.each([
+    ["H", -1],
+    ["L", 1],
+  ] as const)("routes kanban %s to status movement", (key, direction) => {
+    const run = vi.fn((action: () => void) => action());
+    const moveKanbanStatus = vi.fn();
+
+    handleKanbanViewShortcut({
+      key,
+      run,
+      moveKanbanSelection: vi.fn(),
+      moveKanbanStatus,
+      onOpenDetailDialog: vi.fn(),
+    });
+
+    expect(moveKanbanStatus).toHaveBeenCalledWith(direction);
   });
 
   it("keeps dd as a two-step tree delete shortcut", () => {

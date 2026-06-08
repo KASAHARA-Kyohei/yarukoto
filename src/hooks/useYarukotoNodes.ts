@@ -138,6 +138,7 @@ export function useYarukotoNodes() {
   }, []);
 
   const {
+    changeNodeStatus,
     clearPendingUndoDelete,
     createChild,
     createRoot,
@@ -168,6 +169,7 @@ export function useYarukotoNodes() {
     activeRootId,
     actionError,
     calendarNodes,
+    changeNodeStatus,
     clearPendingUndoDelete,
     createChild,
     createRoot,

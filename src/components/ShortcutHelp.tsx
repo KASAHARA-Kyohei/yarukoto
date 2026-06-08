@@ -39,6 +39,15 @@ const CALENDAR_SHORTCUTS: Array<[string, string]> = [
   ["Enter / i", "選択中ノードの編集を開く"],
 ];
 
+const KANBAN_SHORTCUTS: Array<[string, string]> = [
+  ["j / k", "同じ列のカードを選択"],
+  ["h / l", "前後の空でない列へ選択移動"],
+  ["H / L", "選択カードを前後のstatusへ移動"],
+  ["Enter / i", "選択中Taskの編集を開く"],
+  ["ドラッグ", "ドロップした列のstatusへ変更"],
+  ["f", "ヒントからカードを直接選択"],
+];
+
 const REPORT_SHORTCUTS: Array<[string, string]> = [
   ["Enter / i", "選択中ノードの編集を開く"],
 ];
@@ -69,6 +78,8 @@ export function ShortcutHelp({
   const currentPaneShortcuts =
     activePane === "projects"
       ? PROJECT_SHORTCUTS
+      : centerView === "kanban"
+        ? KANBAN_SHORTCUTS
       : centerView === "calendar"
         ? CALENDAR_SHORTCUTS
         : centerView === "report"

@@ -5,8 +5,10 @@ import { getDeleteSelectionFallback } from "@/domain/nodes/nodeSelection";
 import { createDeleteUndoSnapshot } from "@/domain/nodes/undo";
 import type { LlmTreeDocument } from "@/domain/nodes/llmTree";
 import { nodeRepository } from "../repositories/nodeRepository";
+import { changeNodeStatusOptimistically } from "./nodeStatusMutation";
 import type {
   FlatTreeNode,
+  NodeStatus,
   UpdateNodeInput,
   YarukotoNode,
 } from "@/domain/nodes/types";
@@ -206,7 +208,24 @@ export function useYarukotoNodeMutations({
     [nodes, selectedNode, setNodes, setSaveError, setSaveStatus],
   );
 
+  const changeNodeStatus = useCallback(
+    async (nodeId: string, status: NodeStatus) => {
+      return await runAction(async () => {
+        return await changeNodeStatusOptimistically({
+          applyNodes: setNodes,
+          nodeId,
+          nodes,
+          persist: () => nodeRepository.updateNode(nodeId, { status }),
+          status,
+          updatedAt: new Date().toISOString(),
+        });
+      });
+    },
+    [nodes, runAction, setNodes],
+  );
+
   return {
+    changeNodeStatus,
     clearPendingUndoDelete,
     createChild,
     createRoot,

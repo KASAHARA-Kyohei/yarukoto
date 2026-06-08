@@ -3,6 +3,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const VIEW_LABELS: Array<{ value: CenterView; label: string }> = [
   { value: "tree", label: "Tree" },
+  { value: "kanban", label: "Kanban" },
   { value: "calendar", label: "Calendar" },
   { value: "report", label: "Report" },
 ];

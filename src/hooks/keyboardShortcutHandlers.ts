@@ -269,6 +269,48 @@ export function handleReportViewShortcut({
   return true;
 }
 
+export function handleKanbanViewShortcut({
+  key,
+  run,
+  moveKanbanSelection,
+  moveKanbanStatus,
+  onOpenDetailDialog,
+}: {
+  key: string;
+  run: RunShortcut;
+  moveKanbanSelection: (
+    direction: "down" | "left" | "right" | "up",
+  ) => void;
+  moveKanbanStatus: (direction: 1 | -1) => Promise<unknown>;
+  onOpenDetailDialog: () => void;
+}) {
+  switch (key) {
+    case "j":
+      run(() => moveKanbanSelection("down"));
+      break;
+    case "k":
+      run(() => moveKanbanSelection("up"));
+      break;
+    case "h":
+      run(() => moveKanbanSelection("left"));
+      break;
+    case "l":
+      run(() => moveKanbanSelection("right"));
+      break;
+    case "H":
+      run(() => moveKanbanStatus(-1));
+      break;
+    case "L":
+      run(() => moveKanbanStatus(1));
+      break;
+    case "i":
+    case "Enter":
+      run(onOpenDetailDialog);
+      break;
+  }
+  return true;
+}
+
 export function handleTreeViewShortcut({
   key,
   run,

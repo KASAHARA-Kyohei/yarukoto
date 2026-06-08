@@ -7,9 +7,16 @@ import {
   type DetailField,
   type DetailSelectField,
 } from "@/app/types";
+import {
+  getAdjacentKanbanStatus,
+  getNextKanbanCardId,
+  type KanbanModel,
+  type KanbanSelectionDirection,
+} from "@/domain/nodes/kanban";
 import { getChildren } from "@/domain/nodes/tree";
 import {
   type FlatTreeNode,
+  type NodeStatus,
   type YarukotoNode,
 } from "@/domain/nodes/types";
 import {
@@ -18,6 +25,7 @@ import {
   handleDateTextShortcut,
   handleDetailDialogShortcut,
   handleDetailSelectShortcut,
+  handleKanbanViewShortcut,
   handleProjectsShortcut,
   handleReportViewShortcut,
   handleTreeViewShortcut,
@@ -45,7 +53,7 @@ export function getNextPane(activePane: ActivePane, direction: 1 | -1) {
 }
 
 export function getNextCenterView(activeView: CenterView, direction: 1 | -1) {
-  const views: CenterView[] = ["tree", "calendar", "report"];
+  const views: CenterView[] = ["tree", "kanban", "calendar", "report"];
   const index = views.indexOf(activeView);
   const nextIndex = (index + direction + views.length) % views.length;
   return views[nextIndex];
@@ -68,6 +76,7 @@ export function useKeyboardShortcuts({
   activeDetailField,
   activePane,
   centerView,
+  changeNodeStatus,
   cancelDateTextEdit,
   clearActiveDate,
   closeDatePicker,
@@ -93,6 +102,7 @@ export function useKeyboardShortcuts({
   isLlmImportOpen,
   isMutating,
   isShortcutHelpOpen,
+  kanbanModel,
   moveCalendarCursorByDays,
   moveCalendarCursorByMonths,
   moveCalendarCursorToToday,
@@ -130,6 +140,7 @@ export function useKeyboardShortcuts({
   activeDetailField: DetailField;
   activePane: ActivePane;
   centerView: CenterView;
+  changeNodeStatus: (nodeId: string, status: NodeStatus) => Promise<unknown>;
   cancelDateTextEdit: () => void;
   clearActiveDate: () => void;
   closeDatePicker: () => void;
@@ -162,6 +173,7 @@ export function useKeyboardShortcuts({
   isLlmImportOpen: boolean;
   isMutating: boolean;
   isShortcutHelpOpen: boolean;
+  kanbanModel: KanbanModel;
   moveCalendarCursorByDays: (amount: number) => void;
   moveCalendarCursorByMonths: (amount: number) => void;
   moveCalendarCursorToToday: () => void;
@@ -287,6 +299,29 @@ export function useKeyboardShortcuts({
       }
     },
     [selectNode, selectedId, visibleNodes],
+  );
+
+  const moveKanbanSelection = useCallback(
+    (direction: KanbanSelectionDirection) => {
+      const nextId = getNextKanbanCardId(kanbanModel, selectedId, direction);
+      if (nextId) {
+        selectNode(nextId);
+      }
+    },
+    [kanbanModel, selectNode, selectedId],
+  );
+
+  const moveKanbanStatus = useCallback(
+    async (direction: 1 | -1) => {
+      if (!selectedNode || selectedNode.type !== "Task") {
+        return;
+      }
+      const status = getAdjacentKanbanStatus(selectedNode.status, direction);
+      if (status) {
+        await changeNodeStatus(selectedNode.id, status);
+      }
+    },
+    [changeNodeStatus, selectedNode],
   );
 
   const handleH = useCallback(() => {
@@ -463,6 +498,17 @@ export function useKeyboardShortcuts({
         return;
       }
 
+      if (centerView === "kanban") {
+        handleKanbanViewShortcut({
+          key: event.key,
+          run,
+          moveKanbanSelection,
+          moveKanbanStatus,
+          onOpenDetailDialog,
+        });
+        return;
+      }
+
       if (centerView === "report") {
         handleReportViewShortcut({
           key: event.key,
@@ -508,6 +554,7 @@ export function useKeyboardShortcuts({
     activeDetailField,
     activePane,
     centerView,
+    changeNodeStatus,
     cancelDateTextEdit,
     clearActiveDate,
     blurActiveDialogElement,
@@ -541,6 +588,8 @@ export function useKeyboardShortcuts({
     moveCalendarCursorToToday,
     moveCalendarMonth,
     moveCenterView,
+    moveKanbanSelection,
+    moveKanbanStatus,
     moveOpenDetailSelect,
     moveDetailField,
     moveSelectedDown,

@@ -4,11 +4,13 @@ import { CalendarView } from "./components/CalendarView";
 import { CenterHeader } from "./components/CenterHeader";
 import { FocusHintOverlay } from "./components/FocusHintOverlay";
 import { FooterText } from "./components/FooterText";
+import { KanbanView } from "./components/KanbanView";
 import { NodeDetailDialog } from "./components/NodeDetailDialog";
 import { LlmTreeImportDialog } from "./components/LlmTreeImportDialog";
 import { ProjectsPane } from "./components/ProjectsPane";
 import { ReportView } from "./components/ReportView";
 import { ShortcutHelp } from "./components/ShortcutHelp";
+import { buildKanbanModel, findKanbanCard } from "./domain/nodes/kanban";
 import { buildTaskProgressMap } from "./domain/nodes/progress";
 import { Toolbar } from "./components/Toolbar";
 import { TreeView } from "./components/TreeView";
@@ -60,6 +62,7 @@ function App() {
     activeRootId,
     actionError,
     calendarNodes,
+    changeNodeStatus,
     clearPendingUndoDelete,
     createChild,
     createRoot,
@@ -105,6 +108,10 @@ function App() {
   });
   const taskProgressById = useMemo(
     () => buildTaskProgressMap(scopedNodes),
+    [scopedNodes],
+  );
+  const kanbanModel = useMemo(
+    () => buildKanbanModel(scopedNodes),
     [scopedNodes],
   );
   const selectedTaskProgress = useMemo(
@@ -239,11 +246,22 @@ function App() {
     document.title = `${getNodeDisplayTitle(selectedNode)} - yarukoto`;
   }, [selectedNode]);
 
+  useEffect(() => {
+    if (
+      centerView === "kanban" &&
+      kanbanModel.firstCardId &&
+      !findKanbanCard(kanbanModel, selectedId)
+    ) {
+      selectNode(kanbanModel.firstCardId);
+    }
+  }, [centerView, kanbanModel, selectNode, selectedId]);
+
   useKeyboardShortcuts({
     activeDateField,
     activeDetailField,
     activePane,
     centerView,
+    changeNodeStatus,
     cancelDateTextEdit,
     clearActiveDate,
     closeDatePicker,
@@ -269,6 +287,7 @@ function App() {
     isLlmImportOpen: isImportOpen,
     isMutating,
     isShortcutHelpOpen,
+    kanbanModel,
     moveCalendarCursorByDays,
     moveCalendarCursorByMonths,
     moveCalendarCursorToToday,
@@ -387,6 +406,15 @@ function App() {
                 nodes={calendarNodes}
                 selectedId={selectedId}
                 onChangeMonth={setCalendarMonth}
+                onSelectNode={selectNode}
+              />
+            ) : null}
+            {centerView === "kanban" ? (
+              <KanbanView
+                disabled={isMutating}
+                model={kanbanModel}
+                selectedId={selectedId}
+                onChangeStatus={changeNodeStatus}
                 onSelectNode={selectNode}
               />
             ) : null}

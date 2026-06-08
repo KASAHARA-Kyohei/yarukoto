@@ -1,6 +1,6 @@
 import type { YarukotoNode } from "@/domain/nodes/types";
 
-export type CenterView = "tree" | "calendar" | "report";
+export type CenterView = "tree" | "kanban" | "calendar" | "report";
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 export type ActivePane = "projects" | "center";
 export type DetailField =

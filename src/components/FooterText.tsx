@@ -17,6 +17,9 @@ export function FooterText({
       </>
     );
   }
+  if (view === "kanban") {
+    return <>Kanban: j/k 列内選択 ・ h/l 列移動 ・ H/L 状態変更 ・ Enter/i 編集 ・ ドラッグで列移動 ・ f カード選択</>;
+  }
   if (view === "calendar") {
     return <>Calendar: Ctrl+Tab タブ切替 ・ Ctrl+t テーマ ・ Ctrl+h/l 前月/翌月 ・ t 今月 ・ 期間バーと単日カードを月表示します。</>;
   }

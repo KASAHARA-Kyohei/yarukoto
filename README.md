@@ -9,7 +9,7 @@
 - UI から直接 SQL は呼ばず、`Repository` 層を経由
 - 左 `Projects` / 中央 `Workspace` の 2 ペイン構成
 - ノード編集は常時サイドバーではなくモーダルで実施
-- 中央ビューは `Tree / Calendar / Report`
+- 中央ビューは `Tree / Kanban / Calendar / Report`
 - Tree の右端 `period` 列は、軽量ミニガント表示
 - テーマは `Light / Tokyo Night / Soft Light` を切り替え可能
 
@@ -38,6 +38,7 @@
   - 葉 `Task` は `status` から自動計算
   - 子 `Task` を持つ `Task` は直下の子 `Task` から自動集計
 - 補助ビュー
+  - `Kanban`: 全Taskをstatus別に表示し、Vim操作またはドラッグで状態変更
   - `Calendar`: 開始日 / 終了日を月表示
   - `Report`: ステータス、期限、完了状況の集計表示
 - LLM レビュー連携
@@ -144,6 +145,15 @@ Tree:
 - `dd`: 削除
 - `J` / `K`: 上下移動
 - `>` / `<`: 階層変更
+
+Kanban:
+
+- `j` / `k`: 同じ列のカードを選択
+- `h` / `l`: 前後の空でない列へ選択移動
+- `H` / `L`: 選択カードを前後のstatusへ移動
+- `Enter` / `i`: 選択中Taskの編集モーダルを開く
+- カードのドラッグ: ドロップした列のstatusへ変更
+- `f`: ヒントからカードを直接選択
 
 Calendar:
 

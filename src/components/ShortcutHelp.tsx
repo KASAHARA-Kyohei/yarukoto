@@ -5,6 +5,7 @@ import type { ActivePane, CenterView } from "@/app/types";
 
 const COMMON_SHORTCUTS: Array<[string, string]> = [
   ["Tab / Shift+Tab", "ペイン移動"],
+  ["Ctrl+h / Ctrl+l", "Projects / Center を切替"],
   ["Ctrl+Tab / Ctrl+Shift+Tab", "中央タブ切替"],
   ["Ctrl+t", "テーマ切替"],
   ["u", "削除直後なら元に戻す"],
@@ -34,7 +35,7 @@ const TREE_SHORTCUTS: Array<[string, string]> = [
 ];
 
 const CALENDAR_SHORTCUTS: Array<[string, string]> = [
-  ["Ctrl+h / Ctrl+l", "前月 / 翌月"],
+  ["H / L", "前月 / 翌月"],
   ["t", "今月へ戻る"],
   ["Enter / i", "選択中ノードの編集を開く"],
 ];

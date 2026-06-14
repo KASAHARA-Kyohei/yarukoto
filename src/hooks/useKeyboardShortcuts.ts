@@ -449,15 +449,11 @@ export function useKeyboardShortcuts({
         return;
       }
       if (event.ctrlKey && event.key === "h") {
-        if (activePane === "center" && centerView === "calendar") {
-          run(() => moveCalendarMonth(-1));
-        }
+        run(() => movePane(-1));
         return;
       }
       if (event.ctrlKey && event.key === "l") {
-        if (activePane === "center" && centerView === "calendar") {
-          run(() => moveCalendarMonth(1));
-        }
+        run(() => movePane(1));
         return;
       }
       if (event.ctrlKey && event.key === "Tab") {
@@ -492,6 +488,7 @@ export function useKeyboardShortcuts({
         handleCalendarViewShortcut({
           key: event.key,
           run,
+          moveCalendarMonth,
           onOpenDetailDialog,
           resetCalendarMonthToToday,
         });

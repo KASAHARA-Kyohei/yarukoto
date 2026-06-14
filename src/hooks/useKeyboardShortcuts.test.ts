@@ -7,6 +7,7 @@ import {
 } from "./useKeyboardShortcuts";
 import {
   handleDatePickerShortcut,
+  handleCalendarViewShortcut,
   handleKanbanViewShortcut,
   handleProjectsShortcut,
   handleTreeViewShortcut,
@@ -65,6 +66,24 @@ describe("isEditableTagName", () => {
 
     expect(run).toHaveBeenCalledTimes(1);
     expect(moveCalendarCursorByDays).toHaveBeenCalledWith(7);
+  });
+
+  it.each([
+    ["H", -1],
+    ["L", 1],
+  ] as const)("routes calendar %s to month movement", (key, direction) => {
+    const run = vi.fn((action: () => void) => action());
+    const moveCalendarMonth = vi.fn();
+
+    handleCalendarViewShortcut({
+      key,
+      run,
+      moveCalendarMonth,
+      onOpenDetailDialog: vi.fn(),
+      resetCalendarMonthToToday: vi.fn(),
+    });
+
+    expect(moveCalendarMonth).toHaveBeenCalledWith(direction);
   });
 
   it("routes project pane root creation through o", () => {

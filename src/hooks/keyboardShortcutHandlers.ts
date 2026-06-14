@@ -231,11 +231,13 @@ export function handleProjectsShortcut({
 export function handleCalendarViewShortcut({
   key,
   run,
+  moveCalendarMonth,
   onOpenDetailDialog,
   resetCalendarMonthToToday,
 }: {
   key: string;
   run: RunShortcut;
+  moveCalendarMonth: (direction: 1 | -1) => void;
   onOpenDetailDialog: () => void;
   resetCalendarMonthToToday: () => void;
 }) {
@@ -243,6 +245,12 @@ export function handleCalendarViewShortcut({
     case "i":
     case "Enter":
       run(onOpenDetailDialog);
+      break;
+    case "H":
+      run(() => moveCalendarMonth(-1));
+      break;
+    case "L":
+      run(() => moveCalendarMonth(1));
       break;
     case "t":
       run(resetCalendarMonthToToday);

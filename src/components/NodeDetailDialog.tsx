@@ -183,11 +183,13 @@ export function NodeDetailDialog({
   ) => {
     switch (event.key) {
       case "j":
+      case "ArrowDown":
         event.preventDefault();
         event.stopPropagation();
         onMoveOpenDetailSelect(1);
         break;
       case "k":
+      case "ArrowUp":
         event.preventDefault();
         event.stopPropagation();
         onMoveOpenDetailSelect(-1);

@@ -119,6 +119,7 @@ cargo check
 共通:
 
 - `Tab` / `Shift+Tab`: ペイン移動
+- `Ctrl+h` / `Ctrl+l`: `Projects` / `Center` を切り替え
 - `Ctrl+Tab` / `Ctrl+Shift+Tab`: 中央タブ切替
 - `Ctrl+t`: テーマ切替
 - `u`: 削除直後なら元に戻す
@@ -157,7 +158,7 @@ Kanban:
 
 Calendar:
 
-- `Ctrl+h` / `Ctrl+l`: 前月 / 翌月
+- `H` / `L`: 前月 / 翌月
 - `t`: 今月へ戻る
 - `Enter` / `i`: 選択中ノードの編集モーダルを開く
 

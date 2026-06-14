@@ -8,7 +8,7 @@ export function FooterText({
   view: CenterView;
 }) {
   if (activePane === "projects") {
-    return <>Projects: j/k 選択 ・ o ルート追加して選択 ・ Ctrl+t テーマ ・ u 削除Undo ・ f フォーカスヒント ・ l/Enter 中央へ ・ ? ヘルプ</>;
+    return <>Projects: j/k 選択 ・ Ctrl+l/Tab で中央へ ・ o ルート追加して選択 ・ Ctrl+t テーマ ・ u 削除Undo ・ f フォーカスヒント ・ ? ヘルプ</>;
   }
   if (view === "tree") {
     return (
@@ -21,7 +21,7 @@ export function FooterText({
     return <>Kanban: j/k 列内選択 ・ h/l 列移動 ・ H/L 状態変更 ・ Enter/i 編集 ・ ドラッグで列移動 ・ f カード選択</>;
   }
   if (view === "calendar") {
-    return <>Calendar: Ctrl+Tab タブ切替 ・ Ctrl+t テーマ ・ Ctrl+h/l 前月/翌月 ・ t 今月 ・ 期間バーと単日カードを月表示します。</>;
+    return <>Calendar: Ctrl+h/l ペイン切替 ・ H/L 前月/翌月 ・ Ctrl+Tab タブ切替 ・ t 今月 ・ 期間バーと単日カードを月表示します。</>;
   }
-  return <>Report: Ctrl+Tab タブ切替 ・ Ctrl+t テーマ ・ Tab ペイン移動 ・ 集計結果から選択ノードを開けます。</>;
+  return <>Report: Ctrl+h/l・Tab でペイン切替 ・ Ctrl+Tab タブ切替 ・ Ctrl+t テーマ ・ 集計結果から選択ノードを開けます。</>;
 }

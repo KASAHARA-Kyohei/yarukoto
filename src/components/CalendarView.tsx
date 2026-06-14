@@ -54,7 +54,7 @@ export function CalendarView({
         <div className="text-center">
           <h2 className="text-lg font-semibold tracking-tight">{getMonthLabel(month)}</h2>
           <p className="text-xs text-muted-foreground">
-            {nodes.length}件 ・ Ctrl+h / Ctrl+l で前後移動
+            {nodes.length}件 ・ H / L で前後移動
           </p>
         </div>
         <Button

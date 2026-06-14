@@ -50,15 +50,19 @@ export function handleDatePickerShortcut({
 }) {
   switch (key) {
     case "h":
+    case "ArrowLeft":
       run(() => moveCalendarCursorByDays(-1));
       break;
     case "l":
+    case "ArrowRight":
       run(() => moveCalendarCursorByDays(1));
       break;
     case "j":
+    case "ArrowDown":
       run(() => moveCalendarCursorByDays(7));
       break;
     case "k":
+    case "ArrowUp":
       run(() => moveCalendarCursorByDays(-7));
       break;
     case "H":
@@ -95,9 +99,11 @@ export function handleDetailSelectShortcut({
 }) {
   switch (key) {
     case "j":
+    case "ArrowDown":
       run(() => moveOpenDetailSelect(1));
       break;
     case "k":
+    case "ArrowUp":
       run(() => moveOpenDetailSelect(-1));
       break;
     case "Enter":
@@ -141,12 +147,15 @@ export function handleDetailDialogShortcut({
 }) {
   switch (key) {
     case "j":
+    case "ArrowDown":
       run(() => moveDetailField(1));
       break;
     case "k":
+    case "ArrowUp":
       run(() => moveDetailField(-1));
       break;
     case "h":
+    case "ArrowLeft":
       if (activeDetailField === "type") {
         run(() => cycleTypeValue(-1));
       } else if (activeDetailField === "status") {
@@ -154,6 +163,7 @@ export function handleDetailDialogShortcut({
       }
       break;
     case "l":
+    case "ArrowRight":
       if (activeDetailField === "type") {
         run(() => cycleTypeValue(1));
       } else if (activeDetailField === "status") {
@@ -209,12 +219,15 @@ export function handleProjectsShortcut({
 }) {
   switch (key) {
     case "j":
+    case "ArrowDown":
       run(() => moveRootSelection(1));
       break;
     case "k":
+    case "ArrowUp":
       run(() => moveRootSelection(-1));
       break;
     case "l":
+    case "ArrowRight":
     case "Enter":
       run(() => setActivePane("center"));
       break;
@@ -294,15 +307,19 @@ export function handleKanbanViewShortcut({
 }) {
   switch (key) {
     case "j":
+    case "ArrowDown":
       run(() => moveKanbanSelection("down"));
       break;
     case "k":
+    case "ArrowUp":
       run(() => moveKanbanSelection("up"));
       break;
     case "h":
+    case "ArrowLeft":
       run(() => moveKanbanSelection("left"));
       break;
     case "l":
+    case "ArrowRight":
       run(() => moveKanbanSelection("right"));
       break;
     case "H":
@@ -358,15 +375,19 @@ export function handleTreeViewShortcut({
 }) {
   switch (key) {
     case "j":
+    case "ArrowDown":
       run(() => moveSelection(1));
       break;
     case "k":
+    case "ArrowUp":
       run(() => moveSelection(-1));
       break;
     case "h":
+    case "ArrowLeft":
       run(handleH);
       break;
     case "l":
+    case "ArrowRight":
       run(handleL);
       break;
     case "i":

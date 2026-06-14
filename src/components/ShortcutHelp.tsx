@@ -15,14 +15,14 @@ const COMMON_SHORTCUTS: Array<[string, string]> = [
 ];
 
 const PROJECT_SHORTCUTS: Array<[string, string]> = [
-  ["j / k", "プロジェクト選択"],
+  ["j / k / ↑ / ↓", "プロジェクト選択"],
   ["o", "ルート追加してProjectsに留まる"],
-  ["l / Enter", "中央ペインへ"],
+  ["l / Enter / →", "中央ペインへ"],
 ];
 
 const TREE_SHORTCUTS: Array<[string, string]> = [
-  ["j / k", "ノード選択"],
-  ["h / l", "折りたたみ / 展開"],
+  ["j / k / ↑ / ↓", "ノード選択"],
+  ["h / l / ← / →", "折りたたみ / 展開"],
   ["a", "子追加して編集ウィンドウを開く"],
   ["o", "下に追加して編集ウィンドウを開く"],
   ["R", "ルート追加して編集ウィンドウを開く"],
@@ -41,8 +41,8 @@ const CALENDAR_SHORTCUTS: Array<[string, string]> = [
 ];
 
 const KANBAN_SHORTCUTS: Array<[string, string]> = [
-  ["j / k", "同じ列のカードを選択"],
-  ["h / l", "前後の空でない列へ選択移動"],
+  ["j / k / ↑ / ↓", "同じ列のカードを選択"],
+  ["h / l / ← / →", "前後の空でない列へ選択移動"],
   ["H / L", "選択カードを前後のstatusへ移動"],
   ["Enter / i", "選択中Taskの編集を開く"],
   ["ドラッグ", "ドロップした列のstatusへ変更"],
@@ -54,8 +54,8 @@ const REPORT_SHORTCUTS: Array<[string, string]> = [
 ];
 
 const DIALOG_SHORTCUTS: Array<[string, string]> = [
-  ["j / k", "編集項目選択 / 一覧中は候補移動 / カレンダーは週移動"],
-  ["h / l", "type / status を変更 / カレンダーは日移動"],
+  ["j / k / ↑ / ↓", "編集項目選択 / 一覧中は候補移動 / カレンダーは週移動"],
+  ["h / l / ← / →", "type / status を変更 / カレンダーは日移動"],
   ["i", "通常項目にフォーカス / 日付は直接入力"],
   ["Enter", "通常項目にフォーカス / type,status は一覧 / 日付はカレンダー / 一覧中は確定"],
   ["H / L / t", "カレンダーで前月 / 翌月 / 今日"],

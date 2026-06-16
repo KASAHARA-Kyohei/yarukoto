@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+import { getSelectionScrollTop } from "@/app/selectionScroll";
 import { TreePeriodCell, TreePeriodHeader } from "./TreePeriod";
 import { TaskProgressInline } from "./TaskProgress";
 import {
@@ -133,9 +134,49 @@ export function TreeView({
     () => 320 + 68 + 74 + 92 + periodColumnMinWidth + 40,
     [periodColumnMinWidth],
   );
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const rowElementsRef = useRef(new Map<string, HTMLDivElement>());
+
+  const registerRowElement = useCallback(
+    (nodeId: string, element: HTMLDivElement | null) => {
+      if (element) {
+        rowElementsRef.current.set(nodeId, element);
+      } else {
+        rowElementsRef.current.delete(nodeId);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!selectedId) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    const selectedRow = rowElementsRef.current.get(selectedId);
+    if (!container || !selectedRow) {
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = selectedRow.getBoundingClientRect();
+    const nextScrollTop = getSelectionScrollTop({
+      containerHeight: container.clientHeight,
+      containerTop: containerRect.top,
+      itemBottom: rowRect.bottom,
+      itemHeight: rowRect.height,
+      itemTop: rowRect.top,
+      scrollTop: container.scrollTop,
+    });
+
+    if (nextScrollTop !== null) {
+      container.scrollTo({ top: nextScrollTop, behavior: "auto" });
+    }
+  }, [selectedId, visibleNodes]);
 
   return (
-    <div className="flex-1 overflow-auto px-2 py-3">
+    <div className="flex-1 overflow-auto px-2 py-3" ref={scrollContainerRef}>
       {visibleNodes.length === 0 ? (
         <div className="p-8 text-center text-sm text-muted-foreground">
           ルートを追加してください。
@@ -182,6 +223,7 @@ export function TreeView({
                   )}
                   key={node.id}
                   onClick={() => onSelectNode(node.id)}
+                  ref={(element) => registerRowElement(node.id, element)}
                   style={{ gridTemplateColumns: treeColumns }}
                 >
                   <div className="relative flex min-w-0 items-center pl-2">

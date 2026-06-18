@@ -5,6 +5,9 @@ import {
   ArrowRight,
   ArrowUp,
   Bot,
+  Download,
+  FileJson,
+  FolderOpen,
   Loader2,
   ListPlus,
   MoreHorizontal,
@@ -22,6 +25,7 @@ import {
 } from "@/components/ui/popover";
 
 export function Toolbar({
+  canFileExport,
   disabled,
   canExport,
   isLoading,
@@ -29,13 +33,16 @@ export function Toolbar({
   onAddSibling,
   onDelete,
   onEdit,
+  onExportToFile,
   onIndent,
+  onImportFromFile,
   onImport,
   onMoveDown,
   onMoveUp,
   onOutdent,
   onExport,
 }: {
+  canFileExport: boolean;
   canExport: boolean;
   disabled: boolean;
   isLoading: boolean;
@@ -43,7 +50,9 @@ export function Toolbar({
   onAddSibling: () => void;
   onDelete: () => void;
   onEdit: () => void;
+  onExportToFile: () => void;
   onIndent: () => void;
+  onImportFromFile: () => void;
   onImport: () => void;
   onMoveDown: () => void;
   onMoveUp: () => void;
@@ -53,6 +62,7 @@ export function Toolbar({
   const AddIcon = isLoading ? Loader2 : Plus;
   const SiblingIcon = isLoading ? Loader2 : ListPlus;
   const [isArrangeOpen, setIsArrangeOpen] = useState(false);
+  const [isFileOpen, setIsFileOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   const runArrangeAction = (action: () => void) => {
@@ -62,6 +72,11 @@ export function Toolbar({
 
   const runReviewAction = (action: () => void) => {
     setIsReviewOpen(false);
+    action();
+  };
+
+  const runFileAction = (action: () => void) => {
+    setIsFileOpen(false);
     action();
   };
 
@@ -116,7 +131,35 @@ export function Toolbar({
           />
         </PopoverContent>
       </Popover>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
+        <Popover open={isFileOpen} onOpenChange={setIsFileOpen}>
+          <PopoverTrigger asChild>
+            <Button disabled={isLoading} size="sm" type="button" variant="outline">
+              <FileJson className="h-3.5 w-3.5" />
+              ファイル
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-80 p-2">
+            <p className="px-2 pb-2 text-xs leading-relaxed text-muted-foreground">
+              現在のプロジェクトを `yarukoto-tree` JSON として保存し、別環境へ受け渡しできます。
+            </p>
+            <ReviewMenuItem
+              disabled={!canFileExport}
+              icon={Download}
+              label="JSONを書き出し"
+              shortcut="Y"
+              description="現在のプロジェクトをバックアップ用JSONとして保存"
+              onClick={() => runFileAction(onExportToFile)}
+            />
+            <ReviewMenuItem
+              icon={FolderOpen}
+              label="JSONを取り込む"
+              shortcut="P"
+              description="JSONファイルから新規プロジェクトを作成"
+              onClick={() => runFileAction(onImportFromFile)}
+            />
+          </PopoverContent>
+        </Popover>
         <Popover open={isReviewOpen} onOpenChange={setIsReviewOpen}>
           <PopoverTrigger asChild>
             <Button disabled={isLoading} size="sm" type="button" variant="outline">

@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
+import { open, save } from "@tauri-apps/plugin-dialog";
+import {
+  readTextFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import {
   readText,
   writeText,
 } from "@tauri-apps/plugin-clipboard-manager";
 import {
+  createProjectExportFileName,
+  ensureJsonFilePath,
+} from "@/app/treeFile";
+import {
   buildLlmReviewText,
   buildLlmTreeDocument,
+  parseLlmTreeDocument,
   type LlmTreeDocument,
 } from "@/domain/nodes/llmTree";
 import type { YarukotoNode } from "@/domain/nodes/types";
@@ -59,6 +69,43 @@ export function useLlmTreeExchange({
     }
   }, [activeRootId, nodes]);
 
+  const exportToFile = useCallback(async () => {
+    if (!activeRootId) {
+      setNotice({
+        kind: "error",
+        text: "書き出し対象のプロジェクトがありません。",
+      });
+      return;
+    }
+
+    try {
+      const document = buildLlmTreeDocument(nodes, activeRootId);
+      const selectedPath = await save({
+        defaultPath: createProjectExportFileName(document.root.title),
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (!selectedPath) {
+        return;
+      }
+
+      await writeTextFile(
+        ensureJsonFilePath(selectedPath),
+        JSON.stringify(document, null, 2),
+      );
+      setNotice({
+        kind: "success",
+        text: `「${document.root.title || "（無題）"}」をJSONファイルに書き出しました。`,
+      });
+    } catch (error) {
+      setNotice({
+        kind: "error",
+        text: `ファイル書き出しに失敗しました: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      });
+    }
+  }, [activeRootId, nodes]);
+
   const openImport = useCallback(async () => {
     setClipboardError(null);
     setImportText("");
@@ -95,9 +142,43 @@ export function useLlmTreeExchange({
     [importTree],
   );
 
+  const importFromFile = useCallback(async () => {
+    try {
+      const selectedPath = await open({
+        directory: false,
+        filters: [{ name: "JSON", extensions: ["json"] }],
+        multiple: false,
+      });
+      if (!selectedPath || Array.isArray(selectedPath)) {
+        return null;
+      }
+
+      const document = parseLlmTreeDocument(await readTextFile(selectedPath));
+      const root = await importTree(document);
+      if (!root) {
+        return null;
+      }
+      setNotice({
+        kind: "success",
+        text: `「${root.title || "（無題）"}」をJSONファイルから取り込みました。`,
+      });
+      return root;
+    } catch (error) {
+      setNotice({
+        kind: "error",
+        text: `ファイル取り込みに失敗しました: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      });
+      return null;
+    }
+  }, [importTree]);
+
   return {
     clipboardError,
     copyReview,
+    exportToFile,
+    importFromFile,
     importText,
     isImportOpen,
     notice,

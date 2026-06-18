@@ -121,7 +121,9 @@ export function useKeyboardShortcuts({
   onCloseShortcutHelp,
   onOpenDetailDialog,
   onCopyLlmReview,
+  onExportToFile,
   onOpenFocusHint,
+  onImportFromFile,
   onOpenLlmImport,
   onOpenShortcutHelp,
   pendingUndoDelete,
@@ -191,7 +193,9 @@ export function useKeyboardShortcuts({
   onCloseShortcutHelp: () => void;
   onOpenDetailDialog: () => void;
   onCopyLlmReview: () => Promise<void>;
+  onExportToFile: () => Promise<void>;
   onOpenFocusHint: () => void;
+  onImportFromFile: () => Promise<unknown>;
   onOpenLlmImport: () => Promise<void>;
   onOpenShortcutHelp: () => void;
   pendingUndoDelete: { title: string } | null;
@@ -528,8 +532,10 @@ export function useKeyboardShortcuts({
         moveSelectedUp,
         moveSelection,
         onCopyLlmReview,
+        onExportToFile,
         onCloseDetailDialog,
         onOpenDetailDialog,
+        onImportFromFile,
         onOpenLlmImport,
         outdentSelected,
         registerDeleteKey: () => {
@@ -602,7 +608,9 @@ export function useKeyboardShortcuts({
     onCloseShortcutHelp,
     onOpenDetailDialog,
     onCopyLlmReview,
+    onExportToFile,
     onOpenFocusHint,
+    onImportFromFile,
     onOpenLlmImport,
     onOpenShortcutHelp,
     pendingUndoDelete,

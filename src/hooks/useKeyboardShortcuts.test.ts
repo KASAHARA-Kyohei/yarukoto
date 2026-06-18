@@ -279,8 +279,10 @@ describe("isEditableTagName", () => {
       moveSelectedUp: vi.fn(),
       moveSelection: vi.fn(),
       onCopyLlmReview: vi.fn(),
+      onExportToFile: vi.fn(),
       onCloseDetailDialog: vi.fn(),
       onOpenDetailDialog: vi.fn(),
+      onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
       registerDeleteKey: () => false,
@@ -298,8 +300,10 @@ describe("isEditableTagName", () => {
       moveSelectedUp: vi.fn(),
       moveSelection: vi.fn(),
       onCopyLlmReview: vi.fn(),
+      onExportToFile: vi.fn(),
       onCloseDetailDialog: vi.fn(),
       onOpenDetailDialog: vi.fn(),
+      onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
       registerDeleteKey: () => true,
@@ -329,8 +333,10 @@ describe("isEditableTagName", () => {
       moveSelectedUp: vi.fn(),
       moveSelection,
       onCopyLlmReview: vi.fn(),
+      onExportToFile: vi.fn(),
       onCloseDetailDialog: vi.fn(),
       onOpenDetailDialog: vi.fn(),
+      onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
       registerDeleteKey: () => false,
@@ -360,8 +366,10 @@ describe("isEditableTagName", () => {
       moveSelectedUp: vi.fn(),
       moveSelection: vi.fn(),
       onCopyLlmReview: vi.fn(),
+      onExportToFile: vi.fn(),
       onCloseDetailDialog: vi.fn(),
       onOpenDetailDialog: vi.fn(),
+      onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
       registerDeleteKey: () => false,
@@ -373,9 +381,13 @@ describe("isEditableTagName", () => {
   it.each([
     ["y", "copy"],
     ["p", "import"],
-  ])("routes %s to the LLM %s action", (key) => {
+    ["Y", "file-export"],
+    ["P", "file-import"],
+  ])("routes %s to the exchange action", (key) => {
     const run = vi.fn((action: () => void) => action());
     const onCopyLlmReview = vi.fn();
+    const onExportToFile = vi.fn();
+    const onImportFromFile = vi.fn();
     const onOpenLlmImport = vi.fn();
 
     handleTreeViewShortcut({
@@ -391,8 +403,10 @@ describe("isEditableTagName", () => {
       moveSelectedUp: vi.fn(),
       moveSelection: vi.fn(),
       onCopyLlmReview,
+      onExportToFile,
       onCloseDetailDialog: vi.fn(),
       onOpenDetailDialog: vi.fn(),
+      onImportFromFile,
       onOpenLlmImport,
       outdentSelected: vi.fn(),
       registerDeleteKey: () => false,
@@ -400,6 +414,8 @@ describe("isEditableTagName", () => {
 
     expect(run).toHaveBeenCalledTimes(1);
     expect(onCopyLlmReview).toHaveBeenCalledTimes(key === "y" ? 1 : 0);
+    expect(onExportToFile).toHaveBeenCalledTimes(key === "Y" ? 1 : 0);
+    expect(onImportFromFile).toHaveBeenCalledTimes(key === "P" ? 1 : 0);
     expect(onOpenLlmImport).toHaveBeenCalledTimes(key === "p" ? 1 : 0);
   });
 });

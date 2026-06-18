@@ -23,6 +23,7 @@ const PROJECT_SHORTCUTS: Array<[string, string]> = [
 const TREE_SHORTCUTS: Array<[string, string]> = [
   ["j / k / ↑ / ↓", "ノード選択"],
   ["h / l / ← / →", "折りたたみ / 展開"],
+  ["za", "表示中ツリーを一括で折りたたむ"],
   ["a", "子追加して編集ウィンドウを開く"],
   ["O", "上に追加して編集ウィンドウを開く"],
   ["o", "下に追加して編集ウィンドウを開く"],

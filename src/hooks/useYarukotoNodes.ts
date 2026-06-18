@@ -11,6 +11,7 @@ import type { YarukotoNode } from "@/domain/nodes/types";
 import {
   getExpandedIdsForLoadedTree,
   getExpandedIdsForSelection,
+  resolveCollapsedTreeState,
   resolveLoadedTreeState,
 } from "./yarukotoNodeState";
 import { usePendingUndoDeleteExpiry } from "./usePendingUndoDeleteExpiry";
@@ -122,6 +123,15 @@ export function useYarukotoNodes() {
     });
   }, []);
 
+  const collapseCurrentTree = useCallback(() => {
+    const { expandedIds, selectedId } = resolveCollapsedTreeState({
+      activeRootId,
+      nextRoots: roots,
+    });
+    setExpandedIds(expandedIds);
+    setSelectedId(selectedId);
+  }, [activeRootId, roots]);
+
   usePendingUndoDeleteExpiry(pendingUndoDelete, setPendingUndoDelete);
 
   const runAction = useCallback(async <T,>(action: () => Promise<T>) => {
@@ -171,6 +181,7 @@ export function useYarukotoNodes() {
     actionError,
     calendarNodes,
     changeNodeStatus,
+    collapseCurrentTree,
     clearPendingUndoDelete,
     createChild,
     createRoot,

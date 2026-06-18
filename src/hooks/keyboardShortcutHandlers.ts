@@ -339,6 +339,7 @@ export function handleKanbanViewShortcut({
 export function handleTreeViewShortcut({
   key,
   run,
+  collapseCurrentTree,
   createChild,
   createSiblingAbove,
   createSiblingBelow,
@@ -356,10 +357,13 @@ export function handleTreeViewShortcut({
   onImportFromFile,
   onOpenLlmImport,
   outdentSelected,
+  consumeCollapseKey,
   registerDeleteKey,
+  registerCollapseKey,
 }: {
   key: string;
   run: RunShortcut;
+  collapseCurrentTree: () => void;
   createChild: () => Promise<unknown>;
   createSiblingAbove: () => Promise<unknown>;
   createSiblingBelow: () => Promise<unknown>;
@@ -377,7 +381,9 @@ export function handleTreeViewShortcut({
   onImportFromFile: () => Promise<unknown>;
   onOpenLlmImport: () => Promise<void>;
   outdentSelected: () => Promise<void>;
+  consumeCollapseKey: () => boolean;
   registerDeleteKey: () => boolean;
+  registerCollapseKey: () => void;
 }) {
   switch (key) {
     case "j":
@@ -400,8 +406,15 @@ export function handleTreeViewShortcut({
     case "Enter":
       run(onOpenDetailDialog);
       break;
+    case "z":
+      registerCollapseKey();
+      break;
     case "a":
-      run(createChild);
+      if (consumeCollapseKey()) {
+        run(collapseCurrentTree);
+      } else {
+        run(createChild);
+      }
       break;
     case "O":
       run(createSiblingAbove);

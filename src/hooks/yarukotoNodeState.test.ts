@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getExpandedIdsForLoadedTree,
   getExpandedIdsForSelection,
+  resolveCollapsedTreeState,
   resolveLoadedTreeState,
 } from "./yarukotoNodeState";
 import type { YarukotoNode } from "@/domain/nodes/types";
@@ -73,5 +74,17 @@ describe("yarukotoNodeState helpers", () => {
   it("expands root and ancestors when selecting a nested node", () => {
     const expanded = getExpandedIdsForSelection(new Set(["other"]), nodes, "grandchild");
     expect([...expanded]).toEqual(["other", "root", "child"]);
+  });
+
+  it("collapses the current tree and keeps only roots expanded", () => {
+    expect(
+      resolveCollapsedTreeState({
+        activeRootId: "root",
+        nextRoots: [nodes[0], nodes[3]],
+      }),
+    ).toEqual({
+      expandedIds: new Set(["root", "other"]),
+      selectedId: "root",
+    });
   });
 });

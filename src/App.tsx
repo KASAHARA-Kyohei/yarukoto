@@ -94,6 +94,8 @@ function App() {
   const {
     clipboardError,
     copyReview,
+    exportToFile,
+    importFromFile,
     importText,
     isImportOpen,
     notice: llmExchangeNotice,
@@ -190,6 +192,14 @@ function App() {
   const handleCreateSiblingBelow = useCallback(async () => {
     openDetailEditor(await createSiblingBelow());
   }, [createSiblingBelow, openDetailEditor]);
+
+  const handleImportedRoot = useCallback((root: YarukotoNode | null) => {
+    if (!root) {
+      return;
+    }
+    setActivePane("center");
+    setCenterView("tree");
+  }, []);
 
   useEffect(() => {
     if (!isDetailDialogOpen || !selectedNode) {
@@ -305,7 +315,11 @@ function App() {
     onCloseShortcutHelp: () => setIsShortcutHelpOpen(false),
     onOpenDetailDialog: () => openDetailEditor(selectedNode),
     onCopyLlmReview: copyReview,
+    onExportToFile: exportToFile,
     onOpenFocusHint: () => setIsFocusHintOpen(true),
+    onImportFromFile: async () => {
+      handleImportedRoot(await importFromFile());
+    },
     onOpenLlmImport: openImport,
     onOpenShortcutHelp: () => setIsShortcutHelpOpen(true),
     pendingUndoDelete,
@@ -375,6 +389,7 @@ function App() {
         {centerView === "tree" ? (
           <>
             <Toolbar
+              canFileExport={activeRootId !== null}
               canExport={activeRootId !== null}
               disabled={!selectedNode || isMutating}
               isLoading={isMutating}
@@ -383,6 +398,10 @@ function App() {
               onAddSibling={() => void handleCreateSiblingBelow()}
               onDelete={() => void deleteSelected()}
               onIndent={() => void indentSelected()}
+              onExportToFile={() => void exportToFile()}
+              onImportFromFile={() => {
+                void importFromFile().then(handleImportedRoot);
+              }}
               onImport={() => void openImport()}
               onMoveDown={() => void moveSelectedDown()}
               onMoveUp={() => void moveSelectedUp()}
@@ -517,12 +536,7 @@ function App() {
         open={isImportOpen}
         text={importText}
         onImport={(document) => {
-          void submitImport(document).then((root) => {
-            if (root) {
-              setActivePane("center");
-              setCenterView("tree");
-            }
-          });
+          void submitImport(document).then(handleImportedRoot);
         }}
         onOpenChange={setIsImportOpen}
         onTextChange={updateImportText}

@@ -349,8 +349,10 @@ export function handleTreeViewShortcut({
   moveSelectedUp,
   moveSelection,
   onCopyLlmReview,
+  onExportToFile,
   onCloseDetailDialog,
   onOpenDetailDialog,
+  onImportFromFile,
   onOpenLlmImport,
   outdentSelected,
   registerDeleteKey,
@@ -367,8 +369,10 @@ export function handleTreeViewShortcut({
   moveSelectedUp: () => Promise<void>;
   moveSelection: (direction: 1 | -1) => void;
   onCopyLlmReview: () => Promise<void>;
+  onExportToFile: () => Promise<void>;
   onCloseDetailDialog: () => void;
   onOpenDetailDialog: () => void;
+  onImportFromFile: () => Promise<unknown>;
   onOpenLlmImport: () => Promise<void>;
   outdentSelected: () => Promise<void>;
   registerDeleteKey: () => boolean;
@@ -405,6 +409,12 @@ export function handleTreeViewShortcut({
       break;
     case "p":
       run(onOpenLlmImport);
+      break;
+    case "Y":
+      run(onExportToFile);
+      break;
+    case "P":
+      run(onImportFromFile);
       break;
     case "d":
       if (registerDeleteKey()) {

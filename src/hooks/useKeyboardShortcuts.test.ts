@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
+import type { YarukotoNode } from "@/domain/nodes/types";
 import {
   getNextCenterView,
   getNextDetailField,
+  getNextRootId,
   getNextPane,
   isEditableTagName,
 } from "./useKeyboardShortcuts";
@@ -14,6 +16,23 @@ import {
   handleProjectsShortcut,
   handleTreeViewShortcut,
 } from "./keyboardShortcutHandlers";
+
+function rootNode(id: string, sortOrder = 0): YarukotoNode {
+  return {
+    id,
+    parentId: null,
+    title: id,
+    type: "Group",
+    status: "Inbox",
+    priority: "none",
+    memo: "",
+    startDate: null,
+    dueDate: null,
+    sortOrder,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  };
+}
 
 describe("isEditableTagName", () => {
   it("treats form fields as editable targets", () => {
@@ -103,6 +122,8 @@ describe("isEditableTagName", () => {
         key: "o",
         run,
         createRootInProjects,
+        moveActiveRootDown: vi.fn(),
+        moveActiveRootUp: vi.fn(),
         moveRootSelection: vi.fn(),
         setActivePane: vi.fn(),
       }),
@@ -125,6 +146,8 @@ describe("isEditableTagName", () => {
         key,
         run,
         createRootInProjects: vi.fn(),
+        moveActiveRootDown: vi.fn(),
+        moveActiveRootUp: vi.fn(),
         moveRootSelection,
         setActivePane: vi.fn(),
       });
@@ -141,11 +164,53 @@ describe("isEditableTagName", () => {
       key: "ArrowRight",
       run,
       createRootInProjects: vi.fn(),
+      moveActiveRootDown: vi.fn(),
+      moveActiveRootUp: vi.fn(),
       moveRootSelection: vi.fn(),
       setActivePane,
     });
 
     expect(setActivePane).toHaveBeenCalledWith("center");
+  });
+
+  it.each([
+    ["J", "down"],
+    ["K", "up"],
+  ] as const)("routes project pane %s to root reordering", (key, direction) => {
+    const run = vi.fn((action: () => void) => action());
+    const moveActiveRootDown = vi.fn();
+    const moveActiveRootUp = vi.fn();
+
+    handleProjectsShortcut({
+      key,
+      run,
+      createRootInProjects: vi.fn(),
+      moveActiveRootDown,
+      moveActiveRootUp,
+      moveRootSelection: vi.fn(),
+      setActivePane: vi.fn(),
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(moveActiveRootDown).toHaveBeenCalledTimes(direction === "down" ? 1 : 0);
+    expect(moveActiveRootUp).toHaveBeenCalledTimes(direction === "up" ? 1 : 0);
+  });
+
+  it("moves project selection by activeRootId even when selected child differs", () => {
+    const roots = [rootNode("root-1"), rootNode("root-2"), rootNode("root-3")];
+
+    expect(getNextRootId(roots, "root-2", 1)).toBe("root-3");
+    expect(getNextRootId(roots, "root-2", -1)).toBe("root-1");
+  });
+
+  it("keeps project selection within bounds and falls back from missing activeRootId", () => {
+    const roots = [rootNode("root-1"), rootNode("root-2")];
+
+    expect(getNextRootId(roots, "root-1", -1)).toBe("root-1");
+    expect(getNextRootId(roots, "root-2", 1)).toBe("root-2");
+    expect(getNextRootId(roots, "missing", 1)).toBe("root-1");
+    expect(getNextRootId(roots, "missing", -1)).toBe("root-2");
+    expect(getNextRootId([], "root-1", 1)).toBeNull();
   });
 
   it.each([

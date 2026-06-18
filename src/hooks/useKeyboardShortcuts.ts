@@ -71,7 +71,25 @@ export function getNextDetailField(
   return DETAIL_FIELDS[nextIndex];
 }
 
+export function getNextRootId(
+  roots: YarukotoNode[],
+  activeRootId: string | null,
+  direction: 1 | -1,
+) {
+  if (roots.length === 0) {
+    return null;
+  }
+  const currentIndex = roots.findIndex((root) => root.id === activeRootId);
+  const fallbackIndex = direction > 0 ? 0 : roots.length - 1;
+  const nextIndex =
+    currentIndex === -1
+      ? fallbackIndex
+      : Math.min(roots.length - 1, Math.max(0, currentIndex + direction));
+  return roots[nextIndex]?.id ?? null;
+}
+
 export function useKeyboardShortcuts({
+  activeRootId,
   activeDateField,
   activeDetailField,
   activePane,
@@ -111,6 +129,8 @@ export function useKeyboardShortcuts({
   moveCalendarCursorToToday,
   moveCalendarMonth,
   moveCenterView,
+  moveActiveRootDown,
+  moveActiveRootUp,
   moveOpenDetailSelect,
   moveSelectedDown,
   moveSelectedUp,
@@ -141,6 +161,7 @@ export function useKeyboardShortcuts({
   toggleExpanded,
   visibleNodes,
 }: {
+  activeRootId: string | null;
   activeDateField: DateField | null;
   activeDetailField: DetailField;
   activePane: ActivePane;
@@ -188,6 +209,8 @@ export function useKeyboardShortcuts({
   moveCalendarCursorToToday: () => void;
   moveCalendarMonth: (direction: 1 | -1) => void;
   moveCenterView: (direction: 1 | -1) => void;
+  moveActiveRootDown: () => Promise<void>;
+  moveActiveRootUp: () => Promise<void>;
   moveOpenDetailSelect: (direction: 1 | -1) => void;
   moveSelectedDown: () => Promise<void>;
   moveSelectedUp: () => Promise<void>;
@@ -240,18 +263,12 @@ export function useKeyboardShortcuts({
 
   const moveRootSelection = useCallback(
     (direction: 1 | -1) => {
-      if (roots.length === 0) {
-        return;
+      const nextRootId = getNextRootId(roots, activeRootId, direction);
+      if (nextRootId) {
+        selectNode(nextRootId);
       }
-      const currentIndex = roots.findIndex((root) => root.id === selectedId);
-      const fallbackIndex = direction > 0 ? 0 : roots.length - 1;
-      const nextIndex =
-        currentIndex === -1
-          ? fallbackIndex
-          : Math.min(roots.length - 1, Math.max(0, currentIndex + direction));
-      selectNode(roots[nextIndex].id);
     },
-    [roots, selectNode, selectedId],
+    [activeRootId, roots, selectNode],
   );
 
   const moveDetailField = useCallback(
@@ -494,6 +511,8 @@ export function useKeyboardShortcuts({
           key: event.key,
           run,
           createRootInProjects,
+          moveActiveRootDown,
+          moveActiveRootUp,
           moveRootSelection,
           setActivePane,
         });
@@ -576,6 +595,7 @@ export function useKeyboardShortcuts({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [
+    activeRootId,
     activeDateField,
     activeDetailField,
     activePane,
@@ -617,6 +637,8 @@ export function useKeyboardShortcuts({
     moveCalendarCursorToToday,
     moveCalendarMonth,
     moveCenterView,
+    moveActiveRootDown,
+    moveActiveRootUp,
     moveKanbanSelection,
     moveKanbanStatus,
     moveOpenDetailSelect,

@@ -147,6 +147,34 @@ export function useYarukotoNodes() {
     }
   }, []);
 
+  const moveActiveRootUp = useCallback(async () => {
+    if (!activeRootId) {
+      return;
+    }
+    const currentIndex = roots.findIndex((root) => root.id === activeRootId);
+    if (currentIndex <= 0) {
+      return;
+    }
+    await runAction(async () => {
+      await nodeRepository.moveUp(activeRootId);
+      await loadNodes(activeRootId);
+    });
+  }, [activeRootId, loadNodes, roots, runAction]);
+
+  const moveActiveRootDown = useCallback(async () => {
+    if (!activeRootId) {
+      return;
+    }
+    const currentIndex = roots.findIndex((root) => root.id === activeRootId);
+    if (currentIndex === -1 || currentIndex >= roots.length - 1) {
+      return;
+    }
+    await runAction(async () => {
+      await nodeRepository.moveDown(activeRootId);
+      await loadNodes(activeRootId);
+    });
+  }, [activeRootId, loadNodes, roots, runAction]);
+
   const {
     changeNodeStatus,
     clearPendingUndoDelete,
@@ -196,6 +224,8 @@ export function useYarukotoNodes() {
     isMutating,
     moveSelectedDown,
     moveSelectedUp,
+    moveActiveRootDown,
+    moveActiveRootUp,
     nodes,
     outdentSelected,
     pendingUndoDelete,

@@ -8,6 +8,8 @@ import { TreePeriodCell, TreePeriodHeader } from "./TreePeriod";
 import { TaskProgressInline } from "./TaskProgress";
 import {
   getNodeDisplayTitle,
+  priorityBadgeClass,
+  priorityLabel,
   statusBadgeClass,
   typeBadgeClass,
 } from "@/domain/nodes/nodeAppearance";
@@ -30,7 +32,7 @@ const INDENT_START = 18;
 const TREE_ROW_GAP = 20;
 
 function getTreeColumns(periodColumnMinWidth: number) {
-  return `minmax(320px, 520px) 68px 74px 92px minmax(${periodColumnMinWidth}px, 1fr)`;
+  return `minmax(320px, 520px) 68px 74px 82px 92px minmax(${periodColumnMinWidth}px, 1fr)`;
 }
 
 function IndentGuides({
@@ -131,7 +133,7 @@ export function TreeView({
     [periodColumnMinWidth],
   );
   const treeMinWidth = useMemo(
-    () => 320 + 68 + 74 + 92 + periodColumnMinWidth + 40,
+    () => 320 + 68 + 74 + 82 + 92 + periodColumnMinWidth + 40,
     [periodColumnMinWidth],
   );
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -190,6 +192,7 @@ export function TreeView({
             <div className="pl-4">Title</div>
             <div>Type</div>
             <div>Status</div>
+            <div>Priority</div>
             <div>Progress</div>
             <TreePeriodHeader
               markers={markers}
@@ -298,6 +301,15 @@ export function TreeView({
                     )}
                   >
                     {node.status}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "justify-self-start px-1.5 py-0 text-[11px]",
+                      priorityBadgeClass(node.priority),
+                    )}
+                  >
+                    {priorityLabel(node.priority)}
                   </Badge>
                   <div className="min-w-0 pr-2">
                     <TaskProgressInline progress={taskProgress} />

@@ -13,6 +13,7 @@ function node(
     title: id,
     type: "Task",
     status: "Inbox",
+    priority: "none",
     memo: "",
     startDate: null,
     dueDate: null,

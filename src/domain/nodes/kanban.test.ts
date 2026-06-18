@@ -18,7 +18,9 @@ function node(
     status = "Inbox",
     title = id,
     type = "Task",
+    priority = "none",
   }: {
+    priority?: YarukotoNode["priority"];
     status?: NodeStatus;
     title?: string;
     type?: NodeType;
@@ -30,6 +32,7 @@ function node(
     title,
     type,
     status,
+    priority,
     memo: "",
     startDate: null,
     dueDate: null,

@@ -8,6 +8,7 @@ const task: YarukotoNode = {
   title: "Task",
   type: "Task",
   status: "Inbox",
+  priority: "none",
   memo: "",
   startDate: null,
   dueDate: null,

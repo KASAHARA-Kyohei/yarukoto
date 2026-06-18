@@ -10,6 +10,7 @@ describe("nodeMapper", () => {
       title: "期間つきタスク",
       type: "Task",
       status: "Doing",
+      priority: "high",
       memo: "memo",
       start_date: "2026-05-30",
       due_date: "2026-06-02",
@@ -20,17 +21,19 @@ describe("nodeMapper", () => {
 
     expect(toNode(row)).toMatchObject({
       dueDate: "2026-06-02",
+      priority: "high",
       startDate: "2026-05-30",
     });
   });
 
-  it("includes startDate in insert params before dueDate", () => {
+  it("includes priority and startDate in insert params", () => {
     const node: YarukotoNode = {
       id: "node-1",
       parentId: null,
       title: "期間つきタスク",
       type: "Task",
       status: "Doing",
+      priority: "medium",
       memo: "memo",
       startDate: "2026-05-30",
       dueDate: "2026-06-02",
@@ -45,6 +48,7 @@ describe("nodeMapper", () => {
       "期間つきタスク",
       "Task",
       "Doing",
+      "medium",
       "memo",
       "2026-05-30",
       "2026-06-02",

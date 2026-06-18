@@ -14,6 +14,7 @@ function node(id: string, parentId: string | null): YarukotoNode {
     title: id,
     type: "Task",
     status: "Inbox",
+    priority: "none",
     memo: "",
     startDate: null,
     dueDate: null,

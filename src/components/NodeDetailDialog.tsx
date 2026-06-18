@@ -9,6 +9,7 @@ import {
 import {
   DetailFieldShell,
   NodeDateField,
+  NodePrioritySelectField,
   NodeStatusSelectField,
   NodeTypeSelectField,
   SaveStatusCard,
@@ -25,6 +26,7 @@ import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
 import { isInvalidDateRange } from "@/domain/nodes/period";
 import type { TaskProgressInfo } from "@/domain/nodes/progress";
 import type {
+  NodePriority,
   NodeStatus,
   NodeType,
   UpdateNodeInput,
@@ -66,6 +68,8 @@ export function NodeDetailDialog({
   onActivateField,
   onMoveOpenDetailSelect,
   onOpenChange,
+  onPriorityOpenChange,
+  onPriorityValueChange,
   onStatusOpenChange,
   onStatusValueChange,
   onTypeOpenChange,
@@ -73,6 +77,7 @@ export function NodeDetailDialog({
   onUpdateNode,
   openDetailSelectField,
   open,
+  priorityValue,
   saveError,
   saveStatus,
   statusValue,
@@ -89,6 +94,7 @@ export function NodeDetailDialog({
   detailFieldRefs: {
     dueDate: RefObject<HTMLButtonElement | null>;
     memo: RefObject<HTMLTextAreaElement | null>;
+    priority: RefObject<HTMLButtonElement | null>;
     startDate: RefObject<HTMLButtonElement | null>;
     status: RefObject<HTMLButtonElement | null>;
     type: RefObject<HTMLButtonElement | null>;
@@ -105,6 +111,8 @@ export function NodeDetailDialog({
   onActivateField: (field: DetailField) => void;
   onMoveOpenDetailSelect: (direction: 1 | -1) => void;
   onOpenChange: (open: boolean) => void;
+  onPriorityOpenChange: (open: boolean) => void;
+  onPriorityValueChange: (value: NodePriority) => void;
   onStatusOpenChange: (open: boolean) => void;
   onStatusValueChange: (value: NodeStatus) => void;
   onTypeOpenChange: (open: boolean) => void;
@@ -112,6 +120,7 @@ export function NodeDetailDialog({
   onUpdateNode: (patch: UpdateNodeInput) => void;
   openDetailSelectField: DetailSelectField | null;
   open: boolean;
+  priorityValue: NodePriority;
   saveError: string | null;
   saveStatus: SaveStatus;
   statusValue: NodeStatus;
@@ -267,6 +276,16 @@ export function NodeDetailDialog({
                 onContentKeyDown={handleSelectContentKeyDown}
                 onOpenChange={onStatusOpenChange}
                 onValueChange={onStatusValueChange}
+              />
+              <NodePrioritySelectField
+                activeField={activeField}
+                openDetailSelectField={openDetailSelectField}
+                priorityValue={priorityValue}
+                triggerRef={detailFieldRefs.priority}
+                onActivateField={onActivateField}
+                onContentKeyDown={handleSelectContentKeyDown}
+                onOpenChange={onPriorityOpenChange}
+                onValueChange={onPriorityValueChange}
               />
               <NodeDateField
                 activeDateField={activeDateField}

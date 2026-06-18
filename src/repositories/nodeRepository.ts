@@ -48,6 +48,7 @@ export class NodeRepository {
       title: input.title ?? "新しいノード",
       type: input.type ?? "Task",
       status: input.status ?? "Inbox",
+      priority: input.priority ?? "none",
       memo: input.memo ?? "",
       startDate: input.startDate ?? null,
       dueDate: input.dueDate ?? null,
@@ -61,8 +62,8 @@ export class NodeRepository {
       await this.shiftSiblings(node.parentId, node.sortOrder, 1);
       await db.execute(
         `INSERT INTO nodes (
-          id, parent_id, title, type, status, memo, start_date, due_date, sort_order, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          id, parent_id, title, type, status, priority, memo, start_date, due_date, sort_order, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
         [
           ...nodeInsertParams(node),
         ],
@@ -75,7 +76,7 @@ export class NodeRepository {
   async importTree(document: LlmTreeDocument) {
     const nodes = flattenLlmTreeDocument(document);
     const db = await getNodeDb();
-    const valuesPerNode = 11;
+    const valuesPerNode = 12;
     const placeholders = nodes
       .map((_, nodeIndex) => {
         const offset = nodeIndex * valuesPerNode;
@@ -89,7 +90,7 @@ export class NodeRepository {
     await withWriteQueue(async () => {
       await db.execute(
         `INSERT INTO nodes (
-          id, parent_id, title, type, status, memo, start_date, due_date, sort_order, created_at, updated_at
+          id, parent_id, title, type, status, priority, memo, start_date, due_date, sort_order, created_at, updated_at
         ) VALUES ${placeholders}`,
         nodes.flatMap(nodeInsertParams),
       );
@@ -108,12 +109,13 @@ export class NodeRepository {
       const db = await getNodeDb();
       await db.execute(
         `UPDATE nodes
-         SET title = $1, type = $2, status = $3, memo = $4, start_date = $5, due_date = $6, updated_at = $7
-         WHERE id = $8`,
+         SET title = $1, type = $2, status = $3, priority = $4, memo = $5, start_date = $6, due_date = $7, updated_at = $8
+         WHERE id = $9`,
         [
           next.title,
           next.type,
           next.status,
+          next.priority,
           next.memo,
           next.startDate,
           next.dueDate,
@@ -169,8 +171,8 @@ export class NodeRepository {
       for (const node of sortNodes(nodes)) {
         await db.execute(
           `INSERT OR REPLACE INTO nodes (
-            id, parent_id, title, type, status, memo, start_date, due_date, sort_order, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            id, parent_id, title, type, status, priority, memo, start_date, due_date, sort_order, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [...nodeInsertParams(node)],
         );
       }

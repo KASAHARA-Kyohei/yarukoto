@@ -7,6 +7,7 @@ import type { LlmTreeDocument } from "@/domain/nodes/llmTree";
 import { nodeRepository } from "../repositories/nodeRepository";
 import { changeNodeStatusOptimistically } from "./nodeStatusMutation";
 import type {
+  CreateNodeInput,
   FlatTreeNode,
   NodeStatus,
   UpdateNodeInput,
@@ -20,7 +21,7 @@ type RunNodeAction = <T>(action: () => Promise<T>) => Promise<T | null>;
 export function buildSiblingNodeInput(
   selectedNode: YarukotoNode,
   sortOrder: number,
-) {
+): CreateNodeInput {
   return {
     parentId: selectedNode.parentId,
     title: "",

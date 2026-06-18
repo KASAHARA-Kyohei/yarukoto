@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  priorityBadgeClass,
+  priorityLabel,
   getNodeDisplayTitle,
   statusBadgeClass,
   typeBadgeClass,
@@ -14,6 +16,12 @@ describe("node appearance helpers", () => {
   it("returns distinct classes for each status", () => {
     expect(statusBadgeClass("Inbox")).not.toBe(statusBadgeClass("Done"));
     expect(statusBadgeClass("Doing")).toContain("amber");
+  });
+
+  it("returns distinct classes and labels for priority", () => {
+    expect(priorityBadgeClass("none")).not.toBe(priorityBadgeClass("high"));
+    expect(priorityBadgeClass("high")).toContain("rose");
+    expect(priorityLabel("medium")).toBe("Medium");
   });
 
   it("returns the title when it has visible text", () => {

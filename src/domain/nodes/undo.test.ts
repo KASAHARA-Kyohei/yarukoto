@@ -13,6 +13,7 @@ function node(
     title: id,
     type: "Task",
     status: "Inbox",
+    priority: "none",
     memo: `memo-${id}`,
     startDate: id === "target" ? "2026-05-30" : null,
     dueDate: id === "target" ? "2026-06-01" : null,

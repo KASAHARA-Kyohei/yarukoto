@@ -1,6 +1,8 @@
 import {
+  isNodePriority,
   isNodeStatus,
   isNodeType,
+  type NodePriority,
   type NodeStatus,
   type NodeType,
   type YarukotoNode,
@@ -8,12 +10,13 @@ import {
 import { getChildren } from "./tree";
 
 export const LLM_TREE_FORMAT = "yarukoto-tree";
-export const LLM_TREE_VERSION = 1;
+export const LLM_TREE_VERSION = 2;
 
 export type LlmTreeNode = {
   title: string;
   type: NodeType;
   status: NodeStatus;
+  priority: NodePriority;
   memo: string;
   startDate: string | null;
   dueDate: string | null;
@@ -31,6 +34,7 @@ function toLlmTreeNode(nodes: YarukotoNode[], node: YarukotoNode): LlmTreeNode {
     title: node.title,
     type: node.type,
     status: node.status,
+    priority: node.priority,
     memo: node.memo,
     startDate: node.startDate,
     dueDate: node.dueDate,
@@ -59,8 +63,8 @@ export function buildLlmReviewText(document: LlmTreeDocument) {
   return [
     "以下はタスク管理アプリ yarukoto のプロジェクトツリーです。",
     "内容をレビューし、必要に応じてノードの追加・削除・並べ替え・階層変更・各項目の修正を行ってください。",
-    "返答は説明文を含めず、同じ yarukoto-tree バージョン1形式のJSONコードブロックだけにしてください。",
-    "format、version、および各ノードの title/type/status/memo/startDate/dueDate/children は必ず残してください。",
+    "返答は説明文を含めず、同じ yarukoto-tree バージョン2形式のJSONコードブロックだけにしてください。",
+    "format、version、および各ノードの title/type/status/priority/memo/startDate/dueDate/children は必ず残してください。",
     "",
     "```json",
     JSON.stringify(document, null, 2),
@@ -108,6 +112,21 @@ function requireNullableDate(
   return value;
 }
 
+function requirePriority(
+  record: Record<string, unknown>,
+  path: string,
+  version: number,
+) {
+  const value = record.priority;
+  if (value === undefined && version === 1) {
+    return "none" as const;
+  }
+  if (typeof value !== "string" || !isNodePriority(value)) {
+    throw new Error(`${path}.priority の値が不正です。`);
+  }
+  return value;
+}
+
 function isValidDateKey(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) {
@@ -124,7 +143,7 @@ function isValidDateKey(value: string) {
   );
 }
 
-function parseNode(value: unknown, path: string): LlmTreeNode {
+function parseNode(value: unknown, path: string, version: number): LlmTreeNode {
   if (!isRecord(value)) {
     throw new Error(`${path} はオブジェクトで指定してください。`);
   }
@@ -144,11 +163,12 @@ function parseNode(value: unknown, path: string): LlmTreeNode {
     title: requireString(value, "title", path),
     type,
     status,
+    priority: requirePriority(value, path, version),
     memo: requireString(value, "memo", path),
     startDate: requireNullableDate(value, "startDate", path),
     dueDate: requireNullableDate(value, "dueDate", path),
     children: children.map((child, index) =>
-      parseNode(child, `${path}.children[${index}]`),
+      parseNode(child, `${path}.children[${index}]`, version),
     ),
   };
 }
@@ -169,13 +189,13 @@ export function parseLlmTreeDocument(input: string): LlmTreeDocument {
   if (parsed.format !== LLM_TREE_FORMAT) {
     throw new Error(`format は "${LLM_TREE_FORMAT}" で指定してください。`);
   }
-  if (parsed.version !== LLM_TREE_VERSION) {
-    throw new Error(`version は ${LLM_TREE_VERSION} で指定してください。`);
+  if (parsed.version !== 1 && parsed.version !== LLM_TREE_VERSION) {
+    throw new Error(`version は 1 または ${LLM_TREE_VERSION} で指定してください。`);
   }
   return {
     format: LLM_TREE_FORMAT,
     version: LLM_TREE_VERSION,
-    root: parseNode(parsed.root, "root"),
+    root: parseNode(parsed.root, "root", parsed.version),
   };
 }
 
@@ -202,6 +222,7 @@ export function flattenLlmTreeDocument(
       title: input.title,
       type: input.type,
       status: input.status,
+      priority: input.priority,
       memo: input.memo,
       startDate: input.startDate,
       dueDate: input.dueDate,

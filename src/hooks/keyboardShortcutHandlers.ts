@@ -3,6 +3,7 @@ import {
   type DateField,
   type DetailField,
   type DetailSelectField,
+  isDetailSelectField,
   isDateField,
 } from "@/app/types";
 
@@ -121,6 +122,7 @@ export function handleDetailDialogShortcut({
   key,
   run,
   clearActiveDate,
+  cyclePriorityValue,
   cycleStatusValue,
   cycleTypeValue,
   focusActiveDetailField,
@@ -135,6 +137,7 @@ export function handleDetailDialogShortcut({
   key: string;
   run: RunShortcut;
   clearActiveDate: () => void;
+  cyclePriorityValue: (direction: 1 | -1) => void;
   cycleStatusValue: (direction: 1 | -1) => void;
   cycleTypeValue: (direction: 1 | -1) => void;
   focusActiveDetailField: () => void;
@@ -160,6 +163,8 @@ export function handleDetailDialogShortcut({
         run(() => cycleTypeValue(-1));
       } else if (activeDetailField === "status") {
         run(() => cycleStatusValue(-1));
+      } else if (activeDetailField === "priority") {
+        run(() => cyclePriorityValue(-1));
       }
       break;
     case "l":
@@ -168,6 +173,8 @@ export function handleDetailDialogShortcut({
         run(() => cycleTypeValue(1));
       } else if (activeDetailField === "status") {
         run(() => cycleStatusValue(1));
+      } else if (activeDetailField === "priority") {
+        run(() => cyclePriorityValue(1));
       }
       break;
     case "i":
@@ -178,7 +185,7 @@ export function handleDetailDialogShortcut({
       }
       break;
     case "Enter":
-      if (activeDetailField === "type" || activeDetailField === "status") {
+      if (isDetailSelectField(activeDetailField)) {
         run(() => {
           focusDetailField(activeDetailField);
           openDetailSelect(activeDetailField);

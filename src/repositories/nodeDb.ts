@@ -10,7 +10,7 @@ export function getNodeDb() {
   return dbPromise;
 }
 
-const NODE_SCHEMA_VERSION = 2;
+const NODE_SCHEMA_VERSION = 3;
 
 async function getUserVersion(db: Database) {
   const rows = await db.select<Array<{ user_version: number }>>(
@@ -38,6 +38,7 @@ export async function migrateNodeSchema() {
           title TEXT NOT NULL,
           type TEXT NOT NULL,
           status TEXT NOT NULL,
+          priority TEXT NOT NULL DEFAULT 'none',
           memo TEXT NOT NULL DEFAULT '',
           due_date TEXT NULL,
           sort_order INTEGER NOT NULL,
@@ -51,6 +52,15 @@ export async function migrateNodeSchema() {
     await withWriteQueue(async () => {
       if (!(await hasColumn(db, "nodes", "start_date"))) {
         await db.execute("ALTER TABLE nodes ADD COLUMN start_date TEXT NULL");
+      }
+    });
+  }
+  if (version < 3) {
+    await withWriteQueue(async () => {
+      if (!(await hasColumn(db, "nodes", "priority"))) {
+        await db.execute(
+          "ALTER TABLE nodes ADD COLUMN priority TEXT NOT NULL DEFAULT 'none'",
+        );
       }
     });
   }

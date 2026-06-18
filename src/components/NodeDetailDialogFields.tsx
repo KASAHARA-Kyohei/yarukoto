@@ -21,12 +21,15 @@ import {
   type SaveStatus,
 } from "@/app/types";
 import {
+  NODE_PRIORITIES,
   NODE_STATUSES,
   NODE_TYPES,
+  type NodePriority,
   type NodeStatus,
   type NodeType,
   type YarukotoNode,
 } from "@/domain/nodes/types";
+import { priorityLabel } from "@/domain/nodes/nodeAppearance";
 import { cn } from "@/lib/utils";
 import { saveStatusVariant } from "./nodeDetailDialogUtils";
 
@@ -144,6 +147,53 @@ export function NodeStatusSelectField({
           {NODE_STATUSES.map((status) => (
             <SelectItem key={status} value={status}>
               {status}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </DetailFieldShell>
+  );
+}
+
+export function NodePrioritySelectField({
+  activeField,
+  openDetailSelectField,
+  priorityValue,
+  triggerRef,
+  onActivateField,
+  onContentKeyDown,
+  onOpenChange,
+  onValueChange,
+}: {
+  activeField: DetailField;
+  openDetailSelectField: DetailSelectField | null;
+  priorityValue: NodePriority;
+  triggerRef: RefObject<HTMLButtonElement | null>;
+  onActivateField: (field: DetailField) => void;
+  onContentKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
+  onOpenChange: (open: boolean) => void;
+  onValueChange: (value: NodePriority) => void;
+}) {
+  return (
+    <DetailFieldShell
+      activeField={activeField}
+      field="priority"
+      label="priority"
+      onActivateField={onActivateField}
+    >
+      <Select
+        open={openDetailSelectField === "priority"}
+        value={priorityValue}
+        onOpenChange={onOpenChange}
+        onValueChange={(value) => onValueChange(value as NodePriority)}
+      >
+        <SelectTrigger ref={triggerRef}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent onKeyDownCapture={onContentKeyDown}>
+          {NODE_PRIORITIES.map((priority) => (
+            <SelectItem key={priority} value={priority}>
+              {priorityLabel(priority)}
             </SelectItem>
           ))}
         </SelectContent>

@@ -31,6 +31,7 @@ export async function seedNodesIfEmpty(db: Database, createId: () => string) {
         title: "yarukotoを作る",
         type: "Group",
         status: "Doing",
+        priority: "medium",
         memo: "思考整理ツリーを中心にした軽量プロジェクト管理アプリ。",
         startDate: null,
         dueDate: null,
@@ -45,6 +46,7 @@ export async function seedNodesIfEmpty(db: Database, createId: () => string) {
         title: "思いつきをすぐツリーに入れる",
         type: "Idea",
         status: "Inbox",
+        priority: "low",
         memo: "Jiraクローンではなく、アウトライナーとして使いやすくする。",
         startDate: null,
         dueDate: null,
@@ -59,6 +61,7 @@ export async function seedNodesIfEmpty(db: Database, createId: () => string) {
         title: "保存は最初からSQLiteにする",
         type: "Decision",
         status: "Done",
+        priority: "medium",
         memo: "UIはRepository層だけを呼ぶ。",
         startDate: null,
         dueDate: null,
@@ -73,6 +76,7 @@ export async function seedNodesIfEmpty(db: Database, createId: () => string) {
         title: "Vimライク操作を確認する",
         type: "Task",
         status: "Next",
+        priority: "high",
         memo: "j/k, a, o, dd, J/K, >, < を試す。",
         startDate: null,
         dueDate: null,
@@ -85,8 +89,8 @@ export async function seedNodesIfEmpty(db: Database, createId: () => string) {
   for (const node of rowsToInsert) {
     await db.execute(
       `INSERT INTO nodes (
-        id, parent_id, title, type, status, memo, start_date, due_date, sort_order, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        id, parent_id, title, type, status, priority, memo, start_date, due_date, sort_order, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       nodeInsertParams(node),
     );
   }

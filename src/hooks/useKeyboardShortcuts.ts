@@ -85,6 +85,7 @@ export function useKeyboardShortcuts({
   commitDateTextEdit,
   commitOpenDetailSelect,
   cycleTheme,
+  cyclePriorityValue,
   cycleStatusValue,
   cycleTypeValue,
   collapseCurrentTree,
@@ -153,6 +154,7 @@ export function useKeyboardShortcuts({
   commitDateTextEdit: () => void;
   commitOpenDetailSelect: () => void;
   cycleTheme: () => void;
+  cyclePriorityValue: (direction: 1 | -1) => void;
   cycleStatusValue: (direction: 1 | -1) => void;
   cycleTypeValue: (direction: 1 | -1) => void;
   collapseCurrentTree: () => void;
@@ -165,6 +167,7 @@ export function useKeyboardShortcuts({
   detailFieldRefs: {
     dueDate: RefObject<HTMLButtonElement | null>;
     memo: RefObject<HTMLTextAreaElement | null>;
+    priority: RefObject<HTMLButtonElement | null>;
     startDate: RefObject<HTMLButtonElement | null>;
     status: RefObject<HTMLButtonElement | null>;
     title: RefObject<HTMLInputElement | null>;
@@ -445,6 +448,7 @@ export function useKeyboardShortcuts({
           key: event.key,
           run,
           clearActiveDate,
+          cyclePriorityValue,
           cycleStatusValue,
           cycleTypeValue,
           focusActiveDetailField,
@@ -586,6 +590,7 @@ export function useKeyboardShortcuts({
     commitDateTextEdit,
     commitOpenDetailSelect,
     cycleTheme,
+    cyclePriorityValue,
     cycleStatusValue,
     cycleTypeValue,
     collapseCurrentTree,

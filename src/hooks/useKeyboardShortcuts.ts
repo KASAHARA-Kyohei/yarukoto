@@ -87,6 +87,7 @@ export function useKeyboardShortcuts({
   cycleTheme,
   cycleStatusValue,
   cycleTypeValue,
+  collapseCurrentTree,
   createChild,
   createRootAndEdit,
   createRootInProjects,
@@ -154,6 +155,7 @@ export function useKeyboardShortcuts({
   cycleTheme: () => void;
   cycleStatusValue: (direction: 1 | -1) => void;
   cycleTypeValue: (direction: 1 | -1) => void;
+  collapseCurrentTree: () => void;
   createChild: () => Promise<unknown>;
   createRootAndEdit: () => Promise<unknown>;
   createRootInProjects: () => Promise<unknown>;
@@ -214,6 +216,7 @@ export function useKeyboardShortcuts({
   visibleNodes: FlatTreeNode[];
 }) {
   const lastDRef = useRef(0);
+  const lastZRef = useRef(0);
 
   const blurActiveDialogElement = useCallback(() => {
     const activeElement = document.activeElement;
@@ -478,6 +481,9 @@ export function useKeyboardShortcuts({
       if (event.key !== "d") {
         lastDRef.current = 0;
       }
+      if (event.key !== "z" && event.key !== "a") {
+        lastZRef.current = 0;
+      }
 
       if (activePane === "projects") {
         handleProjectsShortcut({
@@ -524,6 +530,7 @@ export function useKeyboardShortcuts({
       handleTreeViewShortcut({
         key: event.key,
         run,
+        collapseCurrentTree,
         createChild,
         createSiblingAbove,
         createSiblingBelow,
@@ -541,6 +548,12 @@ export function useKeyboardShortcuts({
         onImportFromFile,
         onOpenLlmImport,
         outdentSelected,
+        consumeCollapseKey: () => {
+          const currentTime = Date.now();
+          const isCollapseKey = currentTime - lastZRef.current < 650;
+          lastZRef.current = 0;
+          return isCollapseKey;
+        },
         registerDeleteKey: () => {
           const currentTime = Date.now();
           if (currentTime - lastDRef.current < 650) {
@@ -549,6 +562,9 @@ export function useKeyboardShortcuts({
           }
           lastDRef.current = currentTime;
           return false;
+        },
+        registerCollapseKey: () => {
+          lastZRef.current = Date.now();
         },
       });
     };
@@ -572,6 +588,7 @@ export function useKeyboardShortcuts({
     cycleTheme,
     cycleStatusValue,
     cycleTypeValue,
+    collapseCurrentTree,
     createChild,
     createRootAndEdit,
     createRootInProjects,

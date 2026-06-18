@@ -269,6 +269,7 @@ describe("isEditableTagName", () => {
     handleTreeViewShortcut({
       key: "d",
       run,
+      collapseCurrentTree: vi.fn(),
       createChild: vi.fn(),
       createSiblingAbove: vi.fn(),
       createSiblingBelow: vi.fn(),
@@ -286,11 +287,14 @@ describe("isEditableTagName", () => {
       onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
+      consumeCollapseKey: () => false,
       registerDeleteKey: () => false,
+      registerCollapseKey: vi.fn(),
     });
     handleTreeViewShortcut({
       key: "d",
       run,
+      collapseCurrentTree: vi.fn(),
       createChild: vi.fn(),
       createSiblingAbove: vi.fn(),
       createSiblingBelow: vi.fn(),
@@ -308,7 +312,9 @@ describe("isEditableTagName", () => {
       onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
+      consumeCollapseKey: () => false,
       registerDeleteKey: () => true,
+      registerCollapseKey: vi.fn(),
     });
 
     expect(run).toHaveBeenCalledTimes(1);
@@ -325,6 +331,7 @@ describe("isEditableTagName", () => {
     handleTreeViewShortcut({
       key,
       run,
+      collapseCurrentTree: vi.fn(),
       createChild: vi.fn(),
       createSiblingAbove: vi.fn(),
       createSiblingBelow: vi.fn(),
@@ -342,7 +349,9 @@ describe("isEditableTagName", () => {
       onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
+      consumeCollapseKey: () => false,
       registerDeleteKey: () => false,
+      registerCollapseKey: vi.fn(),
     });
 
     expect(moveSelection).toHaveBeenCalledWith(direction);
@@ -359,6 +368,7 @@ describe("isEditableTagName", () => {
     handleTreeViewShortcut({
       key,
       run,
+      collapseCurrentTree: vi.fn(),
       createChild: vi.fn(),
       createSiblingAbove: vi.fn(),
       createSiblingBelow: vi.fn(),
@@ -376,10 +386,114 @@ describe("isEditableTagName", () => {
       onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
+      consumeCollapseKey: () => false,
       registerDeleteKey: () => false,
+      registerCollapseKey: vi.fn(),
     });
 
     expect(handlerName === "handleH" ? handleH : handleL).toHaveBeenCalledTimes(1);
+  });
+
+  it("registers z as the collapse prefix without executing an action", () => {
+    const run = vi.fn((action: () => void) => action());
+    const registerCollapseKey = vi.fn();
+
+    handleTreeViewShortcut({
+      key: "z",
+      run,
+      collapseCurrentTree: vi.fn(),
+      createChild: vi.fn(),
+      createSiblingAbove: vi.fn(),
+      createSiblingBelow: vi.fn(),
+      deleteSelected: vi.fn(),
+      handleH: vi.fn(),
+      handleL: vi.fn(),
+      indentSelected: vi.fn(),
+      moveSelectedDown: vi.fn(),
+      moveSelectedUp: vi.fn(),
+      moveSelection: vi.fn(),
+      onCopyLlmReview: vi.fn(),
+      onExportToFile: vi.fn(),
+      onCloseDetailDialog: vi.fn(),
+      onOpenDetailDialog: vi.fn(),
+      onImportFromFile: vi.fn(),
+      onOpenLlmImport: vi.fn(),
+      outdentSelected: vi.fn(),
+      consumeCollapseKey: () => false,
+      registerDeleteKey: () => false,
+      registerCollapseKey,
+    });
+
+    expect(run).not.toHaveBeenCalled();
+    expect(registerCollapseKey).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps plain a routed to createChild", () => {
+    const run = vi.fn((action: () => void) => action());
+    const createChild = vi.fn();
+
+    handleTreeViewShortcut({
+      key: "a",
+      run,
+      collapseCurrentTree: vi.fn(),
+      createChild,
+      createSiblingAbove: vi.fn(),
+      createSiblingBelow: vi.fn(),
+      deleteSelected: vi.fn(),
+      handleH: vi.fn(),
+      handleL: vi.fn(),
+      indentSelected: vi.fn(),
+      moveSelectedDown: vi.fn(),
+      moveSelectedUp: vi.fn(),
+      moveSelection: vi.fn(),
+      onCopyLlmReview: vi.fn(),
+      onExportToFile: vi.fn(),
+      onCloseDetailDialog: vi.fn(),
+      onOpenDetailDialog: vi.fn(),
+      onImportFromFile: vi.fn(),
+      onOpenLlmImport: vi.fn(),
+      outdentSelected: vi.fn(),
+      consumeCollapseKey: () => false,
+      registerDeleteKey: () => false,
+      registerCollapseKey: vi.fn(),
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(createChild).toHaveBeenCalledTimes(1);
+  });
+
+  it("routes tree za to collapseCurrentTree", () => {
+    const run = vi.fn((action: () => void) => action());
+    const collapseCurrentTree = vi.fn();
+
+    handleTreeViewShortcut({
+      key: "a",
+      run,
+      collapseCurrentTree,
+      createChild: vi.fn(),
+      createSiblingAbove: vi.fn(),
+      createSiblingBelow: vi.fn(),
+      deleteSelected: vi.fn(),
+      handleH: vi.fn(),
+      handleL: vi.fn(),
+      indentSelected: vi.fn(),
+      moveSelectedDown: vi.fn(),
+      moveSelectedUp: vi.fn(),
+      moveSelection: vi.fn(),
+      onCopyLlmReview: vi.fn(),
+      onExportToFile: vi.fn(),
+      onCloseDetailDialog: vi.fn(),
+      onOpenDetailDialog: vi.fn(),
+      onImportFromFile: vi.fn(),
+      onOpenLlmImport: vi.fn(),
+      outdentSelected: vi.fn(),
+      consumeCollapseKey: () => true,
+      registerDeleteKey: () => false,
+      registerCollapseKey: vi.fn(),
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(collapseCurrentTree).toHaveBeenCalledTimes(1);
   });
 
   it("routes tree O to createSiblingAbove", () => {
@@ -389,6 +503,7 @@ describe("isEditableTagName", () => {
     handleTreeViewShortcut({
       key: "O",
       run,
+      collapseCurrentTree: vi.fn(),
       createChild: vi.fn(),
       createSiblingAbove,
       createSiblingBelow: vi.fn(),
@@ -406,7 +521,9 @@ describe("isEditableTagName", () => {
       onImportFromFile: vi.fn(),
       onOpenLlmImport: vi.fn(),
       outdentSelected: vi.fn(),
+      consumeCollapseKey: () => false,
       registerDeleteKey: () => false,
+      registerCollapseKey: vi.fn(),
     });
 
     expect(run).toHaveBeenCalledTimes(1);
@@ -429,6 +546,7 @@ describe("isEditableTagName", () => {
     handleTreeViewShortcut({
       key,
       run,
+      collapseCurrentTree: vi.fn(),
       createChild: vi.fn(),
       createSiblingAbove,
       createSiblingBelow: vi.fn(),
@@ -446,7 +564,9 @@ describe("isEditableTagName", () => {
       onImportFromFile,
       onOpenLlmImport,
       outdentSelected: vi.fn(),
+      consumeCollapseKey: () => false,
       registerDeleteKey: () => false,
+      registerCollapseKey: vi.fn(),
     });
 
     expect(run).toHaveBeenCalledTimes(1);

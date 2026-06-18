@@ -79,3 +79,21 @@ export function getExpandedIdsForSelection(
   }
   return next;
 }
+
+export function resolveCollapsedTreeState({
+  activeRootId,
+  nextRoots,
+}: {
+  activeRootId: string | null;
+  nextRoots: YarukotoNode[];
+}) {
+  const expandedIds = new Set(nextRoots.map((node) => node.id));
+  if (activeRootId) {
+    expandedIds.add(activeRootId);
+  }
+
+  return {
+    expandedIds,
+    selectedId: activeRootId ?? nextRoots[0]?.id ?? null,
+  };
+}

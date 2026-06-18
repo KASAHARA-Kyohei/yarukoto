@@ -23,6 +23,7 @@ function node(
     title: id,
     type: type as NodeType,
     status,
+    priority: "none",
     memo: "",
     startDate,
     dueDate,

@@ -1,4 +1,5 @@
 import {
+  isNodePriority,
   isNodeStatus,
   isNodeType,
   type YarukotoNode,
@@ -10,6 +11,7 @@ export type DbNode = {
   title: string;
   type: string;
   status: string;
+  priority: string;
   memo: string;
   start_date: string | null;
   due_date: string | null;
@@ -25,6 +27,7 @@ export function toNode(row: DbNode): YarukotoNode {
     title: row.title,
     type: isNodeType(row.type) ? row.type : "Note",
     status: isNodeStatus(row.status) ? row.status : "Inbox",
+    priority: isNodePriority(row.priority) ? row.priority : "none",
     memo: row.memo,
     startDate: row.start_date,
     dueDate: row.due_date,
@@ -41,6 +44,7 @@ export function nodeInsertParams(node: YarukotoNode) {
     node.title,
     node.type,
     node.status,
+    node.priority,
     node.memo,
     node.startDate,
     node.dueDate,

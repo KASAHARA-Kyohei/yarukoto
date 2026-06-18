@@ -14,6 +14,7 @@ function node(
     title: id,
     type,
     status,
+    priority: "none",
     memo: "",
     startDate: null,
     dueDate: null,

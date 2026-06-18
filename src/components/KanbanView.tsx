@@ -14,7 +14,12 @@ import type {
   KanbanColumn as KanbanColumnModel,
   KanbanModel,
 } from "@/domain/nodes/kanban";
-import { getNodeDisplayTitle, statusBadgeClass } from "@/domain/nodes/nodeAppearance";
+import {
+  getNodeDisplayTitle,
+  priorityBadgeClass,
+  priorityLabel,
+  statusBadgeClass,
+} from "@/domain/nodes/nodeAppearance";
 import type { NodeStatus } from "@/domain/nodes/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -315,6 +320,17 @@ function KanbanCardSurface({
           <p className="line-clamp-2 text-sm font-medium leading-5 text-foreground">
             {getNodeDisplayTitle(card.node)}
           </p>
+          <div className="mt-1 flex items-center gap-1.5">
+            <Badge
+              className={cn(
+                "px-1.5 py-0 text-[10px]",
+                priorityBadgeClass(card.node.priority),
+              )}
+              variant="outline"
+            >
+              {priorityLabel(card.node.priority)}
+            </Badge>
+          </div>
           {card.parentPath.length > 0 ? (
             <p className="mt-1 truncate text-[11px] text-muted-foreground">
               {card.parentPath.join(" / ")}

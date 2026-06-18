@@ -7,10 +7,11 @@ export type DetailField =
   | "title"
   | "type"
   | "status"
+  | "priority"
   | "startDate"
   | "dueDate"
   | "memo";
-export type DetailSelectField = Extract<DetailField, "type" | "status">;
+export type DetailSelectField = Extract<DetailField, "type" | "status" | "priority">;
 export type DateField = Extract<DetailField, "startDate" | "dueDate">;
 export type DateEditMode = "calendar" | "text";
 
@@ -26,6 +27,7 @@ export const DETAIL_FIELDS: DetailField[] = [
   "title",
   "type",
   "status",
+  "priority",
   "startDate",
   "dueDate",
   "memo",
@@ -33,4 +35,10 @@ export const DETAIL_FIELDS: DetailField[] = [
 
 export function isDateField(field: DetailField): field is DateField {
   return field === "startDate" || field === "dueDate";
+}
+
+export function isDetailSelectField(
+  field: DetailField,
+): field is DetailSelectField {
+  return field === "type" || field === "status" || field === "priority";
 }

@@ -45,6 +45,7 @@ describe("isEditableTagName", () => {
 
   it("moves through detail dialog fields", () => {
     expect(getNextDetailField("title", 1)).toBe("type");
+    expect(getNextDetailField("status", 1)).toBe("priority");
     expect(getNextDetailField("dueDate", 1)).toBe("memo");
     expect(getNextDetailField("title", -1)).toBe("title");
     expect(getNextDetailField("memo", 1)).toBe("memo");
@@ -201,6 +202,7 @@ describe("isEditableTagName", () => {
       key,
       run,
       clearActiveDate: vi.fn(),
+      cyclePriorityValue: vi.fn(),
       cycleStatusValue: vi.fn(),
       cycleTypeValue: vi.fn(),
       focusActiveDetailField: vi.fn(),
@@ -229,6 +231,7 @@ describe("isEditableTagName", () => {
         key,
         run,
         clearActiveDate: vi.fn(),
+        cyclePriorityValue: vi.fn(),
         cycleStatusValue,
         cycleTypeValue: vi.fn(),
         focusActiveDetailField: vi.fn(),
@@ -243,6 +246,33 @@ describe("isEditableTagName", () => {
       expect(cycleStatusValue).toHaveBeenCalledWith(direction);
     },
   );
+
+  it.each([
+    ["ArrowLeft", -1],
+    ["ArrowRight", 1],
+  ] as const)("routes detail dialog %s to priority cycling", (key, direction) => {
+    const run = vi.fn((action: () => void) => action());
+    const cyclePriorityValue = vi.fn();
+
+    handleDetailDialogShortcut({
+      activeDetailField: "priority",
+      key,
+      run,
+      clearActiveDate: vi.fn(),
+      cyclePriorityValue,
+      cycleStatusValue: vi.fn(),
+      cycleTypeValue: vi.fn(),
+      focusActiveDetailField: vi.fn(),
+      focusDetailField: vi.fn(),
+      moveDetailField: vi.fn(),
+      onCloseDetailDialog: vi.fn(),
+      openDatePicker: vi.fn(),
+      openDateTextEdit: vi.fn(),
+      openDetailSelect: vi.fn(),
+    });
+
+    expect(cyclePriorityValue).toHaveBeenCalledWith(direction);
+  });
 
   it.each([
     ["H", -1],

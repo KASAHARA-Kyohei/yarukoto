@@ -2,8 +2,10 @@ import { useCallback, useState } from "react";
 import { getCycledValue } from "@/app/cycleValue";
 import type { DetailSelectField } from "@/app/types";
 import {
+  NODE_PRIORITIES,
   NODE_STATUSES,
   NODE_TYPES,
+  type NodePriority,
   type NodeStatus,
   type NodeType,
   type UpdateNodeInput,
@@ -22,10 +24,13 @@ export function useDetailSelectState({
   const [statusSelectDraft, setStatusSelectDraft] = useState<NodeStatus | null>(
     null,
   );
+  const [prioritySelectDraft, setPrioritySelectDraft] =
+    useState<NodePriority | null>(null);
   const [typeSelectDraft, setTypeSelectDraft] = useState<NodeType | null>(null);
 
   const resetDetailSelectState = useCallback(() => {
     setOpenDetailSelectField(null);
+    setPrioritySelectDraft(null);
     setStatusSelectDraft(null);
     setTypeSelectDraft(null);
   }, []);
@@ -37,9 +42,15 @@ export function useDetailSelectState({
       }
       if (field === "type") {
         setTypeSelectDraft(selectedNode.type);
+        setPrioritySelectDraft(null);
         setStatusSelectDraft(null);
+      } else if (field === "priority") {
+        setPrioritySelectDraft(selectedNode.priority);
+        setStatusSelectDraft(null);
+        setTypeSelectDraft(null);
       } else {
         setStatusSelectDraft(selectedNode.status);
+        setPrioritySelectDraft(null);
         setTypeSelectDraft(null);
       }
       setOpenDetailSelectField(field);
@@ -61,6 +72,14 @@ export function useDetailSelectState({
           getCycledValue(
             NODE_TYPES,
             currentValue ?? selectedNode.type,
+            direction,
+          ),
+        );
+      } else if (openDetailSelectField === "priority") {
+        setPrioritySelectDraft((currentValue) =>
+          getCycledValue(
+            NODE_PRIORITIES,
+            currentValue ?? selectedNode.priority,
             direction,
           ),
         );
@@ -89,6 +108,14 @@ export function useDetailSelectState({
       }
       return;
     }
+    if (openDetailSelectField === "priority") {
+      const nextPriority = prioritySelectDraft ?? selectedNode.priority;
+      resetDetailSelectState();
+      if (nextPriority !== selectedNode.priority) {
+        void updateSelected({ priority: nextPriority });
+      }
+      return;
+    }
     const nextStatus = statusSelectDraft ?? selectedNode.status;
     resetDetailSelectState();
     if (nextStatus !== selectedNode.status) {
@@ -96,6 +123,7 @@ export function useDetailSelectState({
     }
   }, [
     openDetailSelectField,
+    prioritySelectDraft,
     resetDetailSelectState,
     selectedNode,
     statusSelectDraft,
@@ -110,6 +138,22 @@ export function useDetailSelectState({
       }
       void updateSelected({
         type: getCycledValue(NODE_TYPES, selectedNode.type, direction),
+      });
+    },
+    [selectedNode, updateSelected],
+  );
+
+  const cyclePriorityValue = useCallback(
+    (direction: 1 | -1) => {
+      if (!selectedNode) {
+        return;
+      }
+      void updateSelected({
+        priority: getCycledValue(
+          NODE_PRIORITIES,
+          selectedNode.priority,
+          direction,
+        ),
       });
     },
     [selectedNode, updateSelected],
@@ -146,6 +190,25 @@ export function useDetailSelectState({
     [resetDetailSelectState, updateSelected],
   );
 
+  const handlePriorityOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        openDetailSelect("priority");
+      } else if (openDetailSelectField === "priority") {
+        closeDetailSelect();
+      }
+    },
+    [closeDetailSelect, openDetailSelect, openDetailSelectField],
+  );
+
+  const handlePriorityValueChange = useCallback(
+    (value: NodePriority) => {
+      void updateSelected({ priority: value });
+      resetDetailSelectState();
+    },
+    [resetDetailSelectState, updateSelected],
+  );
+
   const handleTypeOpenChange = useCallback(
     (open: boolean) => {
       if (open) {
@@ -170,6 +233,11 @@ export function useDetailSelectState({
       ? (statusSelectDraft ?? selectedNode?.status ?? NODE_STATUSES[0])
       : (selectedNode?.status ?? NODE_STATUSES[0]);
 
+  const priorityValue =
+    openDetailSelectField === "priority"
+      ? (prioritySelectDraft ?? selectedNode?.priority ?? NODE_PRIORITIES[0])
+      : (selectedNode?.priority ?? NODE_PRIORITIES[0]);
+
   const typeValue =
     openDetailSelectField === "type"
       ? (typeSelectDraft ?? selectedNode?.type ?? NODE_TYPES[0])
@@ -178,8 +246,11 @@ export function useDetailSelectState({
   return {
     closeDetailSelect,
     commitOpenDetailSelect,
+    cyclePriorityValue,
     cycleStatusValue,
     cycleTypeValue,
+    handlePriorityOpenChange,
+    handlePriorityValueChange,
     handleStatusOpenChange,
     handleStatusValueChange,
     handleTypeOpenChange,
@@ -187,6 +258,7 @@ export function useDetailSelectState({
     moveOpenDetailSelect,
     openDetailSelect,
     openDetailSelectField,
+    priorityValue,
     resetDetailSelectState,
     statusValue,
     typeValue,

@@ -43,6 +43,7 @@ function App() {
     useState<DetailField>("title");
   const dueDateButtonRef = useRef<HTMLButtonElement | null>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const priorityTriggerRef = useRef<HTMLButtonElement | null>(null);
   const startDateButtonRef = useRef<HTMLButtonElement | null>(null);
   const statusTriggerRef = useRef<HTMLButtonElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -51,6 +52,7 @@ function App() {
     () => ({
       dueDate: dueDateButtonRef,
       memo: memoTextareaRef,
+      priority: priorityTriggerRef,
       startDate: startDateButtonRef,
       status: statusTriggerRef,
       title: titleInputRef,
@@ -152,8 +154,11 @@ function App() {
   const {
     closeDetailSelect,
     commitOpenDetailSelect,
+    cyclePriorityValue,
     cycleStatusValue,
     cycleTypeValue,
+    handlePriorityOpenChange,
+    handlePriorityValueChange,
     handleStatusOpenChange,
     handleStatusValueChange,
     handleTypeOpenChange,
@@ -161,6 +166,7 @@ function App() {
     moveOpenDetailSelect,
     openDetailSelect,
     openDetailSelectField,
+    priorityValue,
     resetDetailSelectState,
     statusValue,
     typeValue,
@@ -246,6 +252,8 @@ function App() {
       setActiveDetailField("type");
     } else if (element === statusTriggerRef.current) {
       setActiveDetailField("status");
+    } else if (element === priorityTriggerRef.current) {
+      setActiveDetailField("priority");
     } else if (element === startDateButtonRef.current) {
       setActiveDetailField("startDate");
     } else if (element === dueDateButtonRef.current) {
@@ -287,6 +295,7 @@ function App() {
     commitDateTextEdit,
     commitOpenDetailSelect,
     cycleTheme,
+    cyclePriorityValue,
     cycleStatusValue,
     cycleTypeValue,
     createChild: handleCreateChild,
@@ -508,6 +517,7 @@ function App() {
         detailFieldRefs={{
           dueDate: dueDateButtonRef,
           memo: memoTextareaRef,
+          priority: priorityTriggerRef,
           startDate: startDateButtonRef,
           status: statusTriggerRef,
           type: typeTriggerRef,
@@ -524,6 +534,7 @@ function App() {
         openDetailSelectField={openDetailSelectField}
         open={isDetailDialogOpen}
         onMoveOpenDetailSelect={moveOpenDetailSelect}
+        priorityValue={priorityValue}
         saveError={saveError}
         saveStatus={saveStatus}
         statusValue={statusValue}
@@ -532,6 +543,8 @@ function App() {
         typeValue={typeValue}
         onActivateField={setActiveDetailField}
         onOpenChange={setIsDetailDialogOpen}
+        onPriorityOpenChange={handlePriorityOpenChange}
+        onPriorityValueChange={handlePriorityValueChange}
         onStatusOpenChange={handleStatusOpenChange}
         onStatusValueChange={handleStatusValueChange}
         onTypeOpenChange={handleTypeOpenChange}

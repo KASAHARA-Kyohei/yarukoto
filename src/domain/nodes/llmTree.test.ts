@@ -21,6 +21,7 @@ function node(
     title: id,
     type: "Task",
     status: "Inbox",
+    priority: "none",
     memo: "",
     startDate: null,
     dueDate: null,
@@ -33,11 +34,12 @@ function node(
 
 const document: LlmTreeDocument = {
   format: "yarukoto-tree",
-  version: 1,
+  version: 2,
   root: {
     title: "Project",
     type: "Group",
     status: "Doing",
+    priority: "medium",
     memo: "root memo",
     startDate: "2026-06-01",
     dueDate: "2026-06-30",
@@ -46,6 +48,7 @@ const document: LlmTreeDocument = {
         title: "Task",
         type: "Task",
         status: "Next",
+        priority: "high",
         memo: "child memo",
         startDate: null,
         dueDate: "2026-06-10",
@@ -102,10 +105,38 @@ describe("LLM tree exchange", () => {
     ["missing field", { ...document, root: { ...document.root, memo: undefined } }],
     ["invalid type", { ...document, root: { ...document.root, type: "Unknown" } }],
     ["invalid status", { ...document, root: { ...document.root, status: "Later" } }],
+    ["invalid priority", { ...document, root: { ...document.root, priority: "urgent" } }],
     ["invalid date", { ...document, root: { ...document.root, dueDate: "2026-02-30" } }],
-    ["invalid version", { ...document, version: 2 }],
+    ["invalid version", { ...document, version: 3 }],
   ])("rejects %s", (_label, invalid) => {
     expect(() => parseLlmTreeDocument(JSON.stringify(invalid))).toThrow();
+  });
+
+  it("imports v1 json by defaulting priority to none", () => {
+    const legacy = {
+      ...document,
+      version: 1,
+      root: {
+        ...document.root,
+        priority: undefined,
+        children: document.root.children.map((child) => ({
+          ...child,
+          priority: undefined,
+        })),
+      },
+    };
+
+    expect(parseLlmTreeDocument(JSON.stringify(legacy))).toEqual({
+      ...document,
+      root: {
+        ...document.root,
+        priority: "none",
+        children: document.root.children.map((child) => ({
+          ...child,
+          priority: "none",
+        })),
+      },
+    });
   });
 
   it("flattens imported nodes with generated ids and sibling order", () => {

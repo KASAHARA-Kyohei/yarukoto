@@ -90,6 +90,7 @@ export function useKeyboardShortcuts({
   createChild,
   createRootAndEdit,
   createRootInProjects,
+  createSiblingAbove,
   createSiblingBelow,
   deleteSelected,
   detailFieldRefs,
@@ -156,6 +157,7 @@ export function useKeyboardShortcuts({
   createChild: () => Promise<unknown>;
   createRootAndEdit: () => Promise<unknown>;
   createRootInProjects: () => Promise<unknown>;
+  createSiblingAbove: () => Promise<unknown>;
   createSiblingBelow: () => Promise<unknown>;
   deleteSelected: () => Promise<unknown>;
   detailFieldRefs: {
@@ -523,6 +525,7 @@ export function useKeyboardShortcuts({
         key: event.key,
         run,
         createChild,
+        createSiblingAbove,
         createSiblingBelow,
         deleteSelected,
         handleH,
@@ -572,6 +575,7 @@ export function useKeyboardShortcuts({
     createChild,
     createRootAndEdit,
     createRootInProjects,
+    createSiblingAbove,
     createSiblingBelow,
     deleteSelected,
     focusDetailField,

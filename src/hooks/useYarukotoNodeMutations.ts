@@ -17,6 +17,19 @@ const DELETE_UNDO_MS = 8_000;
 
 type RunNodeAction = <T>(action: () => Promise<T>) => Promise<T | null>;
 
+export function buildSiblingNodeInput(
+  selectedNode: YarukotoNode,
+  sortOrder: number,
+) {
+  return {
+    parentId: selectedNode.parentId,
+    title: "",
+    type: selectedNode.parentId === null ? "Group" : "Task",
+    status: "Inbox" as const,
+    sortOrder,
+  };
+}
+
 export function useYarukotoNodeMutations({
   loadNodes,
   nodes,
@@ -77,13 +90,22 @@ export function useYarukotoNodeMutations({
       return null;
     }
     return await runAction(async () => {
-      const sibling = await nodeRepository.createNode({
-        parentId: selectedNode.parentId,
-        title: "",
-        type: selectedNode.parentId === null ? "Group" : "Task",
-        status: "Inbox",
-        sortOrder: selectedNode.sortOrder + 1,
-      });
+      const sibling = await nodeRepository.createNode(
+        buildSiblingNodeInput(selectedNode, selectedNode.sortOrder + 1),
+      );
+      await loadNodes(sibling.id);
+      return sibling;
+    });
+  }, [loadNodes, runAction, selectedNode]);
+
+  const createSiblingAbove = useCallback(async () => {
+    if (!selectedNode) {
+      return null;
+    }
+    return await runAction(async () => {
+      const sibling = await nodeRepository.createNode(
+        buildSiblingNodeInput(selectedNode, selectedNode.sortOrder),
+      );
       await loadNodes(sibling.id);
       return sibling;
     });
@@ -229,6 +251,7 @@ export function useYarukotoNodeMutations({
     clearPendingUndoDelete,
     createChild,
     createRoot,
+    createSiblingAbove,
     createSiblingBelow,
     deleteSelected,
     indentSelected,

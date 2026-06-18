@@ -270,6 +270,7 @@ describe("isEditableTagName", () => {
       key: "d",
       run,
       createChild: vi.fn(),
+      createSiblingAbove: vi.fn(),
       createSiblingBelow: vi.fn(),
       deleteSelected,
       handleH: vi.fn(),
@@ -291,6 +292,7 @@ describe("isEditableTagName", () => {
       key: "d",
       run,
       createChild: vi.fn(),
+      createSiblingAbove: vi.fn(),
       createSiblingBelow: vi.fn(),
       deleteSelected,
       handleH: vi.fn(),
@@ -324,6 +326,7 @@ describe("isEditableTagName", () => {
       key,
       run,
       createChild: vi.fn(),
+      createSiblingAbove: vi.fn(),
       createSiblingBelow: vi.fn(),
       deleteSelected: vi.fn(),
       handleH: vi.fn(),
@@ -357,6 +360,7 @@ describe("isEditableTagName", () => {
       key,
       run,
       createChild: vi.fn(),
+      createSiblingAbove: vi.fn(),
       createSiblingBelow: vi.fn(),
       deleteSelected: vi.fn(),
       handleH,
@@ -378,6 +382,37 @@ describe("isEditableTagName", () => {
     expect(handlerName === "handleH" ? handleH : handleL).toHaveBeenCalledTimes(1);
   });
 
+  it("routes tree O to createSiblingAbove", () => {
+    const run = vi.fn((action: () => void) => action());
+    const createSiblingAbove = vi.fn();
+
+    handleTreeViewShortcut({
+      key: "O",
+      run,
+      createChild: vi.fn(),
+      createSiblingAbove,
+      createSiblingBelow: vi.fn(),
+      deleteSelected: vi.fn(),
+      handleH: vi.fn(),
+      handleL: vi.fn(),
+      indentSelected: vi.fn(),
+      moveSelectedDown: vi.fn(),
+      moveSelectedUp: vi.fn(),
+      moveSelection: vi.fn(),
+      onCopyLlmReview: vi.fn(),
+      onExportToFile: vi.fn(),
+      onCloseDetailDialog: vi.fn(),
+      onOpenDetailDialog: vi.fn(),
+      onImportFromFile: vi.fn(),
+      onOpenLlmImport: vi.fn(),
+      outdentSelected: vi.fn(),
+      registerDeleteKey: () => false,
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(createSiblingAbove).toHaveBeenCalledTimes(1);
+  });
+
   it.each([
     ["y", "copy"],
     ["p", "import"],
@@ -385,6 +420,7 @@ describe("isEditableTagName", () => {
     ["P", "file-import"],
   ])("routes %s to the exchange action", (key) => {
     const run = vi.fn((action: () => void) => action());
+    const createSiblingAbove = vi.fn();
     const onCopyLlmReview = vi.fn();
     const onExportToFile = vi.fn();
     const onImportFromFile = vi.fn();
@@ -394,6 +430,7 @@ describe("isEditableTagName", () => {
       key,
       run,
       createChild: vi.fn(),
+      createSiblingAbove,
       createSiblingBelow: vi.fn(),
       deleteSelected: vi.fn(),
       handleH: vi.fn(),
@@ -417,5 +454,6 @@ describe("isEditableTagName", () => {
     expect(onExportToFile).toHaveBeenCalledTimes(key === "Y" ? 1 : 0);
     expect(onImportFromFile).toHaveBeenCalledTimes(key === "P" ? 1 : 0);
     expect(onOpenLlmImport).toHaveBeenCalledTimes(key === "p" ? 1 : 0);
+    expect(createSiblingAbove).not.toHaveBeenCalled();
   });
 });

@@ -340,6 +340,7 @@ export function handleTreeViewShortcut({
   key,
   run,
   createChild,
+  createSiblingAbove,
   createSiblingBelow,
   deleteSelected,
   handleH,
@@ -360,6 +361,7 @@ export function handleTreeViewShortcut({
   key: string;
   run: RunShortcut;
   createChild: () => Promise<unknown>;
+  createSiblingAbove: () => Promise<unknown>;
   createSiblingBelow: () => Promise<unknown>;
   deleteSelected: () => Promise<unknown>;
   handleH: () => void;
@@ -400,6 +402,9 @@ export function handleTreeViewShortcut({
       break;
     case "a":
       run(createChild);
+      break;
+    case "O":
+      run(createSiblingAbove);
       break;
     case "o":
       run(createSiblingBelow);

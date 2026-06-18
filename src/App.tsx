@@ -66,6 +66,7 @@ function App() {
     clearPendingUndoDelete,
     createChild,
     createRoot,
+    createSiblingAbove,
     createSiblingBelow,
     deleteSelected,
     error,
@@ -189,6 +190,10 @@ function App() {
     openDetailEditor(await createChild());
   }, [createChild, openDetailEditor]);
 
+  const handleCreateSiblingAbove = useCallback(async () => {
+    openDetailEditor(await createSiblingAbove());
+  }, [createSiblingAbove, openDetailEditor]);
+
   const handleCreateSiblingBelow = useCallback(async () => {
     openDetailEditor(await createSiblingBelow());
   }, [createSiblingBelow, openDetailEditor]);
@@ -285,6 +290,7 @@ function App() {
     createChild: handleCreateChild,
     createRootAndEdit: handleCreateRoot,
     createRootInProjects: handleCreateRootInProjects,
+    createSiblingAbove: handleCreateSiblingAbove,
     createSiblingBelow: handleCreateSiblingBelow,
     deleteSelected,
     detailFieldRefs,

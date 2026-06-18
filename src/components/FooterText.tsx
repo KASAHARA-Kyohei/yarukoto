@@ -8,7 +8,7 @@ export function FooterText({
   view: CenterView;
 }) {
   if (activePane === "projects") {
-    return <>Projects: j/k/↑/↓ 選択 ・ l/→/Ctrl+l/Tab で中央へ ・ o ルート追加して選択 ・ Ctrl+t テーマ ・ u 削除Undo ・ f フォーカスヒント ・ ? ヘルプ</>;
+    return <>Projects: j/k/↑/↓ 選択 ・ J/K 並び替え ・ l/→/Ctrl+l/Tab で中央へ ・ o ルート追加して選択 ・ Ctrl+t テーマ ・ u 削除Undo ・ f フォーカスヒント ・ ? ヘルプ</>;
   }
   if (view === "tree") {
     return (

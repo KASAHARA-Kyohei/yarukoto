@@ -16,6 +16,7 @@ const COMMON_SHORTCUTS: Array<[string, string]> = [
 
 const PROJECT_SHORTCUTS: Array<[string, string]> = [
   ["j / k / ↑ / ↓", "プロジェクト選択"],
+  ["J / K", "プロジェクトを上下に入れ替え"],
   ["o", "ルート追加してProjectsに留まる"],
   ["l / Enter / →", "中央ペインへ"],
 ];

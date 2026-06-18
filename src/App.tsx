@@ -78,6 +78,8 @@ function App() {
     importTree,
     isLoading,
     isMutating,
+    moveActiveRootDown,
+    moveActiveRootUp,
     moveSelectedDown,
     moveSelectedUp,
     nodes,
@@ -281,6 +283,7 @@ function App() {
   }, [centerView, kanbanModel, selectNode, selectedId]);
 
   useKeyboardShortcuts({
+    activeRootId,
     activeDateField,
     activeDetailField,
     activePane,
@@ -320,6 +323,8 @@ function App() {
     moveCalendarCursorToToday,
     moveCalendarMonth,
     moveCenterView,
+    moveActiveRootDown,
+    moveActiveRootUp,
     moveOpenDetailSelect,
     moveSelectedDown,
     moveSelectedUp,

@@ -215,12 +215,16 @@ export function handleProjectsShortcut({
   key,
   run,
   createRootInProjects,
+  moveActiveRootDown,
+  moveActiveRootUp,
   moveRootSelection,
   setActivePane,
 }: {
   key: string;
   run: RunShortcut;
   createRootInProjects: () => Promise<unknown>;
+  moveActiveRootDown: () => Promise<void>;
+  moveActiveRootUp: () => Promise<void>;
   moveRootSelection: (direction: 1 | -1) => void;
   setActivePane: (pane: ActivePane) => void;
 }) {
@@ -240,6 +244,12 @@ export function handleProjectsShortcut({
       break;
     case "o":
       run(createRootInProjects);
+      break;
+    case "J":
+      run(moveActiveRootDown);
+      break;
+    case "K":
+      run(moveActiveRootUp);
       break;
     case "Escape":
       run(() => setActivePane("center"));

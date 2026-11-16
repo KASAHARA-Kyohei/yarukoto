@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="tile" x1="160" y1="96" x2="840" y2="928" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#274A50" />
+      <stop offset="0.55" stop-color="#142F37" />
+      <stop offset="1" stop-color="#0A1B24" />
+    </linearGradient>
+    <linearGradient id="edge" x1="280" y1="96" x2="734" y2="928" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#BCE3DB" stop-opacity="0.44" />
+      <stop offset="1" stop-color="#7CC0B4" stop-opacity="0.12" />
+    </linearGradient>
+    <linearGradient id="stem" x1="476" y1="564" x2="476" y2="688" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#89CDBF" />
+      <stop offset="1" stop-color="#559C98" />
+    </linearGradient>
+    <linearGradient id="check" x1="350" y1="448" x2="680" y2="372" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F3FFF9" />
+      <stop offset="1" stop-color="#91F4C4" />
+    </linearGradient>
+  </defs>
+
+  <rect x="96" y="96" width="832" height="832" rx="196" fill="url(#tile)" />
+  <rect x="98" y="98" width="828" height="828" rx="194" fill="none" stroke="url(#edge)" stroke-width="4" />
+
+  <g fill="none" stroke-width="88" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M476 574v114" stroke="url(#stem)" />
+    <path d="m350 448 126 126 204-204" stroke="url(#check)" />
+  </g>
+</svg>

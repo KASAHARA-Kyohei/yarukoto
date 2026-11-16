@@ -114,6 +114,12 @@ cd src-tauri
 cargo check
 ```
 
+アプリアイコンを更新する場合は、ブラウザのタブでも使う `public/yarukoto-icon.svg` を編集し、配布用の画像を再生成します。
+
+```bash
+npm run tauri icon -- public/yarukoto-icon.svg --ios-color '#142F37' --output src-tauri/icons
+```
+
 ## キーボード操作
 
 共通:

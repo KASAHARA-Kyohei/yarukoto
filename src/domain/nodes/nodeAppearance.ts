@@ -1,3 +1,5 @@
+import { DEFAULT_LANGUAGE, type Language } from "@/app/language";
+import { messages } from "@/app/messages";
 import type {
   NodePriority,
   NodeStatus,
@@ -5,8 +7,11 @@ import type {
   YarukotoNode,
 } from "./types";
 
-export function getNodeDisplayTitle(node: Pick<YarukotoNode, "title">) {
-  return node.title.trim() === "" ? "無題" : node.title;
+export function getNodeDisplayTitle(
+  node: Pick<YarukotoNode, "title">,
+  language: Language = DEFAULT_LANGUAGE,
+) {
+  return node.title.trim() === "" ? messages[language].untitled : node.title;
 }
 
 export function typeBadgeClass(type: NodeType) {

@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import type { TaskProgressInfo } from "@/domain/nodes/progress";
 import { cn } from "@/lib/utils";
 
@@ -16,13 +17,6 @@ function getProgressWidth(value: number) {
     return "0%";
   }
   return `${Math.max(value, 4)}%`;
-}
-
-function getProgressDescription(progress: TaskProgressInfo) {
-  if (progress.source === "children-average") {
-    return `直下の子Task ${progress.childTaskCount}件から自動計算`;
-  }
-  return "status から自動計算";
 }
 
 export function TaskProgressInline({
@@ -54,6 +48,7 @@ export function TaskProgressDetail({
 }: {
   progress: TaskProgressInfo | null;
 }) {
+  const { t } = useLanguage();
   if (!progress) {
     return null;
   }
@@ -64,7 +59,9 @@ export function TaskProgressDetail({
       <div className="rounded-md border border-border/70 bg-muted/25 px-3 py-2">
         <TaskProgressInline progress={progress} />
         <div className="mt-1 text-xs font-normal text-muted-foreground">
-          {getProgressDescription(progress)}
+          {progress.source === "children-average"
+            ? t.progressFromChildren(progress.childTaskCount)
+            : t.progressFromStatus}
         </div>
       </div>
     </div>

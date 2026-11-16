@@ -1,3 +1,13 @@
+import { DEFAULT_LANGUAGE, type Language } from "@/app/language";
+
+const englishDate = new Intl.DateTimeFormat("en", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+});
+const englishMonth = new Intl.DateTimeFormat("en", { year: "numeric", month: "long" });
+const englishShortMonth = new Intl.DateTimeFormat("en", { month: "short" });
+
 export function toDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -5,8 +15,20 @@ export function toDateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-export function getMonthLabel(date: Date) {
-  return `${date.getFullYear()}年 ${date.getMonth() + 1}月`;
+export function getMonthLabel(date: Date, language: Language = DEFAULT_LANGUAGE) {
+  return language === "en"
+    ? englishMonth.format(date)
+    : `${date.getFullYear()}年 ${getShortMonthLabel(date, language)}`;
+}
+
+export function getShortMonthLabel(date: Date, language: Language) {
+  return language === "en" ? englishShortMonth.format(date) : `${date.getMonth() + 1}月`;
+}
+
+export function formatDateLabel(date: Date, language: Language) {
+  return language === "en"
+    ? englishDate.format(date)
+    : `${getMonthLabel(date, language)} ${date.getDate()}日`;
 }
 
 export function addDays(date: Date, amount: number) {

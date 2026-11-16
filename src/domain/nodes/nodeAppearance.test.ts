@@ -26,10 +26,12 @@ describe("node appearance helpers", () => {
 
   it("returns the title when it has visible text", () => {
     expect(getNodeDisplayTitle({ title: "実装メモ" })).toBe("実装メモ");
+    expect(getNodeDisplayTitle({ title: "実装メモ" }, "en")).toBe("実装メモ");
   });
 
   it("returns a fallback for empty titles", () => {
     expect(getNodeDisplayTitle({ title: "" })).toBe("無題");
     expect(getNodeDisplayTitle({ title: "   " })).toBe("無題");
+    expect(getNodeDisplayTitle({ title: "   " }, "en")).toBe("Untitled");
   });
 });

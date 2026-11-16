@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { useState } from "react";
 import {
   ArrowDown,
@@ -59,6 +60,7 @@ export function Toolbar({
   onOutdent: () => void;
   onExport: () => void;
 }) {
+  const { t } = useLanguage();
   const AddIcon = isLoading ? Loader2 : Plus;
   const SiblingIcon = isLoading ? Loader2 : ListPlus;
   const [isArrangeOpen, setIsArrangeOpen] = useState(false);
@@ -84,49 +86,49 @@ export function Toolbar({
     <div className="flex shrink-0 items-center gap-2 border-b border-border bg-muted/70 px-3 py-2">
       <Button disabled={disabled} onClick={onEdit} size="sm" type="button" variant="default">
         <Pencil className="h-3.5 w-3.5" />
-        編集
+        {t.edit}
       </Button>
       <Button disabled={disabled} onClick={onAddChild} size="sm" type="button" variant="outline">
         <AddIcon className={isLoading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
-        子追加
+        {t.addChild}
       </Button>
       <Button disabled={disabled} onClick={onAddSibling} size="sm" type="button" variant="outline">
         <SiblingIcon className={isLoading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
-        下追加
+        {t.addBelow}
       </Button>
       <Popover open={isArrangeOpen} onOpenChange={setIsArrangeOpen}>
         <PopoverTrigger asChild>
           <Button disabled={disabled} size="sm" type="button" variant="outline">
             <MoreHorizontal className="h-3.5 w-3.5" />
-            整理
+            {t.organize}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-44 p-1">
           <ToolbarMenuItem
             icon={ArrowUp}
-            label="上へ移動"
+            label={t.moveUp}
             onClick={() => runArrangeAction(onMoveUp)}
           />
           <ToolbarMenuItem
             icon={ArrowDown}
-            label="下へ移動"
+            label={t.moveDown}
             onClick={() => runArrangeAction(onMoveDown)}
           />
           <ToolbarMenuItem
             icon={ArrowRight}
-            label="子階層へ"
+            label={t.indent}
             onClick={() => runArrangeAction(onIndent)}
           />
           <ToolbarMenuItem
             icon={ArrowLeft}
-            label="親階層へ"
+            label={t.outdent}
             onClick={() => runArrangeAction(onOutdent)}
           />
           <div className="my-1 border-t border-border" />
           <ToolbarMenuItem
             destructive
             icon={Trash2}
-            label="削除"
+            label={t.delete}
             onClick={() => runArrangeAction(onDelete)}
           />
         </PopoverContent>
@@ -136,26 +138,26 @@ export function Toolbar({
           <PopoverTrigger asChild>
             <Button disabled={isLoading} size="sm" type="button" variant="outline">
               <FileJson className="h-3.5 w-3.5" />
-              ファイル
+              {t.file}
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-80 p-2">
             <p className="px-2 pb-2 text-xs leading-relaxed text-muted-foreground">
-              現在のプロジェクトを `yarukoto-tree` JSON として保存し、別環境へ受け渡しできます。
+              {t.fileDescription}
             </p>
             <ReviewMenuItem
               disabled={!canFileExport}
               icon={Download}
-              label="JSONを書き出し"
+              label={t.exportJson}
               shortcut="Y"
-              description="現在のプロジェクトをバックアップ用JSONとして保存"
+              description={t.exportJsonDescription}
               onClick={() => runFileAction(onExportToFile)}
             />
             <ReviewMenuItem
               icon={FolderOpen}
-              label="JSONを取り込む"
+              label={t.importJson}
               shortcut="P"
-              description="JSONファイルから新規プロジェクトを作成"
+              description={t.importJsonDescription}
               onClick={() => runFileAction(onImportFromFile)}
             />
           </PopoverContent>
@@ -164,26 +166,26 @@ export function Toolbar({
           <PopoverTrigger asChild>
             <Button disabled={isLoading} size="sm" type="button" variant="outline">
               <Bot className="h-3.5 w-3.5" />
-              AIレビュー
+              {t.aiReview}
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-80 p-2">
             <p className="px-2 pb-2 text-xs leading-relaxed text-muted-foreground">
-              プロジェクトをAIチャットで見直し、整理された結果を別プロジェクトとして戻せます。
+              {t.aiReviewDescription}
             </p>
             <ReviewMenuItem
               disabled={!canExport}
               icon={Copy}
-              label="レビュー依頼をコピー"
+              label={t.copyReview}
               shortcut="y"
-              description="現在のプロジェクトとAI向けの指示をコピー"
+              description={t.copyReviewDescription}
               onClick={() => runReviewAction(onExport)}
             />
             <ReviewMenuItem
               icon={ClipboardPaste}
-              label="レビュー結果を取り込む"
+              label={t.importReview}
               shortcut="p"
-              description="AIの返答を新しいプロジェクトとして作成"
+              description={t.importReviewDescription}
               onClick={() => runReviewAction(onImport)}
             />
           </PopoverContent>

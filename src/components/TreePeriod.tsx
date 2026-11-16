@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -238,6 +239,7 @@ export function TreePeriodCell({
   timelineBounds: PeriodBounds | null;
   todayLineStyle: TimelineLineStyle | null;
 }) {
+  const { language, t } = useLanguage();
   const due = getDueState(node.dueDate);
   const periodStyle = getPeriodBarStyle(node, timelineBounds);
   const aggregateBarStyle = descendantPeriod
@@ -246,9 +248,9 @@ export function TreePeriodCell({
   const isInvalidRange = isInvalidDateRange(node);
   const periodLabel =
     node.startDate || node.dueDate
-      ? formatPeriodLabel(node.startDate, node.dueDate)
+      ? formatPeriodLabel(node.startDate, node.dueDate, language)
       : descendantPeriod
-        ? formatPeriodLabel(descendantPeriod.start, descendantPeriod.end)
+        ? formatPeriodLabel(descendantPeriod.start, descendantPeriod.end, language)
         : null;
 
   return (
@@ -256,7 +258,7 @@ export function TreePeriodCell({
       <div className="mb-0.5 flex min-h-4 items-center justify-end gap-2">
         {isInvalidRange ? (
           <span className="text-[10px] font-medium text-amber-800">
-            日付逆転
+            {t.reversedDates}
           </span>
         ) : null}
         {periodLabel ? (

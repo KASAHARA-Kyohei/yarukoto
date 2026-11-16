@@ -1,4 +1,6 @@
 import { addDays, parseDateKey, toDateKey } from "@/utils/date";
+import { DEFAULT_LANGUAGE, type Language } from "./language";
+import { messages } from "./messages";
 
 export function getInitialDateKey(
   value: string | null,
@@ -17,7 +19,7 @@ export function addMonthsToDateKey(dateKey: string, amount: number) {
   return toDateKey(next);
 }
 
-export function parseDateInput(input: string): {
+export function parseDateInput(input: string, language: Language = DEFAULT_LANGUAGE): {
   error: string | null;
   value: string | null;
 } {
@@ -28,7 +30,7 @@ export function parseDateInput(input: string): {
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
     return {
-      error: "YYYY-MM-DD 形式で入力してください。",
+      error: messages[language].invalidDateFormat,
       value: null,
     };
   }
@@ -36,7 +38,7 @@ export function parseDateInput(input: string): {
   const parsed = parseDateKey(trimmed);
   if (Number.isNaN(parsed.getTime()) || toDateKey(parsed) !== trimmed) {
     return {
-      error: "存在する日付を入力してください。",
+      error: messages[language].invalidDate,
       value: null,
     };
   }

@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type RefObject } from "react";
 import { CalendarIcon, X } from "lucide-react";
 import type { DateEditMode } from "@/app/types";
@@ -10,16 +11,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { parseDateKey, toDateKey } from "@/utils/date";
-
-function formatDateLabel(dateKey: string) {
-  const date = parseDateKey(dateKey);
-  return `${date.getFullYear()}年 ${date.getMonth() + 1}月 ${date.getDate()}日`;
-}
+import { formatDateLabel, parseDateKey, toDateKey } from "@/utils/date";
 
 export function DatePicker({
   calendarCursorDate,
-  clearLabel = "日付を削除",
+  clearLabel,
   error,
   mode,
   onCancelTextEdit,
@@ -28,7 +24,7 @@ export function DatePicker({
   onDraftValueChange,
   onOpenChange,
   onSelectDate,
-  placeholder = "日付なし",
+  placeholder,
   textInputValue,
   triggerRef,
   value,
@@ -48,6 +44,7 @@ export function DatePicker({
   triggerRef?: RefObject<HTMLButtonElement | null>;
   value: string | null;
 }) {
+  const { language, t } = useLanguage();
   const [month, setMonth] = useState(() =>
     parseDateKey(calendarCursorDate ?? value ?? toDateKey(new Date())),
   );
@@ -118,7 +115,7 @@ export function DatePicker({
               >
                 <CalendarIcon className="h-4 w-4 shrink-0" />
                 <span className="truncate">
-                  {value ? formatDateLabel(value) : placeholder}
+                  {value ? formatDateLabel(parseDateKey(value), language) : (placeholder ?? t.noDate)}
                 </span>
               </Button>
             </PopoverTrigger>
@@ -134,7 +131,7 @@ export function DatePicker({
         )}
         {value || isTextEditing ? (
           <Button
-            aria-label={clearLabel}
+            aria-label={clearLabel ?? t.clearDate}
             size="icon"
             type="button"
             variant="ghost"

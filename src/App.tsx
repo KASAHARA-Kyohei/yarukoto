@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import { CalendarView } from "./components/CalendarView";
@@ -32,6 +33,7 @@ import { useYarukotoNodes } from "./hooks/useYarukotoNodes";
 import { cn } from "./lib/utils";
 
 function App() {
+  const { language, t } = useLanguage();
   const { cycleTheme, setThemeId, themeId } = useTheme();
   const [activePane, setActivePane] = useState<ActivePane>("center");
   const [centerView, setCenterView] = useState<CenterView>("tree");
@@ -119,8 +121,8 @@ function App() {
     [scopedNodes],
   );
   const kanbanModel = useMemo(
-    () => buildKanbanModel(scopedNodes),
-    [scopedNodes],
+    () => buildKanbanModel(scopedNodes, language),
+    [language, scopedNodes],
   );
   const selectedTaskProgress = useMemo(
     () =>
@@ -269,8 +271,8 @@ function App() {
     if (!selectedNode) {
       return;
     }
-    document.title = `${getNodeDisplayTitle(selectedNode)} - yarukoto`;
-  }, [selectedNode]);
+    document.title = `${getNodeDisplayTitle(selectedNode, language)} - yarukoto`;
+  }, [language, selectedNode]);
 
   useEffect(() => {
     if (
@@ -361,7 +363,7 @@ function App() {
   if (isLoading) {
     return (
       <main className="grid h-full place-items-center bg-background text-sm text-muted-foreground">
-        yarukoto を起動中...
+        {t.starting}
       </main>
     );
   }
@@ -370,7 +372,7 @@ function App() {
     return (
       <main className="grid h-full place-items-center bg-background p-8">
         <section className="max-w-xl rounded-md border border-destructive/30 bg-card p-5 text-sm text-destructive shadow-sm">
-          <h1 className="mb-2 text-base font-semibold">起動に失敗しました</h1>
+          <h1 className="mb-2 text-base font-semibold">{t.startupFailed}</h1>
           <p className="whitespace-pre-wrap">{error}</p>
         </section>
       </main>
@@ -471,7 +473,7 @@ function App() {
         <footer className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
           {actionError ? (
             <span className="text-destructive">
-              操作に失敗しました: {actionError}
+              {t.actionFailed(actionError)}
             </span>
           ) : llmExchangeNotice ? (
             <span
@@ -484,7 +486,7 @@ function App() {
           ) : pendingUndoDelete ? (
             <span className="inline-flex items-center gap-2">
               <span>
-                「{getNodeDisplayTitle(pendingUndoDelete)}」を削除しました
+                {t.deletedNode(getNodeDisplayTitle(pendingUndoDelete, language))}
               </span>
               <Button
                 className="h-6 px-2 text-xs"
@@ -493,7 +495,7 @@ function App() {
                 variant="outline"
                 onClick={() => void restorePendingDelete()}
               >
-                元に戻す
+                {t.undo}
               </Button>
               <Button
                 className="h-6 px-2 text-xs"
@@ -502,11 +504,11 @@ function App() {
                 variant="ghost"
                 onClick={clearPendingUndoDelete}
               >
-                閉じる
+                {t.close}
               </Button>
             </span>
           ) : isMutating ? (
-            <span>保存中...</span>
+            <span>{t.saving}</span>
           ) : (
             <FooterText activePane={activePane} view={centerView} />
           )}

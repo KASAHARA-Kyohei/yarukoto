@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DragDropProvider,
@@ -75,6 +76,7 @@ export function KanbanView({
 }) {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const cardElements = useRef(new Map<string, HTMLButtonElement>());
+  const { t } = useLanguage();
   const activeCard = useMemo(
     () =>
       model.columns
@@ -141,11 +143,11 @@ export function KanbanView({
         <div>
           <h2 className="text-sm font-semibold tracking-tight">Status board</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {taskCount}件のTaskをツリー順で表示
+            {t.kanbanTaskCount(taskCount)}
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          ドラッグまたは H / L で状態変更
+          {t.kanbanMove}
         </p>
       </div>
 
@@ -195,6 +197,7 @@ function KanbanColumn({
   ) => void;
   selectedId: string | null;
 }) {
+  const { t } = useLanguage();
   const { isDropTarget, ref } = useDroppable<ColumnDropData>({
     data: { kind: "kanban-column", status: column.status },
     disabled,
@@ -203,7 +206,7 @@ function KanbanColumn({
 
   return (
     <section
-      aria-label={`${column.status} ${column.cards.length}件`}
+      aria-label={t.kanbanColumn(column.status, column.cards.length)}
       className={cn(
         "flex min-h-[420px] min-w-0 flex-col rounded-xl border border-t-4 bg-card/65 shadow-sm transition-[border-color,background-color,box-shadow] duration-150",
         COLUMN_ACCENTS[column.status],
@@ -231,7 +234,7 @@ function KanbanColumn({
               isDropTarget && "border-primary/60 bg-background/70 text-foreground",
             )}
           >
-            この状態のTaskはありません
+            {t.kanbanEmpty}
           </div>
         ) : (
           column.cards.map((card) => (
@@ -266,6 +269,7 @@ function DraggableKanbanCard({
     element: HTMLButtonElement | null,
   ) => void;
 }) {
+  const { language, t } = useLanguage();
   const { isDragging, ref } = useDraggable<CardDragData>({
     data: {
       kind: "kanban-card",
@@ -278,7 +282,7 @@ function DraggableKanbanCard({
 
   return (
     <button
-      aria-label={`${getNodeDisplayTitle(card.node)}を選択`}
+      aria-label={t.selectNode(getNodeDisplayTitle(card.node, language))}
       aria-pressed={isSelected}
       className={cn(
         "kanban-card-enter w-full touch-none rounded-lg border bg-background p-0 text-left shadow-xs outline-none transition-[border-color,box-shadow,opacity,transform] duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring",
@@ -307,6 +311,7 @@ function KanbanCardSurface({
   card: KanbanCard;
   overlay?: boolean;
 }) {
+  const { language } = useLanguage();
   return (
     <div
       className={cn(
@@ -318,7 +323,7 @@ function KanbanCardSurface({
         <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/65" />
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 text-sm font-medium leading-5 text-foreground">
-            {getNodeDisplayTitle(card.node)}
+            {getNodeDisplayTitle(card.node, language)}
           </p>
           <div className="mt-1 flex items-center gap-1.5">
             <Badge

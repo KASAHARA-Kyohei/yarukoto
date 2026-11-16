@@ -1,74 +1,8 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ActivePane, CenterView } from "@/app/types";
-
-const COMMON_SHORTCUTS: Array<[string, string]> = [
-  ["Tab / Shift+Tab", "ペイン移動"],
-  ["Ctrl+h / Ctrl+l", "Projects / Center を切替"],
-  ["Ctrl+Tab / Ctrl+Shift+Tab", "中央タブ切替"],
-  ["Ctrl+t", "テーマ切替"],
-  ["u", "削除直後なら元に戻す"],
-  ["f", "表示中の操作対象を選んでフォーカス"],
-  ["?", "このヘルプを開く/閉じる"],
-  ["Esc", "閉じる / フォーカス解除"],
-];
-
-const PROJECT_SHORTCUTS: Array<[string, string]> = [
-  ["j / k / ↑ / ↓", "プロジェクト選択"],
-  ["J / K", "プロジェクトを上下に入れ替え"],
-  ["o", "ルート追加してProjectsに留まる"],
-  ["l / Enter / →", "中央ペインへ"],
-];
-
-const TREE_SHORTCUTS: Array<[string, string]> = [
-  ["j / k / ↑ / ↓", "ノード選択"],
-  ["h / l / ← / →", "折りたたみ / 展開"],
-  ["za", "表示中ツリーを一括で折りたたむ"],
-  ["a", "子追加して編集ウィンドウを開く"],
-  ["O", "上に追加して編集ウィンドウを開く"],
-  ["o", "下に追加して編集ウィンドウを開く"],
-  ["R", "ルート追加して編集ウィンドウを開く"],
-  ["y", "AIへのレビュー依頼をコピー"],
-  ["p", "AIのレビュー結果を新規プロジェクトとして取り込む"],
-  ["Y", "現在のプロジェクトをJSONファイルへ書き出し"],
-  ["P", "JSONファイルから新規プロジェクトを取り込む"],
-  ["Enter / i", "編集ウィンドウを開く"],
-  ["dd", "削除"],
-  ["J / K", "上下移動"],
-  ["> / <", "階層変更"],
-];
-
-const CALENDAR_SHORTCUTS: Array<[string, string]> = [
-  ["H / L", "前月 / 翌月"],
-  ["t", "今月へ戻る"],
-  ["Enter / i", "選択中ノードの編集を開く"],
-];
-
-const KANBAN_SHORTCUTS: Array<[string, string]> = [
-  ["j / k / ↑ / ↓", "同じ列のカードを選択"],
-  ["h / l / ← / →", "前後の空でない列へ選択移動"],
-  ["H / L", "選択カードを前後のstatusへ移動"],
-  ["Enter / i", "選択中Taskの編集を開く"],
-  ["ドラッグ", "ドロップした列のstatusへ変更"],
-  ["f", "ヒントからカードを直接選択"],
-];
-
-const REPORT_SHORTCUTS: Array<[string, string]> = [
-  ["Enter / i", "選択中ノードの編集を開く"],
-];
-
-const DIALOG_SHORTCUTS: Array<[string, string]> = [
-  ["j / k / ↑ / ↓", "編集項目選択 / 一覧中は候補移動 / カレンダーは週移動"],
-  ["h / l / ← / →", "type / status を変更 / カレンダーは日移動"],
-  ["i", "通常項目にフォーカス / 日付は直接入力"],
-  ["Enter", "通常項目にフォーカス / type,status は一覧 / 日付はカレンダー / 一覧中は確定"],
-  ["H / L / t", "カレンダーで前月 / 翌月 / 今日"],
-  ["x", "日付をクリア"],
-  ["Enter (title入力中)", "1回目はそのまま / 2回目でフォーカス解除"],
-  ["Enter (memo入力中)", "入力確定してフォーカス解除"],
-  ["Esc", "一覧・カレンダーを閉じる / 編集ウィンドウを閉じる"],
-];
 
 export function ShortcutHelp({
   activePane,
@@ -81,32 +15,100 @@ export function ShortcutHelp({
   isDetailDialogOpen?: boolean;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
+  const commonShortcuts: Array<[string, string]> = [
+    ["Tab / Shift+Tab", t.shortcutPaneNavigation],
+    ["Ctrl+h / Ctrl+l", t.shortcutSwitchPanes],
+    ["Ctrl+Tab / Ctrl+Shift+Tab", t.shortcutSwitchTabs],
+    ["Ctrl+t", t.shortcutCycleTheme],
+    ["u", t.shortcutUndoDelete],
+    ["f", t.shortcutFocusHint],
+    ["?", t.shortcutToggleHelp],
+    ["Esc", t.shortcutDismiss],
+  ];
+
+  const projectShortcuts: Array<[string, string]> = [
+    ["j / k / ↑ / ↓", t.shortcutSelectProject],
+    ["J / K", t.shortcutReorderProjects],
+    ["o", t.shortcutAddProjectInPane],
+    ["l / Enter / →", t.shortcutOpenWorkspace],
+  ];
+
+  const treeShortcuts: Array<[string, string]> = [
+    ["j / k / ↑ / ↓", t.shortcutSelectNode],
+    ["h / l / ← / →", t.shortcutExpandNode],
+    ["za", t.shortcutCollapseTree],
+    ["a", t.shortcutAddChildAndEdit],
+    ["O", t.shortcutAddAboveAndEdit],
+    ["o", t.shortcutAddBelowAndEdit],
+    ["R", t.shortcutAddRootAndEdit],
+    ["y", t.shortcutCopyReview],
+    ["p", t.shortcutImportReview],
+    ["Y", t.shortcutExportProject],
+    ["P", t.shortcutImportProject],
+    ["Enter / i", t.shortcutOpenEditor],
+    ["dd", t.shortcutDeleteNode],
+    ["J / K", t.shortcutMoveNode],
+    ["> / <", t.shortcutChangeNesting],
+  ];
+
+  const calendarShortcuts: Array<[string, string]> = [
+    ["H / L", t.shortcutChangeMonth],
+    ["t", t.shortcutGoToThisMonth],
+    ["Enter / i", t.shortcutEditSelectedNode],
+  ];
+
+  const kanbanShortcuts: Array<[string, string]> = [
+    ["j / k / ↑ / ↓", t.shortcutSelectCard],
+    ["h / l / ← / →", t.shortcutSelectColumn],
+    ["H / L", t.shortcutMoveCard],
+    ["Enter / i", t.shortcutEditSelectedTask],
+    [t.drag, t.shortcutDropCard],
+    ["f", t.shortcutFocusCard],
+  ];
+
+  const reportShortcuts: Array<[string, string]> = [
+    ["Enter / i", t.shortcutEditSelectedNode],
+  ];
+
+  const dialogShortcuts: Array<[string, string]> = [
+    ["j / k / ↑ / ↓", t.shortcutSelectField],
+    ["h / l / ← / →", t.shortcutChangeField],
+    ["i", t.shortcutFocusField],
+    ["Enter", t.shortcutOpenField],
+    ["H / L / t", t.shortcutNavigateDatePicker],
+    ["x", t.shortcutClearDate],
+    [t.titleEnter, t.shortcutConfirmTitle],
+    [t.memoEnter, t.shortcutConfirmMemo],
+    ["Esc", t.shortcutCloseEditor],
+  ];
+
   const currentPaneShortcuts =
     activePane === "projects"
-      ? PROJECT_SHORTCUTS
+      ? projectShortcuts
       : centerView === "kanban"
-        ? KANBAN_SHORTCUTS
+        ? kanbanShortcuts
       : centerView === "calendar"
-        ? CALENDAR_SHORTCUTS
+        ? calendarShortcuts
         : centerView === "report"
-          ? REPORT_SHORTCUTS
-          : TREE_SHORTCUTS;
+          ? reportShortcuts
+          : treeShortcuts;
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/12 p-4">
-      <Card className="w-full max-w-lg shadow-lg">
+      <Card className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
-          <CardTitle className="text-base">ショートカット</CardTitle>
-          <Button aria-label="閉じる" size="icon" variant="ghost" onClick={onClose}>
+          <CardTitle className="text-base">{t.shortcuts}</CardTitle>
+          <Button aria-label={t.close} size="icon" variant="ghost" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent className="grid gap-4 p-4 pt-0">
           <ShortcutGroup
-            title={isDetailDialogOpen ? "編集ウィンドウ" : "現在のペイン"}
-            items={isDetailDialogOpen ? DIALOG_SHORTCUTS : currentPaneShortcuts}
+            title={isDetailDialogOpen ? t.editDialog : t.currentPane}
+            items={isDetailDialogOpen ? dialogShortcuts : currentPaneShortcuts}
           />
-          <ShortcutGroup title="共通" items={COMMON_SHORTCUTS} />
+          <ShortcutGroup title={t.commonShortcuts} items={commonShortcuts} />
         </CardContent>
       </Card>
     </div>

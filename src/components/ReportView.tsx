@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { useMemo } from "react";
 import {
   getNodeDisplayTitle,
@@ -19,19 +20,20 @@ export function ReportView({
   selectedId?: string | null;
   onSelectNode: (nodeId: string) => void;
 }) {
+  const { t } = useLanguage();
   const model = useMemo(() => buildReportModel(nodes), [nodes]);
 
   const todayFocusItems: Array<{ node: YarukotoNode; tag: string; tagClass: string }> = [
     ...model.overdueTasks.map((n) => ({
       node: n,
-      tag: "期限切れ",
+      tag: t.overdue,
       tagClass: "text-rose-600 bg-rose-50 border-rose-200",
     })),
     ...model.upcomingTasks
       .filter((n) => !model.overdueTasks.some((o) => o.id === n.id))
       .map((n) => ({
         node: n,
-        tag: "まもなく",
+        tag: t.dueSoon,
         tagClass: "text-amber-700 bg-amber-50 border-amber-200",
       })),
     ...model.doingTasks
@@ -42,7 +44,7 @@ export function ReportView({
       )
       .map((n) => ({
         node: n,
-        tag: "対応中",
+        tag: t.inProgress,
         tagClass: "text-sky-700 bg-sky-50 border-sky-200",
       })),
     ...model.nearDeadlineNotStartedTasks
@@ -70,26 +72,26 @@ export function ReportView({
       {/* 1. Summary */}
       <div className="grid grid-cols-4 gap-3">
         <SummaryCard
-          label="平均進捗"
+          label={t.averageProgress}
           value={model.averageTaskProgress !== null ? `${model.averageTaskProgress}%` : "—"}
         />
-        <SummaryCard label="完了率" value={`${model.doneRate}%`} />
+        <SummaryCard label={t.completionRate} value={`${model.doneRate}%`} />
         <SummaryCard
-          label="期限切れ"
+          label={t.overdue}
           value={String(model.overdueTasks.length)}
           urgent={model.overdueTasks.length > 0}
         />
-        <SummaryCard label="7日以内" value={String(model.upcomingTasks.length)} />
+        <SummaryCard label={t.withinWeek} value={String(model.upcomingTasks.length)} />
       </div>
 
       {/* 2. Today Focus */}
       <Card className="mt-4">
         <CardHeader className="p-3 pb-2">
-          <CardTitle className="text-sm">今日見るべきタスク</CardTitle>
+          <CardTitle className="text-sm">{t.todaysTasks}</CardTitle>
         </CardHeader>
         <CardContent className="p-3 pt-0">
           {todayFocusItems.length === 0 ? (
-            <p className="text-xs text-muted-foreground">対応が必要なタスクはありません。</p>
+            <p className="text-xs text-muted-foreground">{t.noTodaysTasks}</p>
           ) : (
             <div className="space-y-1">
               {todayFocusItems.map(({ node, tag, tagClass }) => (
@@ -110,12 +112,12 @@ export function ReportView({
       {/* 3. Completion */}
       <Card className="mt-4">
         <CardHeader className="p-3 pb-2">
-          <CardTitle className="text-sm">完了</CardTitle>
+          <CardTitle className="text-sm">{t.completed}</CardTitle>
         </CardHeader>
         <CardContent className="p-3 pt-0">
           <div className="mb-3 flex items-center gap-3">
             <span className="text-sm font-medium text-emerald-700">
-              {model.doneTaskCount} / {model.taskCount} 件
+              {t.tasksCompleted(model.doneTaskCount, model.taskCount)}
             </span>
             <div className="h-2 flex-1 rounded bg-muted">
               <div
@@ -158,11 +160,11 @@ export function ReportView({
         {/* 期限なし Task */}
         <Card>
           <CardHeader className="p-3 pb-2">
-            <CardTitle className="text-sm">期限なし Task</CardTitle>
+            <CardTitle className="text-sm">{t.tasksWithoutDueDate}</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0">
             {model.noDateTasks.length === 0 ? (
-              <p className="text-xs text-muted-foreground">該当なし</p>
+              <p className="text-xs text-muted-foreground">{t.noMatchingTasks}</p>
             ) : (
               <div className="space-y-1">
                 {model.noDateTasks.slice(0, 8).map((node) => (
@@ -181,11 +183,11 @@ export function ReportView({
         {/* リスクあり Task */}
         <Card>
           <CardHeader className="p-3 pb-2">
-            <CardTitle className="text-sm">リスクあり Task</CardTitle>
+            <CardTitle className="text-sm">{t.atRiskTasks}</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0">
             {riskItems.length === 0 ? (
-              <p className="text-xs text-muted-foreground">該当なし</p>
+              <p className="text-xs text-muted-foreground">{t.noMatchingTasks}</p>
             ) : (
               <div className="space-y-1">
                 {riskItems.slice(0, 8).map((node) => (
@@ -244,6 +246,8 @@ function FocusRow({
   tag: string;
   tagClass: string;
 }) {
+  const { language, t } = useLanguage();
+
   return (
     <button
       type="button"
@@ -261,8 +265,8 @@ function FocusRow({
       >
         {tag}
       </span>
-      <span className="truncate font-medium">{getNodeDisplayTitle(node)}</span>
-      <span className="text-right text-muted-foreground">{node.dueDate ?? "期限なし"}</span>
+      <span className="truncate font-medium">{getNodeDisplayTitle(node, language)}</span>
+      <span className="text-right text-muted-foreground">{node.dueDate ?? t.reportNoDueDate}</span>
     </button>
   );
 }
@@ -276,6 +280,8 @@ function NodeRow({
   node: YarukotoNode;
   onSelectNode: (id: string) => void;
 }) {
+  const { language, t } = useLanguage();
+
   return (
     <button
       type="button"
@@ -291,8 +297,8 @@ function NodeRow({
       >
         {node.status}
       </Badge>
-      <span className="truncate font-medium">{getNodeDisplayTitle(node)}</span>
-      <span className="text-right text-muted-foreground">{node.dueDate ?? "期限なし"}</span>
+      <span className="truncate font-medium">{getNodeDisplayTitle(node, language)}</span>
+      <span className="text-right text-muted-foreground">{node.dueDate ?? t.reportNoDueDate}</span>
     </button>
   );
 }

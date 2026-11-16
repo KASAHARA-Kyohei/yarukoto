@@ -1,3 +1,5 @@
+import { useLanguage } from "@/app/LanguageProvider";
+import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
 import { useCallback, useEffect, useState } from "react";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
@@ -34,6 +36,7 @@ export function useLlmTreeExchange({
   importTree: (document: LlmTreeDocument) => Promise<YarukotoNode | null>;
   nodes: YarukotoNode[];
 }) {
+  const { language, t } = useLanguage();
   const [clipboardError, setClipboardError] = useState<string | null>(null);
   const [importText, setImportText] = useState("");
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -49,37 +52,37 @@ export function useLlmTreeExchange({
 
   const copyReview = useCallback(async () => {
     if (!activeRootId) {
-      setNotice({ kind: "error", text: "コピー対象のプロジェクトがありません。" });
+      setNotice({ kind: "error", text: t.noProjectToCopy });
       return;
     }
     try {
-      const document = buildLlmTreeDocument(nodes, activeRootId);
-      await writeText(buildLlmReviewText(document));
+      const document = buildLlmTreeDocument(nodes, activeRootId, language);
+      await writeText(buildLlmReviewText(document, language));
       setNotice({
         kind: "success",
-        text: "レビュー依頼をコピーしました。AIチャットに貼り付けてください。",
+        text: t.reviewCopied,
       });
     } catch (error) {
       setNotice({
         kind: "error",
-        text: `コピーに失敗しました: ${
+        text: t.copyFailed(
           error instanceof Error ? error.message : String(error)
-        }`,
+        ),
       });
     }
-  }, [activeRootId, nodes]);
+  }, [activeRootId, language, nodes, t]);
 
   const exportToFile = useCallback(async () => {
     if (!activeRootId) {
       setNotice({
         kind: "error",
-        text: "書き出し対象のプロジェクトがありません。",
+        text: t.noProjectToExport,
       });
       return;
     }
 
     try {
-      const document = buildLlmTreeDocument(nodes, activeRootId);
+      const document = buildLlmTreeDocument(nodes, activeRootId, language);
       const selectedPath = await save({
         defaultPath: createProjectExportFileName(document.root.title),
         filters: [{ name: "JSON", extensions: ["json"] }],
@@ -94,17 +97,17 @@ export function useLlmTreeExchange({
       );
       setNotice({
         kind: "success",
-        text: `「${document.root.title || "（無題）"}」をJSONファイルに書き出しました。`,
+        text: t.projectExported(getNodeDisplayTitle(document.root, language)),
       });
     } catch (error) {
       setNotice({
         kind: "error",
-        text: `ファイル書き出しに失敗しました: ${
+        text: t.exportFailed(
           error instanceof Error ? error.message : String(error)
-        }`,
+        ),
       });
     }
-  }, [activeRootId, nodes]);
+  }, [activeRootId, language, nodes, t]);
 
   const openImport = useCallback(async () => {
     setClipboardError(null);
@@ -114,12 +117,12 @@ export function useLlmTreeExchange({
       setImportText(await readText());
     } catch (error) {
       setClipboardError(
-        `クリップボードの読み込みに失敗しました: ${
+        t.clipboardReadFailed(
           error instanceof Error ? error.message : String(error)
-        }`,
+        ),
       );
     }
-  }, []);
+  }, [t]);
 
   const updateImportText = useCallback((value: string) => {
     setClipboardError(null);
@@ -135,11 +138,11 @@ export function useLlmTreeExchange({
       setIsImportOpen(false);
       setNotice({
         kind: "success",
-        text: `「${root.title || "（無題）"}」を新規プロジェクトとして取り込みました。`,
+        text: t.reviewImported(getNodeDisplayTitle(root, language)),
       });
       return root;
     },
-    [importTree],
+    [importTree, language, t],
   );
 
   const importFromFile = useCallback(async () => {
@@ -153,26 +156,26 @@ export function useLlmTreeExchange({
         return null;
       }
 
-      const document = parseLlmTreeDocument(await readTextFile(selectedPath));
+      const document = parseLlmTreeDocument(await readTextFile(selectedPath), language);
       const root = await importTree(document);
       if (!root) {
         return null;
       }
       setNotice({
         kind: "success",
-        text: `「${root.title || "（無題）"}」をJSONファイルから取り込みました。`,
+        text: t.projectImported(getNodeDisplayTitle(root, language)),
       });
       return root;
     } catch (error) {
       setNotice({
         kind: "error",
-        text: `ファイル取り込みに失敗しました: ${
+        text: t.importFailed(
           error instanceof Error ? error.message : String(error)
-        }`,
+        ),
       });
       return null;
     }
-  }, [importTree]);
+  }, [importTree, language, t]);
 
   return {
     clipboardError,

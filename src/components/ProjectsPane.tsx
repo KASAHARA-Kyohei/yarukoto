@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import type { ActivePane } from "@/app/types";
 import type { ThemeId } from "@/app/theme";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import {
 } from "@/domain/nodes/nodeAppearance";
 import type { YarukotoNode } from "@/domain/nodes/types";
 import { cn } from "@/lib/utils";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { PaneHeader } from "./PaneHeader";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
@@ -31,6 +33,7 @@ export function ProjectsPane({
   onCreateRoot: () => void;
   onSelectRoot: (rootId: string) => void;
 }) {
+  const { language, t } = useLanguage();
   return (
     <aside
       className={cn(
@@ -61,7 +64,7 @@ export function ProjectsPane({
             type="button"
           >
             <span className="block truncate font-medium">
-              {getNodeDisplayTitle(root)}
+              {getNodeDisplayTitle(root, language)}
             </span>
             <span
               className={cn(
@@ -85,8 +88,9 @@ export function ProjectsPane({
             onClick={onCreateRoot}
             type="button"
           >
-            {isMutating ? "追加中..." : "ルート追加"}
+            {isMutating ? t.addingProject : t.addProject}
           </Button>
+          <LanguageSwitcher />
           <ThemeSwitcher themeId={themeId} onChangeTheme={onChangeTheme} />
         </div>
       </div>

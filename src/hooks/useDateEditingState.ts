@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useLanguage } from "@/app/LanguageProvider";
 import {
   addDaysToDateKey,
   addMonthsToDateKey,
@@ -18,6 +19,7 @@ export function useDateEditingState({
   selectedNode: YarukotoNode | null;
   updateSelected: (patch: UpdateNodeInput) => void | Promise<void>;
 }) {
+  const { language } = useLanguage();
   const [activeDateField, setActiveDateField] = useState<DateField | null>(
     null,
   );
@@ -126,14 +128,14 @@ export function useDateEditingState({
     if (!activeDateField) {
       return;
     }
-    const result = parseDateInput(dateDraftValue);
+    const result = parseDateInput(dateDraftValue, language);
     if (result.error) {
       setDateInputError(result.error);
       return;
     }
     updateDateField(activeDateField, result.value);
     resetDateInteraction();
-  }, [activeDateField, dateDraftValue, resetDateInteraction, updateDateField]);
+  }, [activeDateField, dateDraftValue, language, resetDateInteraction, updateDateField]);
 
   const clearDateField = useCallback(
     (field: DateField) => {

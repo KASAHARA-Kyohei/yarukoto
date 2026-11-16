@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { buildCalendarMonthModel } from "@/domain/nodes/calendar";
@@ -6,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getMonthLabel } from "@/utils/date";
 import { CalendarWeekRow } from "./CalendarViewItems";
-
-const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 export function CalendarView({
   month,
@@ -22,6 +21,7 @@ export function CalendarView({
   onSelectNode: (nodeId: string) => void;
   selectedId: string | null;
 }) {
+  const { language, t } = useLanguage();
   const model = useMemo(() => buildCalendarMonthModel(nodes, month), [month, nodes]);
 
   const moveMonth = (amount: number) => {
@@ -33,7 +33,7 @@ export function CalendarView({
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-3">
         <div className="flex items-center gap-2">
           <Button
-            aria-label="前月"
+            aria-label={t.previousMonth}
             size="icon"
             type="button"
             variant="outline"
@@ -42,7 +42,7 @@ export function CalendarView({
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
-            aria-label="翌月"
+            aria-label={t.nextMonth}
             size="icon"
             type="button"
             variant="outline"
@@ -52,9 +52,9 @@ export function CalendarView({
           </Button>
         </div>
         <div className="text-center">
-          <h2 className="text-lg font-semibold tracking-tight">{getMonthLabel(month)}</h2>
+          <h2 className="text-lg font-semibold tracking-tight">{getMonthLabel(month, language)}</h2>
           <p className="text-xs text-muted-foreground">
-            {nodes.length}件 ・ H / L で前後移動
+            {t.calendarNodeCount(nodes.length)}
           </p>
         </div>
         <Button
@@ -63,14 +63,14 @@ export function CalendarView({
           variant="secondary"
           onClick={() => onChangeMonth(new Date())}
         >
-          今月
+          {t.thisMonth}
         </Button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto p-4">
         <div className="overflow-hidden rounded-xl border border-border/70 bg-card/70 shadow-sm">
           <div className="grid grid-cols-7 border-b border-border/70 bg-muted/25">
-            {WEEK_DAYS.map((day, index) => (
+            {t.weekdays.map((day, index) => (
               <div
                 className={cn(
                   "px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wide",

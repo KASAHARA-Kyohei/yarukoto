@@ -1,3 +1,5 @@
+import { useLanguage } from "@/app/LanguageProvider";
+import type { Messages } from "@/app/messages";
 import {
   MAX_VISIBLE_DAY_ITEMS,
   type CalendarDayItem,
@@ -53,12 +55,12 @@ export function getRangeAreaHeight(week: CalendarWeekModel) {
   return Math.max(0, week.laneCount * 24);
 }
 
-function getSingleDayKindLabel(kind: CalendarDayItem["kind"]) {
+function getSingleDayKindLabel(kind: CalendarDayItem["kind"], t: Messages) {
   switch (kind) {
     case "due":
-      return "締";
+      return t.calendarDue;
     case "start":
-      return "始";
+      return t.calendarStart;
     case "invalid":
     default:
       return "!";
@@ -82,8 +84,9 @@ export function CalendarRangeBar({
   onSelectNode: (nodeId: string) => void;
   segment: CalendarRangeSegment;
 }) {
+  const { language } = useLanguage();
   const surface = getStatusSurface(segment.node.status);
-  const title = getNodeDisplayTitle(segment.node);
+  const title = getNodeDisplayTitle(segment.node, language);
 
   return (
     <button
@@ -118,8 +121,9 @@ export function CalendarSingleDayItem({
   item: CalendarDayItem;
   onSelectNode: (nodeId: string) => void;
 }) {
+  const { language, t } = useLanguage();
   const surface = getStatusSurface(item.node.status, item.kind === "invalid");
-  const title = getNodeDisplayTitle(item.node);
+  const title = getNodeDisplayTitle(item.node, language);
 
   return (
     <button
@@ -134,7 +138,7 @@ export function CalendarSingleDayItem({
       onClick={() => onSelectNode(item.node.id)}
     >
       <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded bg-background/65 px-1 text-[9px] font-semibold text-muted-foreground">
-        {getSingleDayKindLabel(item.kind)}
+        {getSingleDayKindLabel(item.kind, t)}
       </span>
       <span className="truncate font-medium">{title}</span>
     </button>

@@ -1,3 +1,5 @@
+import { DEFAULT_LANGUAGE, type Language } from "@/app/language";
+import { messages, type Messages } from "@/app/messages";
 import {
   isNodePriority,
   isNodeStatus,
@@ -47,10 +49,11 @@ function toLlmTreeNode(nodes: YarukotoNode[], node: YarukotoNode): LlmTreeNode {
 export function buildLlmTreeDocument(
   nodes: YarukotoNode[],
   rootId: string,
+  language: Language = DEFAULT_LANGUAGE,
 ): LlmTreeDocument {
   const root = nodes.find((node) => node.id === rootId);
   if (!root || root.parentId !== null) {
-    throw new Error("コピー対象のプロジェクトが見つかりません。");
+    throw new Error(messages[language].projectMissing);
   }
   return {
     format: LLM_TREE_FORMAT,
@@ -59,12 +62,12 @@ export function buildLlmTreeDocument(
   };
 }
 
-export function buildLlmReviewText(document: LlmTreeDocument) {
+export function buildLlmReviewText(
+  document: LlmTreeDocument,
+  language: Language = DEFAULT_LANGUAGE,
+) {
   return [
-    "以下はタスク管理アプリ yarukoto のプロジェクトツリーです。",
-    "内容をレビューし、必要に応じてノードの追加・削除・並べ替え・階層変更・各項目の修正を行ってください。",
-    "返答は説明文を含めず、同じ yarukoto-tree バージョン2形式のJSONコードブロックだけにしてください。",
-    "format、version、および各ノードの title/type/status/priority/memo/startDate/dueDate/children は必ず残してください。",
+    ...messages[language].reviewInstructions(document.version),
     "",
     "```json",
     JSON.stringify(document, null, 2),
@@ -72,10 +75,12 @@ export function buildLlmReviewText(document: LlmTreeDocument) {
   ].join("\n");
 }
 
-function extractJsonText(input: string) {
+type ValidationMessages = Messages["treeValidation"];
+
+function extractJsonText(input: string, t: ValidationMessages) {
   const trimmed = input.trim();
   if (!trimmed) {
-    throw new Error("取り込むJSONを入力してください。");
+    throw new Error(t.empty);
   }
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
   return fenced?.[1]?.trim() ?? trimmed;
@@ -89,10 +94,11 @@ function requireString(
   record: Record<string, unknown>,
   key: string,
   path: string,
+  t: ValidationMessages,
 ) {
   const value = record[key];
   if (typeof value !== "string") {
-    throw new Error(`${path}.${key} は文字列で指定してください。`);
+    throw new Error(t.expectedString(`${path}.${key}`));
   }
   return value;
 }
@@ -101,13 +107,14 @@ function requireNullableDate(
   record: Record<string, unknown>,
   key: string,
   path: string,
+  t: ValidationMessages,
 ) {
   const value = record[key];
   if (value === null) {
     return null;
   }
   if (typeof value !== "string" || !isValidDateKey(value)) {
-    throw new Error(`${path}.${key} は YYYY-MM-DD または null で指定してください。`);
+    throw new Error(t.expectedDate(`${path}.${key}`));
   }
   return value;
 }
@@ -116,13 +123,14 @@ function requirePriority(
   record: Record<string, unknown>,
   path: string,
   version: number,
+  t: ValidationMessages,
 ) {
   const value = record.priority;
   if (value === undefined && version === 1) {
     return "none" as const;
   }
   if (typeof value !== "string" || !isNodePriority(value)) {
-    throw new Error(`${path}.priority の値が不正です。`);
+    throw new Error(t.invalidValue(`${path}.priority`));
   }
   return value;
 }
@@ -143,59 +151,68 @@ function isValidDateKey(value: string) {
   );
 }
 
-function parseNode(value: unknown, path: string, version: number): LlmTreeNode {
+function parseNode(
+  value: unknown,
+  path: string,
+  version: number,
+  t: ValidationMessages,
+): LlmTreeNode {
   if (!isRecord(value)) {
-    throw new Error(`${path} はオブジェクトで指定してください。`);
+    throw new Error(t.expectedObject(path));
   }
-  const type = requireString(value, "type", path);
+  const type = requireString(value, "type", path, t);
   if (!isNodeType(type)) {
-    throw new Error(`${path}.type の値が不正です。`);
+    throw new Error(t.invalidValue(`${path}.type`));
   }
-  const status = requireString(value, "status", path);
+  const status = requireString(value, "status", path, t);
   if (!isNodeStatus(status)) {
-    throw new Error(`${path}.status の値が不正です。`);
+    throw new Error(t.invalidValue(`${path}.status`));
   }
   const children = value.children;
   if (!Array.isArray(children)) {
-    throw new Error(`${path}.children は配列で指定してください。`);
+    throw new Error(t.expectedArray(`${path}.children`));
   }
   return {
-    title: requireString(value, "title", path),
+    title: requireString(value, "title", path, t),
     type,
     status,
-    priority: requirePriority(value, path, version),
-    memo: requireString(value, "memo", path),
-    startDate: requireNullableDate(value, "startDate", path),
-    dueDate: requireNullableDate(value, "dueDate", path),
+    priority: requirePriority(value, path, version, t),
+    memo: requireString(value, "memo", path, t),
+    startDate: requireNullableDate(value, "startDate", path, t),
+    dueDate: requireNullableDate(value, "dueDate", path, t),
     children: children.map((child, index) =>
-      parseNode(child, `${path}.children[${index}]`, version),
+      parseNode(child, `${path}.children[${index}]`, version, t),
     ),
   };
 }
 
-export function parseLlmTreeDocument(input: string): LlmTreeDocument {
+export function parseLlmTreeDocument(
+  input: string,
+  language: Language = DEFAULT_LANGUAGE,
+): LlmTreeDocument {
+  const t = messages[language].treeValidation;
   let parsed: unknown;
   try {
-    parsed = JSON.parse(extractJsonText(input));
+    parsed = JSON.parse(extractJsonText(input, t));
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new Error("JSONの形式が正しくありません。");
+      throw new Error(t.invalidJson);
     }
     throw error;
   }
   if (!isRecord(parsed)) {
-    throw new Error("ルートはオブジェクトで指定してください。");
+    throw new Error(t.invalidRoot);
   }
   if (parsed.format !== LLM_TREE_FORMAT) {
-    throw new Error(`format は "${LLM_TREE_FORMAT}" で指定してください。`);
+    throw new Error(t.invalidFormat(LLM_TREE_FORMAT));
   }
   if (parsed.version !== 1 && parsed.version !== LLM_TREE_VERSION) {
-    throw new Error(`version は 1 または ${LLM_TREE_VERSION} で指定してください。`);
+    throw new Error(t.invalidVersion(LLM_TREE_VERSION));
   }
   return {
     format: LLM_TREE_FORMAT,
     version: LLM_TREE_VERSION,
-    root: parseNode(parsed.root, "root", parsed.version),
+    root: parseNode(parsed.root, "root", parsed.version, t),
   };
 }
 

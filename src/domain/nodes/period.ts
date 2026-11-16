@@ -1,5 +1,7 @@
+import { DEFAULT_LANGUAGE, type Language } from "@/app/language";
+import { messages } from "@/app/messages";
 import type { PeriodRange, YarukotoNode } from "./types";
-import { addDays, daysBetween, parseDateKey, toDateKey } from "../../utils/date";
+import { addDays, daysBetween, getShortMonthLabel, parseDateKey, toDateKey } from "../../utils/date";
 
 export type TimelineMode = "short" | "medium" | "long" | "xlong";
 
@@ -88,19 +90,24 @@ export function formatShortDate(dateKey: string) {
   return dateKey.slice(5).replace("-", "/");
 }
 
-export function formatPeriodLabel(startDate: string | null, dueDate: string | null) {
+export function formatPeriodLabel(
+  startDate: string | null,
+  dueDate: string | null,
+  language: Language = DEFAULT_LANGUAGE,
+) {
+  const t = messages[language];
   if (startDate && dueDate) {
     const [start, end] =
       startDate <= dueDate ? [startDate, dueDate] : [dueDate, startDate];
     return `${formatShortDate(start)}-${formatShortDate(end)}`;
   }
   if (startDate) {
-    return `開始 ${formatShortDate(startDate)}`;
+    return t.periodStart(formatShortDate(startDate));
   }
   if (dueDate) {
-    return `終了 ${formatShortDate(dueDate)}`;
+    return t.periodEnd(formatShortDate(dueDate));
   }
-  return "期間なし";
+  return t.noPeriod;
 }
 
 export function mergePeriodRanges(
@@ -287,6 +294,7 @@ export function getTodayLineStyle(
 export function getTimelineMarkers(
   bounds: PeriodBounds | null,
   mode: TimelineMode | null,
+  language: Language = DEFAULT_LANGUAGE,
 ): TimelineMarker[] {
   if (!bounds || !mode) {
     return [];
@@ -321,7 +329,7 @@ export function getTimelineMarkers(
         markers.push({
           dateKey,
           kind: "month",
-          label: `${current.getMonth() + 1}月`,
+          label: getShortMonthLabel(current, language),
           left,
         });
       } else {

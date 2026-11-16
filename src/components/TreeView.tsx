@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ChevronDown,
@@ -101,6 +102,7 @@ export function TreeView({
   taskProgressById: Map<string, TaskProgressInfo>;
   visibleNodes: FlatTreeNode[];
 }) {
+  const { language, t } = useLanguage();
   const periodRanges = useMemo(
     () => [
       ...visibleNodes.map(({ node }) => getNodePeriodDates(node)),
@@ -117,8 +119,8 @@ export function TreeView({
     [periodRanges],
   );
   const markers = useMemo(
-    () => getTimelineMarkers(timelineBounds, timelineMode),
-    [timelineBounds, timelineMode],
+    () => getTimelineMarkers(timelineBounds, timelineMode, language),
+    [language, timelineBounds, timelineMode],
   );
   const todayLineStyle = useMemo(
     () => getTodayLineStyle(timelineBounds),
@@ -181,7 +183,7 @@ export function TreeView({
     <div className="flex-1 overflow-auto px-2 py-3" ref={scrollContainerRef}>
       {visibleNodes.length === 0 ? (
         <div className="p-8 text-center text-sm text-muted-foreground">
-          ルートを追加してください。
+          {t.treeEmpty}
         </div>
       ) : (
         <div style={{ minWidth: `${treeMinWidth}px` }}>
@@ -247,7 +249,7 @@ export function TreeView({
                       >
                         {hasChildren ? (
                           <button
-                            aria-label={isExpanded ? "折りたたみ" : "展開"}
+                            aria-label={isExpanded ? t.collapse : t.expand}
                             className="grid h-7 w-7 place-items-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             onClick={(event) => {
                               event.stopPropagation();
@@ -274,7 +276,7 @@ export function TreeView({
                         type="button"
                       >
                         <span className="font-medium">
-                          {getNodeDisplayTitle(node)}
+                          {getNodeDisplayTitle(node, language)}
                         </span>
                         {hasChildren ? (
                           <span className="ml-2 rounded-full border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">

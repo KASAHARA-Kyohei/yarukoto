@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import {
   useEffect,
   useRef,
@@ -130,6 +131,7 @@ export function NodeDetailDialog({
 }) {
   const [isAwaitingSecondTitleEnter, setIsAwaitingSecondTitleEnter] =
     useState(false);
+  const { language, t } = useLanguage();
   const isTitleComposingRef = useRef(false);
   const pendingTitleCompositionEnterRef = useRef(false);
   const preserveTitleEnterOnNextChangeRef = useRef(false);
@@ -224,9 +226,9 @@ export function NodeDetailDialog({
         onEscapeKeyDown={blurEditableOnEscape}
       >
         <DialogHeader>
-          <DialogTitle>ノード編集</DialogTitle>
+          <DialogTitle>{t.editNode}</DialogTitle>
           <DialogDescription>
-            {node ? getNodeDisplayTitle(node) : "編集するノードを選択してください。"}
+            {node ? getNodeDisplayTitle(node, language) : t.selectNodeToEdit}
           </DialogDescription>
         </DialogHeader>
         {node ? (
@@ -250,7 +252,7 @@ export function NodeDetailDialog({
                 }}
                 onFocus={resetTitleEnterState}
                 onKeyDown={handleTitleEnter}
-                placeholder="タイトルを入力"
+                placeholder={t.titlePlaceholder}
                 ref={titleInputRef}
                 value={node.title}
               />
@@ -291,14 +293,14 @@ export function NodeDetailDialog({
                 activeDateField={activeDateField}
                 activeField={activeField}
                 calendarCursorDate={calendarCursorDate}
-                clearLabel="開始日を削除"
+                clearLabel={t.clearStartDate}
                 dateEditMode={dateEditMode}
                 dateInputError={dateInputError}
                 dateTextDraft={dateTextDraft}
                 field="startDate"
-                label="開始日"
+                label={t.startDate}
                 node={node}
-                placeholder="開始日なし"
+                placeholder={t.noStartDate}
                 triggerRef={detailFieldRefs.startDate}
                 onActivateField={onActivateField}
                 onCancelDateTextEdit={onCancelDateTextEdit}
@@ -312,14 +314,14 @@ export function NodeDetailDialog({
                 activeDateField={activeDateField}
                 activeField={activeField}
                 calendarCursorDate={calendarCursorDate}
-                clearLabel="終了日を削除"
+                clearLabel={t.clearDueDate}
                 dateEditMode={dateEditMode}
                 dateInputError={dateInputError}
                 dateTextDraft={dateTextDraft}
                 field="dueDate"
-                label="終了日"
+                label={t.dueDate}
                 node={node}
-                placeholder="終了日なし"
+                placeholder={t.noDueDate}
                 triggerRef={detailFieldRefs.dueDate}
                 onActivateField={onActivateField}
                 onCancelDateTextEdit={onCancelDateTextEdit}
@@ -332,7 +334,7 @@ export function NodeDetailDialog({
             </div>
             {isInvalidDateRange(node) ? (
               <div className="rounded-md border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                開始日が終了日より後になっています。保存はできますが、期間表示は警告色になります。
+                {t.reversedDatesWarning}
               </div>
             ) : null}
             <DetailFieldShell

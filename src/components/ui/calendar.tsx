@@ -1,9 +1,8 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getMonthLabel, toDateKey } from "@/utils/date";
-
-const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 export function Calendar({
   month,
@@ -16,6 +15,7 @@ export function Calendar({
   onSelectDate: (dateKey: string) => void;
   selectedDate: string | null;
 }) {
+  const { language, t } = useLanguage();
   const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
   const gridStart = new Date(monthStart);
   gridStart.setDate(monthStart.getDate() - monthStart.getDay());
@@ -34,7 +34,7 @@ export function Calendar({
     <div className="w-[286px] p-3">
       <div className="mb-3 flex items-center justify-between">
         <Button
-          aria-label="前月"
+          aria-label={t.previousMonth}
           size="icon"
           type="button"
           variant="ghost"
@@ -42,9 +42,9 @@ export function Calendar({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div className="text-sm font-semibold">{getMonthLabel(month)}</div>
+        <div className="text-sm font-semibold">{getMonthLabel(month, language)}</div>
         <Button
-          aria-label="翌月"
+          aria-label={t.nextMonth}
           size="icon"
           type="button"
           variant="ghost"
@@ -54,7 +54,7 @@ export function Calendar({
         </Button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
-        {WEEK_DAYS.map((day) => (
+        {t.weekdays.map((day) => (
           <div className="py-1" key={day}>
             {day}
           </div>

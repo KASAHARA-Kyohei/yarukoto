@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE, type Language } from "@/app/language";
 import { getNodeDisplayTitle } from "./nodeAppearance";
 import { NODE_STATUSES, type NodeStatus, type YarukotoNode } from "./types";
 import { sortNodes } from "./tree";
@@ -19,7 +20,10 @@ export type KanbanModel = {
 
 export type KanbanSelectionDirection = "down" | "left" | "right" | "up";
 
-export function buildKanbanModel(nodes: YarukotoNode[]): KanbanModel {
+export function buildKanbanModel(
+  nodes: YarukotoNode[],
+  language: Language = DEFAULT_LANGUAGE,
+): KanbanModel {
   const columns = NODE_STATUSES.map((status) => ({
     cards: [] as KanbanCard[],
     status,
@@ -53,7 +57,7 @@ export function buildKanbanModel(nodes: YarukotoNode[]): KanbanModel {
       columnsByStatus.get(node.status)?.cards.push({ node, parentPath });
     }
 
-    const nextParentPath = [...parentPath, getNodeDisplayTitle(node)];
+    const nextParentPath = [...parentPath, getNodeDisplayTitle(node, language)];
     for (const child of childrenByParent.get(node.id) ?? []) {
       visit(child, nextParentPath);
     }

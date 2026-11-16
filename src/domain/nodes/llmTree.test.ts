@@ -93,6 +93,17 @@ describe("LLM tree exchange", () => {
     expect(text).toContain("説明文を含めず");
   });
 
+  it("localizes review instructions and validation without changing the JSON format", () => {
+    const review = buildLlmReviewText(document, "en");
+    expect(review).toContain("Reply with a single JSON code block");
+    expect(parseLlmTreeDocument(review, "en")).toEqual(document);
+
+    const invalid = { ...document, root: { ...document.root, dueDate: "2026-02-30" } };
+    expect(() => parseLlmTreeDocument(JSON.stringify(invalid), "en")).toThrow(
+      "root.dueDate must be a YYYY-MM-DD date or null.",
+    );
+  });
+
   it("parses raw JSON and the first JSON code block", () => {
     const json = JSON.stringify(document);
     expect(parseLlmTreeDocument(json)).toEqual(document);

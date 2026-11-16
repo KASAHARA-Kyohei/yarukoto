@@ -1,249 +1,189 @@
 # yarukoto
 
-思考の速度でプロジェクト管理するための、Tauri v2 製デスクトップアプリです。  
-アイデア、メモ、決定事項、タスク、予定をツリーで整理し、そのままプロジェクト管理につなげます。
+[日本語版](./README.ja.md)
 
-## 現在の実装状態
+yarukoto is a desktop app for managing projects at the speed of thought, built with Tauri v2. Organize ideas, notes, decisions, tasks, and schedules in a tree, then use that same tree to manage your project.
 
-- 保存先は `SQLite` のみ
-- UI から直接 SQL は呼ばず、`Repository` 層を経由
-- 左 `Projects` / 中央 `Workspace` の 2 ペイン構成
-- ノード編集は常時サイドバーではなくモーダルで実施
-- 中央ビューは `Tree / Kanban / Calendar / Report`
-- Tree の右端 `period` 列は、軽量ミニガント表示
-- テーマは `Light / Tokyo Night / Soft Light` を切り替え可能
+## Features
 
-## 主な機能
+- Create, edit, and delete projects and nodes. Add child nodes or siblings above or below the selection, and undo recent deletions.
+- Reorder projects and nodes, indent or outdent nodes, and collapse or expand branches. The tree highlights the selected node and shows guides for the hierarchy.
+- Set start and due dates. The Tree view shows a compact timeline with date ranges, descendant ranges, a today marker, and due dates. Its scale adapts to the visible date range.
+- Track progress on Task nodes. The app calculates progress from the task's status or averages the progress of its direct child tasks.
+- Use **Kanban** to view tasks by status and move them with the keyboard or by dragging. **Calendar** displays scheduled nodes by month, and **Report** summarizes progress, deadlines, and completed tasks.
+- Export the current project to JSON and import JSON files as new projects.
+- Copy a project to the clipboard for AI review and import the result as a new project.
+- Use Vim-style shortcuts, toolbar buttons, and focus hints (`f`).
+- Choose from the Light, Tokyo Night, and Soft Light themes.
 
-- ノード CRUD
-  - ルート追加
-  - 子ノード追加
-  - 同階層の下追加
-  - 編集
-  - 子孫込み削除
-- ツリー操作
-  - 折りたたみ / 展開
-  - 上下移動
-  - インデント / アウトデント
-  - 選択中ノードのハイライト
-  - 親子の階層ガイド線
-- 日付管理
-  - `startDate` / `dueDate` を設定可能
-  - Tree 上で期間バー表示
-  - 親ノードでは子孫期間の集約バー表示
-  - 表示期間に応じて日 / 月 / 四半期の目盛りを切り替え
-  - `today` 線と期限マーカー表示
-- タスク進捗
-  - `Task` ノードのみ進捗率を表示
-  - 葉 `Task` は `status` から自動計算
-  - 子 `Task` を持つ `Task` は直下の子 `Task` から自動集計
-- 補助ビュー
-  - `Kanban`: 全Taskをstatus別に表示し、Vim操作またはドラッグで状態変更
-  - `Calendar`: 開始日 / 終了日を月表示
-  - `Report`: ステータス、期限、完了状況の集計表示
-- LLM レビュー連携
-  - 現在のプロジェクトを指示文付きJSONとしてクリップボードへコピー
-  - LLMが返した `yarukoto-tree` JSONを検証
-  - 元のプロジェクトを保持したまま、新規プロジェクトとして取り込み
-- 操作性
-  - Vim ライク操作
-  - ボタン操作
-  - Focus hint (`f`)
-  - 削除 Undo
-  - テーマ切替
+The app stores its data in SQLite and accesses it through a repository layer. The two-pane layout shows **Projects** on the left and the **Workspace** in the center. Nodes open in an editor dialog.
 
-## 技術スタック
+## Display language
+
+Select the globe button at the bottom of the **Projects** pane and choose **English** or **日本語**. The app starts in Japanese and remembers your selection for future launches. Project titles and notes display in the language in which they were entered.
+
+## Tech stack
 
 - Tauri v2
 - React 19
 - TypeScript
-- Tailwind CSS v4
-- shadcn/ui
-- SQLite
-- `@tauri-apps/plugin-sql`
+- Tailwind CSS v4 and shadcn/ui
+- SQLite via `@tauri-apps/plugin-sql`
 
-## セットアップ
+## Setup
 
 ```bash
 npm install
 ```
 
-## 起動
+Start the desktop app in development mode.
 
 ```bash
 npm run tauri dev
 ```
 
-Web 側だけ確認する場合:
+To start the frontend development server on its own, run:
 
 ```bash
 npm run dev
 ```
 
-## テスト / ビルド
+## Tests and builds
 
 ```bash
 npm test
 npm run build
 ```
 
-Tauri アプリを配布用にビルドする場合:
+To create a distributable Tauri bundle, run:
 
 ```bash
 npm run tauri build
 ```
 
-macOS で自分でビルドした未署名アプリが Gatekeeper に止められる場合は、手元確認用に quarantine 属性を外すと開けることがあります。
+If macOS Gatekeeper blocks an unsigned build you made yourself, you can remove the quarantine attribute for local testing.
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/yarukoto.app"
 ```
 
-`Applications` に移していない場合は、実際の `.app` のパスを指定します。
+If the app is still in the build directory, use the actual path to the `.app` bundle.
 
 ```bash
 xattr -dr com.apple.quarantine "src-tauri/target/release/bundle/macos/yarukoto.app"
 ```
 
-これは自分でビルドしたアプリをローカルで確認するための回避策です。配布する場合は、本来は署名と notarization を整える必要があります。
+For distribution, sign and notarize the app.
 
-Rust 側の確認:
+To check the Rust code, run:
 
 ```bash
 cd src-tauri
 cargo check
 ```
 
-アプリアイコンを更新する場合は、ブラウザのタブでも使う `public/yarukoto-icon.svg` を編集し、配布用の画像を再生成します。
+To update the app icon, edit `public/yarukoto-icon.svg`, which also serves as the browser favicon, then regenerate the bundled icons.
 
 ```bash
 npm run tauri icon -- public/yarukoto-icon.svg --ios-color '#142F37' --output src-tauri/icons
 ```
 
-## キーボード操作
+## Keyboard shortcuts
 
-共通:
+### Global
 
-- `Tab` / `Shift+Tab`: ペイン移動
-- `Ctrl+h` / `Ctrl+l`: `Projects` / `Center` を切り替え
-- `Ctrl+Tab` / `Ctrl+Shift+Tab`: 中央タブ切替
-- `Ctrl+t`: テーマ切替
-- `u`: 削除直後なら元に戻す
-- `f`: 表示中の操作対象へフォーカス
-- `?`: ショートカット一覧
-- `Esc`: 閉じる / フォーカス解除
+- `Tab` / `Shift+Tab` or `Ctrl+h` / `Ctrl+l` — switch between Projects and Workspace.
+- `Ctrl+Tab` / `Ctrl+Shift+Tab` — switch Workspace tabs.
+- `Ctrl+t` — cycle the theme.
+- `u` — undo a recent deletion.
+- `f` — show focus hints for visible controls.
+- `?` — toggle shortcut help.
+- `Esc` — close the current overlay or clear focus.
 
-Projects:
+### Projects
 
-- `j` / `k` / `↑` / `↓`: プロジェクト選択
-- `o`: ルート追加して Projects に留まる
-- `l` / `Enter` / `→`: 中央ペインへ
+- `j` / `k` / `↑` / `↓` — select a project.
+- `J` / `K` — move the selected project down or up.
+- `o` — add a project and stay in the Projects pane.
+- `l` / `Enter` / `→` — switch to the Workspace.
 
-Tree:
+### Tree
 
-- `j` / `k` / `↑` / `↓`: ノード選択
-- `h` / `l` / `←` / `→`: 折りたたみ / 展開
-- `a`: 子追加
-- `o`: 同階層の下に追加
-- `R`: ルート追加
-- `y`: 現在のプロジェクトをLLMレビュー用にコピー
-- `p`: LLMレビュー結果を新規プロジェクトとして取り込む
-- `Enter` / `i`: 編集モーダルを開く
-- `dd`: 削除
-- `J` / `K`: 上下移動
-- `>` / `<`: 階層変更
+- `j` / `k` / `↑` / `↓` — select a node.
+- `h` / `l` / `←` / `→` — collapse or expand a branch, or move to its parent or first child.
+- `za` — collapse the current tree.
+- `a` — add a child node.
+- `O` / `o` — add a sibling above or below the selected node.
+- `R` — add a project.
+- `y` / `p` — copy an AI review request or import a review result.
+- `Y` / `P` — export or import a JSON file.
+- `Enter` / `i` — open the editor.
+- `dd` — delete the selected node and its descendants.
+- `J` / `K` — move the selected node down or up.
+- `>` / `<` — indent or outdent the selected node.
 
-Kanban:
+### Kanban
 
-- `j` / `k` / `↑` / `↓`: 同じ列のカードを選択
-- `h` / `l` / `←` / `→`: 前後の空でない列へ選択移動
-- `H` / `L`: 選択カードを前後のstatusへ移動
-- `Enter` / `i`: 選択中Taskの編集モーダルを開く
-- カードのドラッグ: ドロップした列のstatusへ変更
-- `f`: ヒントからカードを直接選択
+- `j` / `k` / `↑` / `↓` — select a card in the same column.
+- `h` / `l` / `←` / `→` — select a card in the previous or next non-empty column.
+- `H` / `L` — move the selected card to the previous or next status.
+- `Enter` / `i` — open the selected task in the editor.
+- Drag a card to change its status to match the destination column.
+- `f` — select a card using focus hints.
 
-Calendar:
+### Calendar
 
-- `H` / `L`: 前月 / 翌月
-- `t`: 今月へ戻る
-- `Enter` / `i`: 選択中ノードの編集モーダルを開く
+- `H` / `L` — go to the previous or next month.
+- `t` — go to the current month.
+- `Enter` / `i` — open the selected node in the editor.
 
-Report:
+### Report
 
-- `Enter` / `i`: 選択中ノードの編集モーダルを開く
+- `Enter` / `i` — open the selected node in the editor.
 
-編集モーダル:
+### Node editor
 
-- `j` / `k` / `↑` / `↓`: 編集項目選択
-- `h` / `l` / `←` / `→`: `type` / `status` を変更
-- `i`: 通常項目にフォーカス、日付は直接入力
-- `Enter`: 通常項目にフォーカス、`type` / `status` は一覧、日付はカレンダー
-- 日付カレンダー中の `h` / `l` / `←` / `→`: 前日 / 翌日
-- 日付カレンダー中の `j` / `k` / `↑` / `↓`: 翌週 / 前週
-- 日付カレンダー中の `H` / `L` / `t`: 前月 / 翌月 / 今日
-- 日付項目の `x`: 日付クリア
-- `Esc`: 一覧・カレンダーを閉じる / モーダルを閉じる
+- `j` / `k` / `↑` / `↓` — select a field or move through options.
+- `h` / `l` / `←` / `→` — change the type, status, or priority.
+- `i` — focus the current field or type a date.
+- `Enter` — focus the current field, open its options or calendar, or confirm an option.
+- In the date picker, press `h` / `l` or `←` / `→` to move by day. Press `j` / `k` or `↓` / `↑` to move by week.
+- In the date picker, press `H` / `L` to change the month or `t` to go to today.
+- `x` — clear the active date field.
+- `Esc` — dismiss open options or the calendar, clear focus, or close the editor.
 
-## データ設計
+## Data model
 
-`nodes` テーブルを使用します。
+The SQLite `nodes` table stores `id`, `parent_id`, `title`, `type`, `status`, `priority`, `memo`, `start_date`, `due_date`, `sort_order`, `created_at`, and `updated_at`.
 
-主要カラム:
+Node types are `Group`, `Idea`, `Note`, `Decision`, and `Task`. Statuses are `Inbox`, `Next`, `Doing`, and `Done`.
 
-- `id`
-- `parent_id`
-- `title`
-- `type`
-- `status`
-- `memo`
-- `start_date`
-- `due_date`
-- `sort_order`
-- `created_at`
-- `updated_at`
+## AI review workflow
 
-ノード種別:
+1. In Tree, choose **AI Review > Copy review request** or press `y`. The clipboard receives review instructions and the current project in `yarukoto-tree` JSON format (version 2).
+2. Paste the request into an AI chat and copy the response.
+3. Choose **AI Review > Import review result** or press `p`. The app accepts raw JSON or a fenced JSON code block, validates it, and creates a separate project.
 
-- `Group`
-- `Idea`
-- `Note`
-- `Decision`
-- `Task`
+yarukoto passes AI review content through the clipboard. You choose where to share it.
 
-ステータス:
+## Source layout
 
-- `Inbox`
-- `Next`
-- `Doing`
-- `Done`
+- `src/components` — UI components
+- `src/hooks` — state management and keyboard shortcuts
+- `src/repositories` — SQLite repository layer
+- `src/domain/nodes/tree.ts` — tree structure and ordering
+- `src/domain/nodes/period.ts` — timeline logic
+- `src/domain/nodes/progress.ts` — task progress calculations
+- `src/app` — shared app types, themes, translations, and input helpers
+- `src-tauri` — Tauri and Rust code
 
-## LLMレビュー連携
+## Development notes
 
-Treeビューの `LLM用コピー` または `y` で、現在開いているプロジェクト全体をクリップボードへコピーします。コピー内容にはレビュー指示と `yarukoto-tree` バージョン1形式のJSONが含まれます。
-
-LLMの返答をクリップボードへコピーした後、`LLM結果取込` または `p` を実行してください。生JSONとJSONコードブロックのどちらも読み込めます。内容を検証してから、元データとは別の新規プロジェクトとして作成します。
-
-外部APIへの送信は行わず、クリップボード経由でのみ受け渡します。
-
-## プロジェクト構成
-
-- `src/components`: UI
-- `src/hooks`: 状態管理とショートカット
-- `src/repositories`: SQLite Repository 層
-- `src/domain/nodes/tree.ts`: ツリー整形
-- `src/domain/nodes/period.ts`: 期間表示ロジック
-- `src/domain/nodes/progress.ts`: タスク進捗の派生計算
-- `src/app`: アプリ共通の型、テーマ、入力補助ロジック
-- `src-tauri`: Tauri / Rust 側
-
-## 補足
-
-- 初回起動時に SQLite 初期化とテーブル作成を行います
-- 既存 DB には migration を適用します
-- サンプルデータは空 DB のときだけ投入します
-- 手動確認項目は [MANUAL_TEST.md](./MANUAL_TEST.md) を参照してください
-- GitHub Actions で macOS / Windows の Tauri bundle を作成できます
-- Node.js `22.11.0` では Vite の警告が出ます。`22.12+` への更新を推奨します
+- The app creates its SQLite tables on first launch and applies migrations to existing databases.
+- The app seeds sample data when the database is empty.
+- See the [manual test checklist](./MANUAL_TEST.md) for manual verification steps.
+- GitHub Actions can build Tauri bundles for macOS and Windows.
+- Use Node.js 20.19+ or 22.12+ for Vite 7.
 
 ## License
 

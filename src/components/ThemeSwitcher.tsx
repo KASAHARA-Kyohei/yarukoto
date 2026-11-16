@@ -1,3 +1,4 @@
+import { useLanguage } from "@/app/LanguageProvider";
 import { Check, Palette } from "lucide-react";
 import { THEMES, type ThemeId } from "@/app/theme";
 import { Button } from "@/components/ui/button";
@@ -15,12 +16,13 @@ export function ThemeSwitcher({
   onChangeTheme: (themeId: ThemeId) => void;
   themeId: ThemeId;
 }) {
+  const { t } = useLanguage();
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          aria-label="テーマを変更"
-          title="テーマを変更"
+          aria-label={t.changeTheme}
+          title={t.changeTheme}
           size="icon"
           type="button"
           variant="outline"

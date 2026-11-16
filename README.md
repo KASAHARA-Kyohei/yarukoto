@@ -1,5 +1,7 @@
 # yarukoto
 
+[日本語版](./README.ja.md)
+
 yarukoto is a desktop app for managing projects at the speed of thought, built with Tauri v2. Organize ideas, notes, decisions, tasks, and schedules in a tree, then use that same tree to manage your project.
 
 ## Features

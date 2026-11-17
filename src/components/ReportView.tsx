@@ -10,13 +10,18 @@ import { NODE_STATUSES, NODE_TYPES, type YarukotoNode } from "@/domain/nodes/typ
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { NodeEditButton } from "./NodeEditButton";
 
 export function ReportView({
+  editDisabled,
   nodes,
+  onEditNode,
   selectedId,
   onSelectNode,
 }: {
+  editDisabled: boolean;
   nodes: YarukotoNode[];
+  onEditNode: (nodeId: string) => void;
   selectedId?: string | null;
   onSelectNode: (nodeId: string) => void;
 }) {
@@ -95,12 +100,13 @@ export function ReportView({
           ) : (
             <div className="space-y-1">
               {todayFocusItems.map(({ node, tag, tagClass }) => (
-                <FocusRow
+                <ReportNodeRow
+                  editDisabled={editDisabled}
+                  focusTag={{ label: tag, className: tagClass }}
+                  isSelected={selectedId === node.id}
                   key={node.id}
                   node={node}
-                  tag={tag}
-                  tagClass={tagClass}
-                  isSelected={selectedId === node.id}
+                  onEditNode={onEditNode}
                   onSelectNode={onSelectNode}
                 />
               ))}
@@ -130,7 +136,9 @@ export function ReportView({
           {model.recentlyDoneTasks.length > 0 && (
             <div className="space-y-1">
               {model.recentlyDoneTasks.map((node) => (
-                <NodeRow
+                <ReportNodeRow
+                  editDisabled={editDisabled}
+                  onEditNode={onEditNode}
                   key={node.id}
                   node={node}
                   isSelected={selectedId === node.id}
@@ -168,7 +176,9 @@ export function ReportView({
             ) : (
               <div className="space-y-1">
                 {model.noDateTasks.slice(0, 8).map((node) => (
-                  <NodeRow
+                  <ReportNodeRow
+                    editDisabled={editDisabled}
+                    onEditNode={onEditNode}
                     key={node.id}
                     node={node}
                     isSelected={selectedId === node.id}
@@ -191,7 +201,9 @@ export function ReportView({
             ) : (
               <div className="space-y-1">
                 {riskItems.slice(0, 8).map((node) => (
-                  <NodeRow
+                  <ReportNodeRow
+                    editDisabled={editDisabled}
+                    onEditNode={onEditNode}
                     key={node.id}
                     node={node}
                     isSelected={selectedId === node.id}
@@ -233,73 +245,57 @@ function SummaryCard({
   );
 }
 
-function FocusRow({
+function ReportNodeRow({
+  editDisabled,
+  focusTag,
   isSelected,
   node,
+  onEditNode,
   onSelectNode,
-  tag,
-  tagClass,
 }: {
+  editDisabled: boolean;
+  focusTag?: { label: string; className: string };
   isSelected: boolean;
   node: YarukotoNode;
-  onSelectNode: (id: string) => void;
-  tag: string;
-  tagClass: string;
+  onEditNode: (nodeId: string) => void;
+  onSelectNode: (nodeId: string) => void;
 }) {
   const { language, t } = useLanguage();
 
   return (
-    <button
-      type="button"
+    <div
       className={cn(
-        "grid w-full grid-cols-[64px_1fr_80px] items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-accent",
+        "flex items-center gap-1 rounded pr-1 hover:bg-accent",
         isSelected && "bg-accent",
       )}
-      onClick={() => onSelectNode(node.id)}
     >
-      <span
-        className={cn(
-          "inline-block rounded border px-1.5 py-0.5 text-[10px] font-medium",
-          tagClass,
+      <button
+        className="grid min-w-0 flex-1 grid-cols-[72px_minmax(0,1fr)_80px] items-center gap-2 rounded px-2 py-1.5 text-left text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        type="button"
+        onClick={() => onSelectNode(node.id)}
+      >
+        {focusTag ? (
+          <span
+            className={cn(
+              "inline-block rounded border px-1.5 py-0.5 text-[10px] font-medium",
+              focusTag.className,
+            )}
+          >
+            {focusTag.label}
+          </span>
+        ) : (
+          <Badge
+            className={cn("justify-center text-[10px]", statusBadgeClass(node.status))}
+            variant="outline"
+          >
+            {node.status}
+          </Badge>
         )}
-      >
-        {tag}
-      </span>
-      <span className="truncate font-medium">{getNodeDisplayTitle(node, language)}</span>
-      <span className="text-right text-muted-foreground">{node.dueDate ?? t.reportNoDueDate}</span>
-    </button>
-  );
-}
-
-function NodeRow({
-  isSelected,
-  node,
-  onSelectNode,
-}: {
-  isSelected: boolean;
-  node: YarukotoNode;
-  onSelectNode: (id: string) => void;
-}) {
-  const { language, t } = useLanguage();
-
-  return (
-    <button
-      type="button"
-      className={cn(
-        "grid w-full grid-cols-[72px_1fr_80px] items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-accent",
-        isSelected && "bg-accent",
-      )}
-      onClick={() => onSelectNode(node.id)}
-    >
-      <Badge
-        variant="outline"
-        className={cn("justify-center text-[10px]", statusBadgeClass(node.status))}
-      >
-        {node.status}
-      </Badge>
-      <span className="truncate font-medium">{getNodeDisplayTitle(node, language)}</span>
-      <span className="text-right text-muted-foreground">{node.dueDate ?? t.reportNoDueDate}</span>
-    </button>
+        <span className="truncate font-medium">{getNodeDisplayTitle(node, language)}</span>
+        <span className="text-right text-muted-foreground">{node.dueDate ?? t.reportNoDueDate}</span>
+      </button>
+      <NodeEditButton disabled={editDisabled} node={node} onEditNode={onEditNode} />
+    </div>
   );
 }
 

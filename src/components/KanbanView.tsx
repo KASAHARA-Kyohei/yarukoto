@@ -9,7 +9,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/react";
-import { CalendarDays, GripVertical } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, GripVertical } from "lucide-react";
 import type {
   KanbanCard,
   KanbanColumn as KanbanColumnModel,
@@ -21,9 +21,12 @@ import {
   priorityLabel,
   statusBadgeClass,
 } from "@/domain/nodes/nodeAppearance";
-import type { NodeStatus } from "@/domain/nodes/types";
+import { NODE_STATUSES, type NodeStatus } from "@/domain/nodes/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { NodeEditButton } from "./NodeEditButton";
 
 type CardDragData = {
   kind: "kanban-card";
@@ -65,12 +68,14 @@ export function KanbanView({
   disabled,
   model,
   onChangeStatus,
+  onEditNode,
   onSelectNode,
   selectedId,
 }: {
   disabled: boolean;
   model: KanbanModel;
   onChangeStatus: (nodeId: string, status: NodeStatus) => Promise<unknown>;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   selectedId: string | null;
 }) {
@@ -165,6 +170,8 @@ export function KanbanView({
                 key={column.status}
                 registerCardElement={registerCardElement}
                 selectedId={selectedId}
+                onChangeStatus={onChangeStatus}
+                onEditNode={onEditNode}
                 onSelectNode={onSelectNode}
               />
             ))}
@@ -184,12 +191,16 @@ export function KanbanView({
 function KanbanColumn({
   column,
   disabled,
+  onChangeStatus,
+  onEditNode,
   onSelectNode,
   registerCardElement,
   selectedId,
 }: {
   column: KanbanColumnModel;
   disabled: boolean;
+  onChangeStatus: (nodeId: string, status: NodeStatus) => Promise<unknown>;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   registerCardElement: (
     nodeId: string,
@@ -244,6 +255,8 @@ function KanbanColumn({
               isSelected={selectedId === card.node.id}
               key={card.node.id}
               registerElement={registerCardElement}
+              onChangeStatus={onChangeStatus}
+              onEditNode={onEditNode}
               onSelectNode={onSelectNode}
             />
           ))
@@ -257,12 +270,16 @@ function DraggableKanbanCard({
   card,
   disabled,
   isSelected,
+  onChangeStatus,
+  onEditNode,
   onSelectNode,
   registerElement,
 }: {
   card: KanbanCard;
   disabled: boolean;
   isSelected: boolean;
+  onChangeStatus: (nodeId: string, status: NodeStatus) => Promise<unknown>;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   registerElement: (
     nodeId: string,
@@ -270,6 +287,9 @@ function DraggableKanbanCard({
   ) => void;
 }) {
   const { language, t } = useLanguage();
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const title = getNodeDisplayTitle(card.node, language);
+  const statusLabel = t.changeNamedNodeStatus(title);
   const { isDragging, ref } = useDraggable<CardDragData>({
     data: {
       kind: "kanban-card",
@@ -281,26 +301,83 @@ function DraggableKanbanCard({
   });
 
   return (
-    <button
-      aria-label={t.selectNode(getNodeDisplayTitle(card.node, language))}
-      aria-pressed={isSelected}
+    <div
       className={cn(
-        "kanban-card-enter w-full touch-none rounded-lg border bg-background p-0 text-left shadow-xs outline-none transition-[border-color,box-shadow,opacity,transform] duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring",
+        "kanban-card-enter relative rounded-lg border bg-background shadow-xs transition-[border-color,box-shadow,opacity,transform] duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md",
         isSelected && "border-primary/70 ring-2 ring-primary/15",
         isDragging && "opacity-25",
       )}
-      data-node-focus-id={card.node.id}
-      disabled={disabled}
-      ref={(element) => {
-        ref(element);
-        registerElement(card.node.id, element);
-      }}
-      type="button"
-      onClick={() => onSelectNode(card.node.id)}
-      onFocus={() => onSelectNode(card.node.id)}
     >
-      <KanbanCardSurface card={card} />
-    </button>
+      <button
+        aria-label={t.selectNode(title)}
+        aria-pressed={isSelected}
+        className="block w-full touch-none rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-node-focus-id={card.node.id}
+        disabled={disabled}
+        ref={(element) => {
+          ref(element);
+          registerElement(card.node.id, element);
+        }}
+        type="button"
+        onClick={() => onSelectNode(card.node.id)}
+        onFocus={() => onSelectNode(card.node.id)}
+      >
+        <KanbanCardSurface card={card} />
+      </button>
+      <NodeEditButton
+        className="absolute top-2 right-2"
+        disabled={disabled || isDragging}
+        node={card.node}
+        onEditNode={onEditNode}
+      />
+      <div className="px-2 pb-2">
+        <Popover open={isStatusOpen} onOpenChange={setIsStatusOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              aria-label={statusLabel}
+              className="h-6 gap-1 px-1.5 font-normal text-muted-foreground"
+              disabled={disabled || isDragging}
+              size="sm"
+              type="button"
+              variant="ghost"
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.stopPropagation();
+              }}
+            >
+              {card.node.status}
+              <ChevronDown aria-hidden="true" className="size-3" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            aria-label={statusLabel}
+            className="w-32 p-1"
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            {NODE_STATUSES.map((status) => (
+              <Button
+                aria-current={card.node.status === status ? "true" : undefined}
+                className="w-full justify-between"
+                disabled={disabled || card.node.status === status}
+                key={status}
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setIsStatusOpen(false);
+                  void onChangeStatus(card.node.id, status);
+                }}
+              >
+                {status}
+                {card.node.status === status ? (
+                  <Check aria-hidden="true" className="size-3.5" />
+                ) : null}
+              </Button>
+            ))}
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
   );
 }
 
@@ -315,14 +392,19 @@ function KanbanCardSurface({
   return (
     <div
       className={cn(
-        "rounded-lg bg-background px-3 py-2.5",
+        "pointer-events-none rounded-lg bg-background px-3 py-2.5",
         overlay && "rotate-1 border border-primary/40 shadow-xl",
       )}
     >
       <div className="flex items-start gap-2">
         <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/65" />
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-sm font-medium leading-5 text-foreground">
+          <p
+            className={cn(
+              "line-clamp-2 text-sm font-medium leading-5 text-foreground",
+              !overlay && "pr-5",
+            )}
+          >
             {getNodeDisplayTitle(card.node, language)}
           </p>
           <div className="mt-1 flex items-center gap-1.5">

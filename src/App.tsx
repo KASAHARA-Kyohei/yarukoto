@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import { CalendarView } from "./components/CalendarView";
@@ -187,6 +188,15 @@ function App() {
     setIsDetailDialogOpen(true);
     setActiveDetailField("title");
   }, []);
+
+  const handleEditNode = useCallback((nodeId: string) => {
+    if (isMutating) return;
+    const node = nodes.find((candidate) => candidate.id === nodeId);
+    if (!node) return;
+
+    selectNode(nodeId);
+    openDetailEditor(node);
+  }, [isMutating, nodes, openDetailEditor, selectNode]);
 
   const handleCreateRoot = useCallback(async () => {
     openDetailEditor(await createRoot());
@@ -390,6 +400,8 @@ function App() {
         onActivate={() => setActivePane("projects")}
         onChangeTheme={setThemeId}
         onCreateRoot={() => void handleCreateRoot()}
+        onMoveDown={() => void moveActiveRootDown()}
+        onMoveUp={() => void moveActiveRootUp()}
         onSelectRoot={selectNode}
       />
 
@@ -419,7 +431,9 @@ function App() {
               isLoading={isMutating}
               onEdit={() => openDetailEditor(selectedNode)}
               onAddChild={() => void handleCreateChild()}
-              onAddSibling={() => void handleCreateSiblingBelow()}
+              onAddSiblingAbove={() => void handleCreateSiblingAbove()}
+              onAddSiblingBelow={() => void handleCreateSiblingBelow()}
+              onCollapseTree={collapseCurrentTree}
               onDelete={() => void deleteSelected()}
               onIndent={() => void indentSelected()}
               onExportToFile={() => void exportToFile()}
@@ -433,10 +447,12 @@ function App() {
               onExport={() => void copyReview()}
             />
             <TreeView
+              editDisabled={isMutating}
               expandedIds={expandedIds}
               selectedId={selectedId}
               taskProgressById={taskProgressById}
               visibleNodes={visibleNodes}
+              onEditNode={handleEditNode}
               onSelectNode={selectNode}
               onToggleExpanded={toggleExpanded}
             />
@@ -445,10 +461,12 @@ function App() {
           <>
             {centerView === "calendar" ? (
               <CalendarView
+                editDisabled={isMutating}
                 month={calendarMonth}
                 nodes={calendarNodes}
                 selectedId={selectedId}
                 onChangeMonth={setCalendarMonth}
+                onEditNode={handleEditNode}
                 onSelectNode={selectNode}
               />
             ) : null}
@@ -458,13 +476,16 @@ function App() {
                 model={kanbanModel}
                 selectedId={selectedId}
                 onChangeStatus={changeNodeStatus}
+                onEditNode={handleEditNode}
                 onSelectNode={selectNode}
               />
             ) : null}
             {centerView === "report" ? (
               <ReportView
+                editDisabled={isMutating}
                 nodes={scopedNodes}
                 selectedId={selectedId}
+                onEditNode={handleEditNode}
                 onSelectNode={selectNode}
               />
             ) : null}
@@ -490,6 +511,7 @@ function App() {
               </span>
               <Button
                 className="h-6 px-2 text-xs"
+                shortcut={SHORTCUT_KEYS.undo}
                 size="sm"
                 type="button"
                 variant="outline"

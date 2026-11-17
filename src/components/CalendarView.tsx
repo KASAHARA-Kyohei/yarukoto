@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { buildCalendarMonthModel } from "@/domain/nodes/calendar";
@@ -9,15 +10,19 @@ import { getMonthLabel } from "@/utils/date";
 import { CalendarWeekRow } from "./CalendarViewItems";
 
 export function CalendarView({
+  editDisabled,
   month,
   nodes,
   onChangeMonth,
+  onEditNode,
   onSelectNode,
   selectedId,
 }: {
+  editDisabled: boolean;
   month: Date;
   nodes: YarukotoNode[];
   onChangeMonth: (month: Date) => void;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   selectedId: string | null;
 }) {
@@ -34,6 +39,7 @@ export function CalendarView({
         <div className="flex items-center gap-2">
           <Button
             aria-label={t.previousMonth}
+            shortcut={SHORTCUT_KEYS.previousMonth}
             size="icon"
             type="button"
             variant="outline"
@@ -43,6 +49,7 @@ export function CalendarView({
           </Button>
           <Button
             aria-label={t.nextMonth}
+            shortcut={SHORTCUT_KEYS.nextMonth}
             size="icon"
             type="button"
             variant="outline"
@@ -58,6 +65,7 @@ export function CalendarView({
           </p>
         </div>
         <Button
+          shortcut={SHORTCUT_KEYS.resetMonth}
           size="sm"
           type="button"
           variant="secondary"
@@ -90,11 +98,13 @@ export function CalendarView({
           {model.weeks.map((week) => (
             <CalendarWeekRow
               key={week.index}
+              editDisabled={editDisabled}
               overflowByDate={model.singleDayOverflowByDate}
               rangeSegments={model.rangeSegmentsByWeek.get(week.index) ?? []}
               selectedId={selectedId}
               singleDayItemsByDate={model.singleDayItemsByDate}
               week={week}
+              onEditNode={onEditNode}
               onSelectNode={onSelectNode}
             />
           ))}

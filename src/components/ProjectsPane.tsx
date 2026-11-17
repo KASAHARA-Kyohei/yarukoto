@@ -1,4 +1,6 @@
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import type { ActivePane } from "@/app/types";
 import type { ThemeId } from "@/app/theme";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,8 @@ export function ProjectsPane({
   onActivate,
   onChangeTheme,
   onCreateRoot,
+  onMoveDown,
+  onMoveUp,
   onSelectRoot,
 }: {
   activePane: ActivePane;
@@ -31,9 +35,13 @@ export function ProjectsPane({
   onActivate: () => void;
   onChangeTheme: (themeId: ThemeId) => void;
   onCreateRoot: () => void;
+  onMoveDown: () => void;
+  onMoveUp: () => void;
   onSelectRoot: (rootId: string) => void;
 }) {
   const { language, t } = useLanguage();
+  const activeRootIndex = roots.findIndex((root) => root.id === activeRootId);
+
   return (
     <aside
       className={cn(
@@ -45,7 +53,41 @@ export function ProjectsPane({
       data-app-pane="projects"
       onMouseDown={onActivate}
     >
-      <PaneHeader title="Projects" />
+      <PaneHeader title="Projects">
+        <div
+          className="flex gap-1"
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.stopPropagation();
+          }}
+        >
+          <Button
+            aria-label={t.moveProjectUp}
+            className="size-7"
+            disabled={isMutating || activeRootIndex <= 0}
+            shortcut={SHORTCUT_KEYS.moveUp}
+            size="icon"
+            type="button"
+            variant="ghost"
+            onClick={onMoveUp}
+          >
+            <ArrowUp aria-hidden="true" className="size-4" />
+          </Button>
+          <Button
+            aria-label={t.moveProjectDown}
+            className="size-7"
+            disabled={
+              isMutating || activeRootIndex === -1 || activeRootIndex === roots.length - 1
+            }
+            shortcut={SHORTCUT_KEYS.moveDown}
+            size="icon"
+            type="button"
+            variant="ghost"
+            onClick={onMoveDown}
+          >
+            <ArrowDown aria-hidden="true" className="size-4" />
+          </Button>
+        </div>
+      </PaneHeader>
       <div className="flex-1 overflow-y-auto p-2">
         {roots.map((root) => (
           <button
@@ -84,6 +126,7 @@ export function ProjectsPane({
           <Button
             className="min-w-0 flex-1"
             disabled={isMutating}
+            shortcut={SHORTCUT_KEYS.addProject}
             variant="outline"
             onClick={onCreateRoot}
             type="button"

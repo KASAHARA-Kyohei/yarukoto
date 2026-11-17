@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import type { Language } from "@/app/language";
 import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
 import { useMemo } from "react";
@@ -92,6 +93,7 @@ export function LlmTreeImportDialog({
           <div className="flex justify-end gap-2">
             <Button
               disabled={isImporting}
+              shortcut={SHORTCUT_KEYS.close}
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}

@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { Check, Palette } from "lucide-react";
 import { THEMES, type ThemeId } from "@/app/theme";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ export function ThemeSwitcher({
       <PopoverTrigger asChild>
         <Button
           aria-label={t.changeTheme}
-          title={t.changeTheme}
+          shortcut={SHORTCUT_KEYS.changeTheme}
           size="icon"
           type="button"
           variant="outline"

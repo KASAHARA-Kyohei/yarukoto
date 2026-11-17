@@ -1,8 +1,10 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
+import { ShortcutTooltip } from "./shortcut-tooltip";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -43,10 +45,12 @@ function DialogContent({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute top-3 right-3 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <X className="h-4 w-4" />
-          <span className="sr-only">{t.close}</span>
-        </DialogPrimitive.Close>
+        <ShortcutTooltip keys={SHORTCUT_KEYS.close} label={t.close}>
+          <DialogPrimitive.Close className="absolute top-3 right-3 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <X className="h-4 w-4" />
+            <span className="sr-only">{t.close}</span>
+          </DialogPrimitive.Close>
+        </ShortcutTooltip>
       </DialogPrimitive.Content>
     </DialogPortal>
   );

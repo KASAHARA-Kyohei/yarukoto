@@ -9,6 +9,7 @@ import {
 import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
 import type { YarukotoNode } from "@/domain/nodes/types";
 import { cn } from "@/lib/utils";
+import { NodeEditButton } from "./NodeEditButton";
 
 export function getStatusSurface(
   status: YarukotoNode["status"],
@@ -76,11 +77,15 @@ function getRangeStyle(segment: CalendarRangeSegment) {
 }
 
 export function CalendarRangeBar({
+  editDisabled,
   isSelected,
+  onEditNode,
   onSelectNode,
   segment,
 }: {
+  editDisabled: boolean;
   isSelected: boolean;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   segment: CalendarRangeSegment;
 }) {
@@ -89,36 +94,46 @@ export function CalendarRangeBar({
   const title = getNodeDisplayTitle(segment.node, language);
 
   return (
-    <button
+    <div
       className={cn(
-        "absolute flex h-5 items-center overflow-hidden border px-2 text-left text-[11px] font-medium shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "absolute flex h-6 items-center border text-[11px] font-medium shadow-sm transition",
         surface.bar,
         segment.continuesLeft ? "rounded-l-sm" : "rounded-l-full",
         segment.continuesRight ? "rounded-r-sm" : "rounded-r-full",
         isSelected && "ring-2 ring-primary/45",
       )}
-      data-node-focus-id={segment.node.id}
       style={getRangeStyle(segment)}
-      title={`${title} (${segment.segmentStart} - ${segment.segmentEnd})`}
-      type="button"
-      onClick={() => onSelectNode(segment.node.id)}
     >
-      {segment.showsTitle ? (
-        <span className="truncate">{title}</span>
-      ) : (
-        <span className="sr-only">{title}</span>
-      )}
-    </button>
+      <button
+        className="flex h-full min-w-0 flex-1 items-center rounded-[inherit] px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-node-focus-id={segment.node.id}
+        title={`${title} (${segment.segmentStart} - ${segment.segmentEnd})`}
+        type="button"
+        onClick={() => onSelectNode(segment.node.id)}
+      >
+        <span className={segment.showsTitle ? "truncate" : "sr-only"}>{title}</span>
+      </button>
+      <NodeEditButton
+        className="mr-0.5 text-current"
+        disabled={editDisabled}
+        node={segment.node}
+        onEditNode={onEditNode}
+      />
+    </div>
   );
 }
 
 export function CalendarSingleDayItem({
+  editDisabled,
   isSelected,
   item,
+  onEditNode,
   onSelectNode,
 }: {
+  editDisabled: boolean;
   isSelected: boolean;
   item: CalendarDayItem;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
 }) {
   const { language, t } = useLanguage();
@@ -126,38 +141,52 @@ export function CalendarSingleDayItem({
   const title = getNodeDisplayTitle(item.node, language);
 
   return (
-    <button
+    <div
       className={cn(
-        "flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[11px] leading-tight transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "flex w-full items-center rounded-md border text-[11px] leading-tight transition",
         surface.bar,
         isSelected && "ring-2 ring-primary/45",
       )}
-      data-node-focus-id={item.node.id}
-      title={title}
-      type="button"
-      onClick={() => onSelectNode(item.node.id)}
     >
-      <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded bg-background/65 px-1 text-[9px] font-semibold text-muted-foreground">
-        {getSingleDayKindLabel(item.kind, t)}
-      </span>
-      <span className="truncate font-medium">{title}</span>
-    </button>
+      <button
+        className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md py-1.5 pr-1 pl-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-node-focus-id={item.node.id}
+        title={title}
+        type="button"
+        onClick={() => onSelectNode(item.node.id)}
+      >
+        <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded bg-background/65 px-1 text-[9px] font-semibold text-muted-foreground">
+          {getSingleDayKindLabel(item.kind, t)}
+        </span>
+        <span className="truncate font-medium">{title}</span>
+      </button>
+      <NodeEditButton
+        className="mr-0.5 text-current"
+        disabled={editDisabled}
+        node={item.node}
+        onEditNode={onEditNode}
+      />
+    </div>
   );
 }
 
 export function CalendarWeekRow({
+  editDisabled,
   overflowByDate,
   rangeSegments,
   selectedId,
   singleDayItemsByDate,
   week,
+  onEditNode,
   onSelectNode,
 }: {
+  editDisabled: boolean;
   overflowByDate: Map<string, number>;
   rangeSegments: CalendarRangeSegment[];
   selectedId: string | null;
   singleDayItemsByDate: Map<string, CalendarDayItem[]>;
   week: CalendarWeekModel;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
 }) {
   const rangeAreaHeight = getRangeAreaHeight(week);
@@ -211,9 +240,11 @@ export function CalendarWeekRow({
               <div className="mt-2 space-y-1.5">
                 {visibleItems.map((item) => (
                   <CalendarSingleDayItem
+                    editDisabled={editDisabled}
                     isSelected={selectedId === item.node.id}
                     item={item}
                     key={`${day.dateKey}-${item.node.id}-${item.kind}`}
+                    onEditNode={onEditNode}
                     onSelectNode={onSelectNode}
                   />
                 ))}
@@ -239,7 +270,9 @@ export function CalendarWeekRow({
               key={`${segment.node.id}-${segment.weekIndex}`}
             >
               <CalendarRangeBar
+                editDisabled={editDisabled}
                 isSelected={selectedId === segment.node.id}
+                onEditNode={onEditNode}
                 onSelectNode={onSelectNode}
                 segment={segment}
               />

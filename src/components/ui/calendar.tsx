@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function Calendar({
       <div className="mb-3 flex items-center justify-between">
         <Button
           aria-label={t.previousMonth}
+          shortcut={SHORTCUT_KEYS.previousMonth}
           size="icon"
           type="button"
           variant="ghost"
@@ -45,6 +47,7 @@ export function Calendar({
         <div className="text-sm font-semibold">{getMonthLabel(month, language)}</div>
         <Button
           aria-label={t.nextMonth}
+          shortcut={SHORTCUT_KEYS.nextMonth}
           size="icon"
           type="button"
           variant="ghost"

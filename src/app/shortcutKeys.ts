@@ -18,6 +18,7 @@ export const SHORTCUT_KEYS = {
   importJson: "P",
   copyReview: "y",
   importReview: "p",
+  toggleProjectsPane: "Ctrl+B",
   changeTheme: "Ctrl+t",
   changeTab: "Ctrl+Tab / Ctrl+Shift+Tab",
   previousMonth: "H",

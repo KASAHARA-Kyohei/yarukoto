@@ -132,6 +132,7 @@ npm run tauri icon -- public/yarukoto-icon.svg --ios-color '#142F37' --output sr
 
 - `Tab` / `Shift+Tab`: ペイン移動
 - `Ctrl+h` / `Ctrl+l`: `Projects` / `Center` を切り替え
+- `Ctrl+B`: 左側のプロジェクト一覧を表示 / 非表示
 - `Ctrl+Tab` / `Ctrl+Shift+Tab`: 中央タブ切替
 - `Ctrl+t`: テーマ切替
 - `u`: 削除直後なら元に戻す

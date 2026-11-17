@@ -37,6 +37,7 @@ function App() {
   const { language, t } = useLanguage();
   const { cycleTheme, setThemeId, themeId } = useTheme();
   const [activePane, setActivePane] = useState<ActivePane>("center");
+  const [isProjectsPaneVisible, setIsProjectsPaneVisible] = useState(true);
   const [centerView, setCenterView] = useState<CenterView>("tree");
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -44,6 +45,7 @@ function App() {
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [activeDetailField, setActiveDetailField] =
     useState<DetailField>("title");
+  const centerPaneRef = useRef<HTMLElement | null>(null);
   const dueDateButtonRef = useRef<HTMLButtonElement | null>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const priorityTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -254,6 +256,16 @@ function App() {
     setCalendarMonth(new Date());
   }, []);
 
+  const toggleProjectsPane = useCallback(() => {
+    if (isProjectsPaneVisible) {
+      setActivePane("center");
+      if (!centerPaneRef.current?.contains(document.activeElement)) {
+        centerPaneRef.current?.focus();
+      }
+    }
+    setIsProjectsPaneVisible(!isProjectsPaneVisible);
+  }, [isProjectsPaneVisible]);
+
   const handleFocusHintFocused = useCallback((element: HTMLElement) => {
     const pane = element.closest<HTMLElement>("[data-app-pane]")?.dataset
       .appPane as ActivePane | undefined;
@@ -328,6 +340,7 @@ function App() {
     isFocusHintOpen,
     isLlmImportOpen: isImportOpen,
     isMutating,
+    isProjectsPaneVisible,
     isShortcutHelpOpen,
     kanbanModel,
     moveCalendarCursorByDays,
@@ -356,6 +369,7 @@ function App() {
     },
     onOpenLlmImport: openImport,
     onOpenShortcutHelp: () => setIsShortcutHelpOpen(true),
+    onToggleProjectsPane: toggleProjectsPane,
     pendingUndoDelete,
     outdentSelected,
     roots,
@@ -395,6 +409,7 @@ function App() {
         activePane={activePane}
         activeRootId={activeRootId}
         isMutating={isMutating}
+        isVisible={isProjectsPaneVisible}
         roots={roots}
         themeId={themeId}
         onActivate={() => setActivePane("projects")}
@@ -413,6 +428,8 @@ function App() {
             : "after:pointer-events-none after:absolute after:inset-0 after:bg-foreground/7 after:content-['']",
         )}
         data-app-pane="center"
+        ref={centerPaneRef}
+        tabIndex={-1}
         onMouseDown={() => setActivePane("center")}
       >
         <CenterHeader

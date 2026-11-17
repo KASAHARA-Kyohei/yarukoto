@@ -18,6 +18,7 @@ export function ProjectsPane({
   activePane,
   activeRootId,
   isMutating,
+  isVisible,
   roots,
   themeId,
   onActivate,
@@ -30,6 +31,7 @@ export function ProjectsPane({
   activePane: ActivePane;
   activeRootId: string | null;
   isMutating: boolean;
+  isVisible: boolean;
   roots: YarukotoNode[];
   themeId: ThemeId;
   onActivate: () => void;
@@ -45,12 +47,14 @@ export function ProjectsPane({
   return (
     <aside
       className={cn(
-        "relative flex w-64 shrink-0 flex-col border-r border-border bg-muted/80 ring-inset transition-[box-shadow,background-color]",
+        "relative flex w-64 shrink-0 flex-col border-r border-border bg-muted/80 ring-inset transition-[margin-left,visibility,box-shadow,background-color] duration-[260ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
+        !isVisible && "invisible -ml-64",
         activePane === "projects"
           ? "bg-secondary"
           : "after:pointer-events-none after:absolute after:inset-0 after:bg-foreground/7 after:content-['']",
       )}
       data-app-pane="projects"
+      inert={!isVisible}
       onMouseDown={onActivate}
     >
       <PaneHeader title="Projects">

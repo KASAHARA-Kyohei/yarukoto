@@ -20,7 +20,7 @@ type FocusHint = {
 };
 
 function isVisibleElement(element: HTMLElement) {
-  if (element.closest("[data-focus-hint-ignore='true']")) {
+  if (element.closest("[inert], [data-focus-hint-ignore='true']")) {
     return false;
   }
   if (element.getAttribute("aria-hidden") === "true") {
@@ -74,9 +74,15 @@ export function FocusHintOverlay({
   useEffect(() => {
     const updateHints = () => setHints(collectHints());
     updateHints();
+    const workspace = document.querySelector("[data-app-pane='center']");
+    const resizeObserver = new ResizeObserver(updateHints);
+    if (workspace) {
+      resizeObserver.observe(workspace);
+    }
     window.addEventListener("resize", updateHints);
     window.addEventListener("scroll", updateHints, true);
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener("resize", updateHints);
       window.removeEventListener("scroll", updateHints, true);
     };

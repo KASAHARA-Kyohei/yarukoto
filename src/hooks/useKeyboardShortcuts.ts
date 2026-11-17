@@ -122,6 +122,7 @@ export function useKeyboardShortcuts({
   isFocusHintOpen,
   isLlmImportOpen,
   isMutating,
+  isProjectsPaneVisible,
   isShortcutHelpOpen,
   kanbanModel,
   moveCalendarCursorByDays,
@@ -149,6 +150,7 @@ export function useKeyboardShortcuts({
   onImportFromFile,
   onOpenLlmImport,
   onOpenShortcutHelp,
+  onToggleProjectsPane,
   pendingUndoDelete,
   restorePendingDelete,
   roots,
@@ -202,6 +204,7 @@ export function useKeyboardShortcuts({
   isFocusHintOpen: boolean;
   isLlmImportOpen: boolean;
   isMutating: boolean;
+  isProjectsPaneVisible: boolean;
   isShortcutHelpOpen: boolean;
   kanbanModel: KanbanModel;
   moveCalendarCursorByDays: (amount: number) => void;
@@ -228,6 +231,7 @@ export function useKeyboardShortcuts({
   onImportFromFile: () => Promise<unknown>;
   onOpenLlmImport: () => Promise<void>;
   onOpenShortcutHelp: () => void;
+  onToggleProjectsPane: () => void;
   pendingUndoDelete: { title: string } | null;
   restorePendingDelete: () => Promise<unknown>;
   outdentSelected: () => Promise<void>;
@@ -256,9 +260,11 @@ export function useKeyboardShortcuts({
 
   const movePane = useCallback(
     (direction: 1 | -1) => {
-      setActivePane(getNextPane(activePane, direction));
+      if (isProjectsPaneVisible) {
+        setActivePane(getNextPane(activePane, direction));
+      }
     },
-    [activePane, setActivePane],
+    [activePane, isProjectsPaneVisible, setActivePane],
   );
 
   const moveRootSelection = useCallback(
@@ -478,6 +484,13 @@ export function useKeyboardShortcuts({
         });
         return;
       }
+      if (event.ctrlKey && !event.altKey && !event.metaKey && event.key === "b") {
+        event.preventDefault();
+        if (!event.repeat) {
+          onToggleProjectsPane();
+        }
+        return;
+      }
       if (event.ctrlKey && event.key === "h") {
         run(() => movePane(-1));
         return;
@@ -490,7 +503,7 @@ export function useKeyboardShortcuts({
         run(() => moveCenterView(event.shiftKey ? -1 : 1));
         return;
       }
-      if (event.key === "Tab") {
+      if (event.key === "Tab" && isProjectsPaneVisible) {
         run(() => movePane(event.shiftKey ? -1 : 1));
         return;
       }
@@ -631,6 +644,7 @@ export function useKeyboardShortcuts({
     isFocusHintOpen,
     isLlmImportOpen,
     isMutating,
+    isProjectsPaneVisible,
     isShortcutHelpOpen,
     moveCalendarCursorByDays,
     moveCalendarCursorByMonths,
@@ -661,6 +675,7 @@ export function useKeyboardShortcuts({
     onImportFromFile,
     onOpenLlmImport,
     onOpenShortcutHelp,
+    onToggleProjectsPane,
     pendingUndoDelete,
     outdentSelected,
     resetCalendarMonthToToday,

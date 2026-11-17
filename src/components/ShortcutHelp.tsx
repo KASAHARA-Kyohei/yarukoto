@@ -20,6 +20,7 @@ export function ShortcutHelp({
   const commonShortcuts: Array<[string, string]> = [
     ["Tab / Shift+Tab", t.shortcutPaneNavigation],
     ["Ctrl+h / Ctrl+l", t.shortcutSwitchPanes],
+    [SHORTCUT_KEYS.toggleProjectsPane, t.shortcutToggleProjectsPane],
     [SHORTCUT_KEYS.changeTab, t.shortcutSwitchTabs],
     [SHORTCUT_KEYS.changeTheme, t.shortcutCycleTheme],
     [SHORTCUT_KEYS.undo, t.shortcutUndoDelete],

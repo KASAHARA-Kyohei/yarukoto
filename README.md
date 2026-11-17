@@ -93,6 +93,7 @@ npm run tauri icon -- public/yarukoto-icon.svg --ios-color '#142F37' --output sr
 ### Global
 
 - `Tab` / `Shift+Tab` or `Ctrl+h` / `Ctrl+l` — switch between Projects and Workspace.
+- `Ctrl+B` — show or hide the Projects sidebar.
 - `Ctrl+Tab` / `Ctrl+Shift+Tab` — switch Workspace tabs.
 - `Ctrl+t` — cycle the theme.
 - `u` — undo a recent deletion.

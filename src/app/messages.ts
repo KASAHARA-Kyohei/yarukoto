@@ -1,4 +1,11 @@
+import { NODE_PRIORITIES, NODE_STATUSES, NODE_TYPES } from "@/domain/nodes/types";
 import type { Language } from "./language";
+
+const reviewNodeValues = [
+  `type = ${NODE_TYPES.join(" / ")}`,
+  `status = ${NODE_STATUSES.join(" / ")}`,
+  `priority = ${NODE_PRIORITIES.join(" / ")}`,
+];
 
 const ja = {
   language: "表示言語",
@@ -168,7 +175,11 @@ const ja = {
     "以下はタスク管理アプリ yarukoto のプロジェクトツリーです。",
     "内容をレビューし、必要に応じてノードの追加・削除・並べ替え・階層変更・各項目の修正を行ってください。",
     `返答は説明文を含めず、同じ yarukoto-tree バージョン${version}形式のJSONコードブロックだけにしてください。`,
-    "format、version、および各ノードの title/type/status/priority/memo/startDate/dueDate/children は必ず残してください。",
+    "トップレベルの format、version、root を残し、各ノードに title/type/status/priority/memo/startDate/dueDate/children を含めてください。",
+    "type、status、priority には次の値をそのまま使用してください。",
+    ...reviewNodeValues,
+    "startDate と dueDate は実在する日付を YYYY-MM-DD 形式で指定し、未設定の場合は null にしてください。",
+    "children は配列とし、子がない場合は空配列 [] にしてください。",
   ],
   treeValidation: {
     empty: "取り込むJSONを入力してください。",
@@ -354,7 +365,11 @@ const en: Messages = {
     "Below is a project tree from the yarukoto task management app.",
     "Review it and add, remove, reorder, reparent, or edit nodes as needed.",
     `Reply with a single JSON code block in the yarukoto-tree version ${version} format.`,
-    "Keep format and version, and include title, type, status, priority, memo, startDate, dueDate, and children on each node.",
+    "Keep format, version, and root at the top level. Include title, type, status, priority, memo, startDate, dueDate, and children on every node.",
+    "Use these exact values for type, status, and priority.",
+    ...reviewNodeValues,
+    "Use valid dates in YYYY-MM-DD format for startDate and dueDate. Use null for unset dates.",
+    "Set children to an array. Use [] when a node has no children.",
   ],
   treeValidation: {
     empty: "Enter the JSON to import.",

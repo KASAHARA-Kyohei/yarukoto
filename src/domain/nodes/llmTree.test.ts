@@ -7,7 +7,7 @@ import {
   parseLlmTreeDocument,
   type LlmTreeDocument,
 } from "./llmTree";
-import type { YarukotoNode } from "./types";
+import { NODE_PRIORITIES, NODE_STATUSES, NODE_TYPES, type YarukotoNode } from "./types";
 
 function node(
   id: string,
@@ -110,6 +110,35 @@ describe("LLM tree exchange", () => {
     expect(
       parseLlmTreeDocument(`review\n\`\`\`json\n${json}\n\`\`\`\nignored`),
     ).toEqual(document);
+  });
+
+  it("preserves code blocks in memos in raw and fenced JSON", () => {
+    const withCodeInMemo = {
+      ...document,
+      root: { ...document.root, memo: "Example\n```sh\necho hello\n```\nEnd" },
+    };
+    const json = JSON.stringify(withCodeInMemo);
+    const fenced = buildLlmReviewText(withCodeInMemo).replace(/\n/g, "\r\n");
+
+    expect(parseLlmTreeDocument(json)).toEqual(withCodeInMemo);
+    expect(parseLlmTreeDocument(fenced)).toEqual(withCodeInMemo);
+  });
+
+  it("still accepts an inline fence around JSON", () => {
+    const json = JSON.stringify(document);
+    expect(parseLlmTreeDocument("```json " + json + " ```")).toEqual(document);
+  });
+
+  it.each(["ja", "en"] as const)("describes accepted JSON values in %s", (language) => {
+    const review = buildLlmReviewText(document, language);
+    const instructions = review.split("\n```json")[0];
+
+    expect(instructions).toContain("root");
+    expect(instructions).toContain(`type = ${NODE_TYPES.join(" / ")}`);
+    expect(instructions).toContain(`status = ${NODE_STATUSES.join(" / ")}`);
+    expect(instructions).toContain(`priority = ${NODE_PRIORITIES.join(" / ")}`);
+    expect(instructions).toContain("YYYY-MM-DD");
+    expect(instructions).toContain("null");
   });
 
   it.each([

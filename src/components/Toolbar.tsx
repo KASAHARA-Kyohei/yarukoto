@@ -7,6 +7,7 @@ import {
   ArrowRight,
   ArrowUp,
   Bot,
+  ChevronsDownUp,
   Download,
   FileJson,
   FolderOpen,
@@ -33,7 +34,9 @@ export function Toolbar({
   canExport,
   isLoading,
   onAddChild,
-  onAddSibling,
+  onAddSiblingAbove,
+  onAddSiblingBelow,
+  onCollapseTree,
   onDelete,
   onEdit,
   onExportToFile,
@@ -50,7 +53,9 @@ export function Toolbar({
   disabled: boolean;
   isLoading: boolean;
   onAddChild: () => void;
-  onAddSibling: () => void;
+  onAddSiblingAbove: () => void;
+  onAddSiblingBelow: () => void;
+  onCollapseTree: () => void;
   onDelete: () => void;
   onEdit: () => void;
   onExportToFile: () => void;
@@ -109,7 +114,21 @@ export function Toolbar({
       </Button>
       <Button
         disabled={disabled}
-        onClick={onAddSibling}
+        onClick={onAddSiblingAbove}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.stopPropagation();
+        }}
+        shortcut={SHORTCUT_KEYS.addAbove}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        <SiblingIcon className={isLoading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
+        {t.addAbove}
+      </Button>
+      <Button
+        disabled={disabled}
+        onClick={onAddSiblingBelow}
         shortcut={SHORTCUT_KEYS.addBelow}
         size="sm"
         type="button"
@@ -120,12 +139,24 @@ export function Toolbar({
       </Button>
       <Popover open={isArrangeOpen} onOpenChange={setIsArrangeOpen}>
         <PopoverTrigger asChild>
-          <Button disabled={disabled} size="sm" type="button" variant="outline">
+          <Button
+            disabled={disabled}
+            size="sm"
+            type="button"
+            variant="outline"
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.stopPropagation();
+            }}
+          >
             <MoreHorizontal className="h-3.5 w-3.5" />
             {t.organize}
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-44 p-1">
+        <PopoverContent
+          align="start"
+          className="w-48 p-1"
+          onKeyDown={(event) => event.stopPropagation()}
+        >
           <ToolbarMenuItem
             icon={ArrowUp}
             label={t.moveUp}
@@ -149,6 +180,12 @@ export function Toolbar({
             label={t.outdent}
             shortcut={SHORTCUT_KEYS.outdent}
             onClick={() => runArrangeAction(onOutdent)}
+          />
+          <ToolbarMenuItem
+            icon={ChevronsDownUp}
+            label={t.collapseTree}
+            shortcut={SHORTCUT_KEYS.collapseTree}
+            onClick={() => runArrangeAction(onCollapseTree)}
           />
           <div className="my-1 border-t border-border" />
           <ToolbarMenuItem

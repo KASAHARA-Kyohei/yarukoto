@@ -38,9 +38,9 @@ export function ShortcutHelp({
   const treeShortcuts: Array<[string, string]> = [
     [SHORTCUT_KEYS.selectRow, t.shortcutSelectNode],
     ["h / l / ← / →", t.shortcutExpandNode],
-    ["za", t.shortcutCollapseTree],
+    [SHORTCUT_KEYS.collapseTree, t.shortcutCollapseTree],
     [SHORTCUT_KEYS.addChild, t.shortcutAddChildAndEdit],
-    ["O", t.shortcutAddAboveAndEdit],
+    [SHORTCUT_KEYS.addAbove, t.shortcutAddAboveAndEdit],
     [SHORTCUT_KEYS.addBelow, t.shortcutAddBelowAndEdit],
     ["R", t.shortcutAddRootAndEdit],
     [SHORTCUT_KEYS.copyReview, t.shortcutCopyReview],

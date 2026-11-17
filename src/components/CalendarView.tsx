@@ -10,15 +10,19 @@ import { getMonthLabel } from "@/utils/date";
 import { CalendarWeekRow } from "./CalendarViewItems";
 
 export function CalendarView({
+  editDisabled,
   month,
   nodes,
   onChangeMonth,
+  onEditNode,
   onSelectNode,
   selectedId,
 }: {
+  editDisabled: boolean;
   month: Date;
   nodes: YarukotoNode[];
   onChangeMonth: (month: Date) => void;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   selectedId: string | null;
 }) {
@@ -94,11 +98,13 @@ export function CalendarView({
           {model.weeks.map((week) => (
             <CalendarWeekRow
               key={week.index}
+              editDisabled={editDisabled}
               overflowByDate={model.singleDayOverflowByDate}
               rangeSegments={model.rangeSegmentsByWeek.get(week.index) ?? []}
               selectedId={selectedId}
               singleDayItemsByDate={model.singleDayItemsByDate}
               week={week}
+              onEditNode={onEditNode}
               onSelectNode={onSelectNode}
             />
           ))}

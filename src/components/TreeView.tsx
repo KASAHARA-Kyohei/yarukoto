@@ -8,6 +8,7 @@ import { getSelectionScrollTop } from "@/app/selectionScroll";
 import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { TreePeriodCell, TreePeriodHeader } from "./TreePeriod";
 import { TaskProgressInline } from "./TaskProgress";
+import { NodeEditButton } from "./NodeEditButton";
 import {
   getNodeDisplayTitle,
   priorityBadgeClass,
@@ -90,14 +91,18 @@ function IndentGuides({
 }
 
 export function TreeView({
+  editDisabled,
   expandedIds,
+  onEditNode,
   onSelectNode,
   onToggleExpanded,
   selectedId,
   taskProgressById,
   visibleNodes,
 }: {
+  editDisabled: boolean;
   expandedIds: Set<string>;
+  onEditNode: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   onToggleExpanded: (nodeId: string) => void;
   selectedId: string | null;
@@ -233,14 +238,14 @@ export function TreeView({
                   ref={(element) => registerRowElement(node.id, element)}
                   style={{ gridTemplateColumns: treeColumns }}
                 >
-                  <div className="relative flex min-w-0 items-center pl-2">
+                  <div className="relative flex min-w-0 items-center gap-1 pr-1 pl-2">
                     <IndentGuides
                       depth={depth}
                       guideColumns={guideColumns}
                       isLastSibling={isLastSibling}
                     />
                     <div
-                      className="flex min-w-0 items-center"
+                      className="flex min-w-0 flex-1 items-center"
                       style={{ marginLeft: depth * INDENT_STEP }}
                     >
                       <div
@@ -292,6 +297,11 @@ export function TreeView({
                         ) : null}
                       </button>
                     </div>
+                    <NodeEditButton
+                      disabled={editDisabled}
+                      node={node}
+                      onEditNode={onEditNode}
+                    />
                   </div>
                   <Badge
                     variant="outline"

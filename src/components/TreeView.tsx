@@ -5,6 +5,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getSelectionScrollTop } from "@/app/selectionScroll";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { TreePeriodCell, TreePeriodHeader } from "./TreePeriod";
 import { TaskProgressInline } from "./TaskProgress";
 import {
@@ -26,6 +27,7 @@ import {
 } from "@/domain/nodes/period";
 import type { FlatTreeNode } from "@/domain/nodes/types";
 import { Badge } from "@/components/ui/badge";
+import { ShortcutTooltip } from "@/components/ui/shortcut-tooltip";
 import { cn } from "@/lib/utils";
 
 const INDENT_STEP = 22;
@@ -248,21 +250,26 @@ export function TreeView({
                         )}
                       >
                         {hasChildren ? (
-                          <button
-                            aria-label={isExpanded ? t.collapse : t.expand}
-                            className="grid h-7 w-7 place-items-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onToggleExpanded(node.id);
-                            }}
-                            type="button"
+                          <ShortcutTooltip
+                            keys={isExpanded ? SHORTCUT_KEYS.collapseNode : SHORTCUT_KEYS.expandNode}
+                            label={isExpanded ? t.collapse : t.expand}
                           >
-                            {isExpanded ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
-                            )}
-                          </button>
+                            <button
+                              aria-label={isExpanded ? t.collapse : t.expand}
+                              className="grid h-7 w-7 place-items-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onToggleExpanded(node.id);
+                              }}
+                              type="button"
+                            >
+                              {isExpanded ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </button>
+                          </ShortcutTooltip>
                         ) : (
                           <span className="h-7 w-3" />
                         )}

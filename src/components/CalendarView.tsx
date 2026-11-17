@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { buildCalendarMonthModel } from "@/domain/nodes/calendar";
@@ -34,6 +35,7 @@ export function CalendarView({
         <div className="flex items-center gap-2">
           <Button
             aria-label={t.previousMonth}
+            shortcut={SHORTCUT_KEYS.previousMonth}
             size="icon"
             type="button"
             variant="outline"
@@ -43,6 +45,7 @@ export function CalendarView({
           </Button>
           <Button
             aria-label={t.nextMonth}
+            shortcut={SHORTCUT_KEYS.nextMonth}
             size="icon"
             type="button"
             variant="outline"
@@ -58,6 +61,7 @@ export function CalendarView({
           </p>
         </div>
         <Button
+          shortcut={SHORTCUT_KEYS.resetMonth}
           size="sm"
           type="button"
           variant="secondary"

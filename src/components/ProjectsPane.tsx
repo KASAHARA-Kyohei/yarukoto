@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import type { ActivePane } from "@/app/types";
 import type { ThemeId } from "@/app/theme";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,7 @@ export function ProjectsPane({
           <Button
             className="min-w-0 flex-1"
             disabled={isMutating}
+            shortcut={SHORTCUT_KEYS.addProject}
             variant="outline"
             onClick={onCreateRoot}
             type="button"

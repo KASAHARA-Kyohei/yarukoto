@@ -1,4 +1,7 @@
+import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import type { CenterView } from "@/app/types";
+import { ShortcutTooltip } from "@/components/ui/shortcut-tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const VIEW_LABELS: Array<{ value: CenterView; label: string }> = [
@@ -15,19 +18,23 @@ export function CenterHeader({
   onChangeView: (view: CenterView) => void;
   view: CenterView;
 }) {
+  const { t } = useLanguage();
+
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-background px-3">
       <h1 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Workspace
       </h1>
       <Tabs value={view} onValueChange={(value) => onChangeView(value as CenterView)}>
-        <TabsList>
-          {VIEW_LABELS.map((item) => (
-            <TabsTrigger key={item.value} value={item.value}>
-              {item.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <ShortcutTooltip keys={SHORTCUT_KEYS.changeTab} label={t.shortcutSwitchTabs}>
+          <TabsList>
+            {VIEW_LABELS.map((item) => (
+              <TabsTrigger key={item.value} value={item.value}>
+                {item.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </ShortcutTooltip>
       </Tabs>
     </header>
   );

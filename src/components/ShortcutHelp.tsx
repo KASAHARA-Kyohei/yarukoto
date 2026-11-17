@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,68 +20,68 @@ export function ShortcutHelp({
   const commonShortcuts: Array<[string, string]> = [
     ["Tab / Shift+Tab", t.shortcutPaneNavigation],
     ["Ctrl+h / Ctrl+l", t.shortcutSwitchPanes],
-    ["Ctrl+Tab / Ctrl+Shift+Tab", t.shortcutSwitchTabs],
-    ["Ctrl+t", t.shortcutCycleTheme],
-    ["u", t.shortcutUndoDelete],
+    [SHORTCUT_KEYS.changeTab, t.shortcutSwitchTabs],
+    [SHORTCUT_KEYS.changeTheme, t.shortcutCycleTheme],
+    [SHORTCUT_KEYS.undo, t.shortcutUndoDelete],
     ["f", t.shortcutFocusHint],
     ["?", t.shortcutToggleHelp],
-    ["Esc", t.shortcutDismiss],
+    [SHORTCUT_KEYS.close, t.shortcutDismiss],
   ];
 
   const projectShortcuts: Array<[string, string]> = [
-    ["j / k / ↑ / ↓", t.shortcutSelectProject],
-    ["J / K", t.shortcutReorderProjects],
-    ["o", t.shortcutAddProjectInPane],
+    [SHORTCUT_KEYS.selectRow, t.shortcutSelectProject],
+    [`${SHORTCUT_KEYS.moveDown} / ${SHORTCUT_KEYS.moveUp}`, t.shortcutReorderProjects],
+    [SHORTCUT_KEYS.addProject, t.shortcutAddProjectInPane],
     ["l / Enter / →", t.shortcutOpenWorkspace],
   ];
 
   const treeShortcuts: Array<[string, string]> = [
-    ["j / k / ↑ / ↓", t.shortcutSelectNode],
+    [SHORTCUT_KEYS.selectRow, t.shortcutSelectNode],
     ["h / l / ← / →", t.shortcutExpandNode],
     ["za", t.shortcutCollapseTree],
-    ["a", t.shortcutAddChildAndEdit],
+    [SHORTCUT_KEYS.addChild, t.shortcutAddChildAndEdit],
     ["O", t.shortcutAddAboveAndEdit],
-    ["o", t.shortcutAddBelowAndEdit],
+    [SHORTCUT_KEYS.addBelow, t.shortcutAddBelowAndEdit],
     ["R", t.shortcutAddRootAndEdit],
-    ["y", t.shortcutCopyReview],
-    ["p", t.shortcutImportReview],
-    ["Y", t.shortcutExportProject],
-    ["P", t.shortcutImportProject],
-    ["Enter / i", t.shortcutOpenEditor],
-    ["dd", t.shortcutDeleteNode],
-    ["J / K", t.shortcutMoveNode],
-    ["> / <", t.shortcutChangeNesting],
+    [SHORTCUT_KEYS.copyReview, t.shortcutCopyReview],
+    [SHORTCUT_KEYS.importReview, t.shortcutImportReview],
+    [SHORTCUT_KEYS.exportJson, t.shortcutExportProject],
+    [SHORTCUT_KEYS.importJson, t.shortcutImportProject],
+    [SHORTCUT_KEYS.edit, t.shortcutOpenEditor],
+    [SHORTCUT_KEYS.delete, t.shortcutDeleteNode],
+    [`${SHORTCUT_KEYS.moveDown} / ${SHORTCUT_KEYS.moveUp}`, t.shortcutMoveNode],
+    [`${SHORTCUT_KEYS.indent} / ${SHORTCUT_KEYS.outdent}`, t.shortcutChangeNesting],
   ];
 
   const calendarShortcuts: Array<[string, string]> = [
-    ["H / L", t.shortcutChangeMonth],
-    ["t", t.shortcutGoToThisMonth],
-    ["Enter / i", t.shortcutEditSelectedNode],
+    [`${SHORTCUT_KEYS.previousMonth} / ${SHORTCUT_KEYS.nextMonth}`, t.shortcutChangeMonth],
+    [SHORTCUT_KEYS.resetMonth, t.shortcutGoToThisMonth],
+    [SHORTCUT_KEYS.edit, t.shortcutEditSelectedNode],
   ];
 
   const kanbanShortcuts: Array<[string, string]> = [
-    ["j / k / ↑ / ↓", t.shortcutSelectCard],
+    [SHORTCUT_KEYS.selectRow, t.shortcutSelectCard],
     ["h / l / ← / →", t.shortcutSelectColumn],
     ["H / L", t.shortcutMoveCard],
-    ["Enter / i", t.shortcutEditSelectedTask],
+    [SHORTCUT_KEYS.edit, t.shortcutEditSelectedTask],
     [t.drag, t.shortcutDropCard],
     ["f", t.shortcutFocusCard],
   ];
 
   const reportShortcuts: Array<[string, string]> = [
-    ["Enter / i", t.shortcutEditSelectedNode],
+    [SHORTCUT_KEYS.edit, t.shortcutEditSelectedNode],
   ];
 
   const dialogShortcuts: Array<[string, string]> = [
-    ["j / k / ↑ / ↓", t.shortcutSelectField],
+    [SHORTCUT_KEYS.selectRow, t.shortcutSelectField],
     ["h / l / ← / →", t.shortcutChangeField],
     ["i", t.shortcutFocusField],
-    ["Enter", t.shortcutOpenField],
+    [SHORTCUT_KEYS.openField, t.shortcutOpenField],
     ["H / L / t", t.shortcutNavigateDatePicker],
-    ["x", t.shortcutClearDate],
+    [SHORTCUT_KEYS.clearDate, t.shortcutClearDate],
     [t.titleEnter, t.shortcutConfirmTitle],
     [t.memoEnter, t.shortcutConfirmMemo],
-    ["Esc", t.shortcutCloseEditor],
+    [SHORTCUT_KEYS.close, t.shortcutCloseEditor],
   ];
 
   const currentPaneShortcuts =
@@ -99,7 +100,13 @@ export function ShortcutHelp({
       <Card className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
           <CardTitle className="text-base">{t.shortcuts}</CardTitle>
-          <Button aria-label={t.close} size="icon" variant="ghost" onClick={onClose}>
+          <Button
+            aria-label={t.close}
+            shortcut={`${SHORTCUT_KEYS.close} / ?`}
+            size="icon"
+            variant="ghost"
+            onClick={onClose}
+          >
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>

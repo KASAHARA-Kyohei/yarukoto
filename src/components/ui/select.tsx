@@ -2,6 +2,8 @@ import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
+import { ShortcutTooltip } from "./shortcut-tooltip";
 
 const Select = SelectPrimitive.Root;
 const SelectGroup = SelectPrimitive.Group;
@@ -13,19 +15,21 @@ function SelectTrigger({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
   return (
-    <SelectPrimitive.Trigger
-      className={cn(
-        "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-card px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/35 disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
-      data-slot="select-trigger"
-      {...props}
-    >
-      {children}
-      <SelectPrimitive.Icon asChild>
-        <ChevronDown className="h-4 w-4 opacity-60" />
-      </SelectPrimitive.Icon>
-    </SelectPrimitive.Trigger>
+    <ShortcutTooltip keys={SHORTCUT_KEYS.openField}>
+      <SelectPrimitive.Trigger
+        className={cn(
+          "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-card px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/35 disabled:cursor-not-allowed disabled:opacity-50",
+          className,
+        )}
+        data-slot="select-trigger"
+        {...props}
+      >
+        {children}
+        <SelectPrimitive.Icon asChild>
+          <ChevronDown className="h-4 w-4 opacity-60" />
+        </SelectPrimitive.Icon>
+      </SelectPrimitive.Trigger>
+    </ShortcutTooltip>
   );
 }
 

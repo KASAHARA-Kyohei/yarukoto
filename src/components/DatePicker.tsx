@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type RefObject } from "react";
 import { CalendarIcon, X } from "lucide-react";
 import type { DateEditMode } from "@/app/types";
@@ -110,6 +111,7 @@ export function DatePicker({
                   !value && "text-muted-foreground",
                 )}
                 ref={triggerRef}
+                shortcut={SHORTCUT_KEYS.openField}
                 type="button"
                 variant="outline"
               >
@@ -132,6 +134,7 @@ export function DatePicker({
         {value || isTextEditing ? (
           <Button
             aria-label={clearLabel ?? t.clearDate}
+            shortcut={SHORTCUT_KEYS.clearDate}
             size="icon"
             type="button"
             variant="ghost"

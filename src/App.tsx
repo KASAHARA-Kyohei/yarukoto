@@ -1,4 +1,5 @@
 import { useLanguage } from "@/app/LanguageProvider";
+import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import { CalendarView } from "./components/CalendarView";
@@ -490,6 +491,7 @@ function App() {
               </span>
               <Button
                 className="h-6 px-2 text-xs"
+                shortcut={SHORTCUT_KEYS.undo}
                 size="sm"
                 type="button"
                 variant="outline"

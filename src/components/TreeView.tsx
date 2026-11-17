@@ -32,8 +32,9 @@ import { ShortcutTooltip } from "@/components/ui/shortcut-tooltip";
 import { cn } from "@/lib/utils";
 
 const INDENT_STEP = 22;
-const INDENT_START = 18;
-const TREE_ROW_GAP = 20;
+const TOGGLE_CENTER = 22; // 8px title padding + half of the 28px toggle.
+const TREE_ROW_GAP = 6; // 4px between rows plus the two 1px borders.
+const GUIDE_COLOR = "bg-muted-foreground/45";
 
 function getTreeColumns(periodColumnMinWidth: number) {
   return `minmax(320px, 520px) 68px 74px 82px 92px minmax(${periodColumnMinWidth}px, 1fr)`;
@@ -42,50 +43,49 @@ function getTreeColumns(periodColumnMinWidth: number) {
 function IndentGuides({
   depth,
   guideColumns,
+  hasExpandedChildren,
   isLastSibling,
 }: {
   depth: number;
   guideColumns: boolean[];
+  hasExpandedChildren: boolean;
   isLastSibling: boolean;
 }) {
-  if (depth === 0) {
-    return null;
-  }
-
-  const branchLeft = INDENT_START + (depth - 1) * INDENT_STEP;
+  const nodeLeft = TOGGLE_CENTER + depth * INDENT_STEP;
+  const branchLeft = nodeLeft - INDENT_STEP;
 
   return (
-    <div className="pointer-events-none absolute inset-y-0 left-0">
+    <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0" data-tree-guides>
       {guideColumns.slice(0, -1).map((shouldContinue, index) =>
         shouldContinue ? (
           <span
-            className="absolute top-0 w-px rounded-full bg-border/70"
+            className={cn("absolute bottom-0 w-px", GUIDE_COLOR)}
             key={index}
             style={{
-              bottom: -TREE_ROW_GAP,
-              left: INDENT_START + index * INDENT_STEP,
+              left: TOGGLE_CENTER + index * INDENT_STEP,
+              top: -TREE_ROW_GAP,
             }}
           />
         ) : null,
       )}
-      <span
-        className="absolute w-px rounded-none bg-border/70"
-        style={{
-          height: `calc(50% + ${TREE_ROW_GAP}px)`,
-          left: branchLeft,
-          top: -TREE_ROW_GAP,
-        }}
-      />
-      {!isLastSibling ? (
+      {depth > 0 ? (
+        <>
+          <span
+            className={cn("absolute w-px", GUIDE_COLOR, isLastSibling ? "bottom-1/2" : "bottom-0")}
+            style={{ left: branchLeft, top: -TREE_ROW_GAP }}
+          />
+          <span
+            className={cn("absolute top-1/2 h-px -translate-y-1/2", GUIDE_COLOR)}
+            style={{ left: branchLeft, width: INDENT_STEP }}
+          />
+        </>
+      ) : null}
+      {hasExpandedChildren ? (
         <span
-          className="absolute top-1/2 w-px rounded-full bg-border/70"
-          style={{ bottom: -TREE_ROW_GAP, left: branchLeft }}
+          className={cn("absolute bottom-0 w-px", GUIDE_COLOR)}
+          style={{ left: nodeLeft, top: "calc(50% + 14px)" }}
         />
       ) : null}
-      <span
-        className="absolute top-1/2 h-px w-3 -translate-y-1/2 rounded-full bg-border/70"
-        style={{ left: branchLeft }}
-      />
     </div>
   );
 }
@@ -238,22 +238,18 @@ export function TreeView({
                   ref={(element) => registerRowElement(node.id, element)}
                   style={{ gridTemplateColumns: treeColumns }}
                 >
-                  <div className="relative flex min-w-0 items-center gap-1 pr-1 pl-2">
+                  <div className="relative flex min-w-0 items-center gap-1 self-stretch pr-1 pl-2">
                     <IndentGuides
                       depth={depth}
                       guideColumns={guideColumns}
+                      hasExpandedChildren={hasChildren && isExpanded}
                       isLastSibling={isLastSibling}
                     />
                     <div
-                      className="flex min-w-0 flex-1 items-center"
+                      className="relative flex min-w-0 flex-1 items-center"
                       style={{ marginLeft: depth * INDENT_STEP }}
                     >
-                      <div
-                        className={cn(
-                          "flex h-7 shrink-0 items-center justify-center",
-                          hasChildren ? "mr-2 w-7" : "mr-1 w-3",
-                        )}
-                      >
+                      <div className="mr-2 flex size-7 shrink-0 items-center justify-center">
                         {hasChildren ? (
                           <ShortcutTooltip
                             keys={isExpanded ? SHORTCUT_KEYS.collapseNode : SHORTCUT_KEYS.expandNode}
@@ -275,9 +271,9 @@ export function TreeView({
                               )}
                             </button>
                           </ShortcutTooltip>
-                        ) : (
-                          <span className="h-7 w-3" />
-                        )}
+                        ) : depth > 0 ? (
+                          <span aria-hidden="true" className={cn("size-1 rounded-full", GUIDE_COLOR)} />
+                        ) : null}
                       </div>
                       <button
                         className={cn(
@@ -287,7 +283,7 @@ export function TreeView({
                         data-node-focus-id={node.id}
                         type="button"
                       >
-                        <span className="font-medium">
+                        <span className={hasChildren ? "font-semibold" : "font-medium"}>
                           {getNodeDisplayTitle(node, language)}
                         </span>
                         {hasChildren ? (

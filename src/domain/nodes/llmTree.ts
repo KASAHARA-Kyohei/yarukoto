@@ -82,8 +82,20 @@ function extractJsonText(input: string, t: ValidationMessages) {
   if (!trimmed) {
     throw new Error(t.empty);
   }
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  return fenced?.[1]?.trim() ?? trimmed;
+  if (trimmed.startsWith("{")) {
+    return trimmed;
+  }
+
+  // Match fence markers on their own lines to preserve backticks in JSON strings.
+  const fenced = trimmed.match(
+    /(?:^|\r?\n)[ \t]*(`{3,})(?:json)?[ \t]*\r?\n([\s\S]*?)\r?\n[ \t]*\1`*[ \t]*(?=\r?\n|$)/i,
+  );
+  if (fenced) {
+    return fenced[2].trim();
+  }
+
+  const inline = trimmed.match(/```(?:json)?[ \t]*(\{[^\r\n]*?\})[ \t]*```/i);
+  return inline?.[1] ?? trimmed;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

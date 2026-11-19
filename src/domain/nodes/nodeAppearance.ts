@@ -14,6 +14,10 @@ export function getNodeDisplayTitle(
   return node.title.trim() === "" ? messages[language].untitled : node.title;
 }
 
+export function nodeTitleClass(status: NodeStatus) {
+  return status === "Done" ? "line-through opacity-60" : "";
+}
+
 export function typeBadgeClass(type: NodeType) {
   switch (type) {
     case "Group":

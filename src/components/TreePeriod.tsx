@@ -76,7 +76,6 @@ function TimelineTrack({
   barClassName,
   barStyle,
   boundsLabel,
-  isInvalidRange,
   markers,
   todayLineStyle,
 }: {
@@ -84,12 +83,9 @@ function TimelineTrack({
   barClassName: string;
   barStyle: PeriodBarStyle | null;
   boundsLabel: string;
-  isInvalidRange: boolean;
   markers: TimelineMarker[];
   todayLineStyle: TimelineLineStyle | null;
 }) {
-  const effectiveBarClassName = isInvalidRange ? "bg-amber-500" : barClassName;
-
   return (
     <div className="relative h-6 overflow-hidden rounded-md bg-muted/55">
       <TimelineRail>
@@ -130,27 +126,27 @@ function TimelineTrack({
               aria-label={boundsLabel}
               className={cn(
                 "absolute top-1.5 h-2 rounded-full shadow-[inset_0_-1px_0_rgba(255,255,255,0.18)]",
-                effectiveBarClassName,
+                barClassName,
               )}
               style={barStyle}
             />
             <span
               className={cn(
                 "absolute top-2 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-background shadow-sm",
-                effectiveBarClassName,
+                barClassName,
               )}
               style={{ left: barStyle.endMarkerLeft }}
             />
             {barStyle.truncatedLeft ? (
               <TruncationMarks
-                barClassName={effectiveBarClassName}
+                barClassName={barClassName}
                 side="left"
                 top={4}
               />
             ) : null}
             {barStyle.truncatedRight ? (
               <TruncationMarks
-                barClassName={effectiveBarClassName}
+                barClassName={barClassName}
                 side="right"
                 top={4}
               />
@@ -200,27 +196,40 @@ export function TreePeriodHeader({
   timelineMode: TimelineMode | null;
   todayLineStyle: TimelineLineStyle | null;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="pr-2">
       {timelineBounds ? (
-        <div className="relative h-7 overflow-hidden rounded-md bg-muted/25 text-[10px] normal-case text-muted-foreground/90">
-          <TimelineRail>
-            <TrackMarkers markers={markers} />
-            {todayLineStyle ? (
-              <span
-                className="absolute inset-y-0 z-[1] w-px bg-primary/80"
-                style={todayLineStyle}
-              />
-            ) : null}
-            {timelineMode === "medium" || timelineMode === "long" || timelineMode === "xlong" ? (
-              <TimelineLabels markers={markers} />
-            ) : null}
-          </TimelineRail>
-          <div className="absolute inset-x-2 bottom-0.5 flex items-center justify-between">
-            <span>{formatShortDate(timelineBounds.start)}</span>
-            <span>{formatShortDate(timelineBounds.end)}</span>
+        <>
+          <div className="mb-1 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[9px] normal-case">
+            <span className="inline-flex items-center gap-1 text-muted-foreground">
+              <span aria-hidden="true" className="h-2.5 w-px bg-primary/80" />
+              {t.timelineToday}
+            </span>
+            <span className="inline-flex items-center gap-1 text-destructive" title={t.progressLineHelp}>
+              <span aria-hidden="true" className="h-px w-3 bg-destructive" />
+              {t.progressLine}
+            </span>
           </div>
-        </div>
+          <div className="relative h-7 overflow-hidden rounded-md bg-muted/25 text-[10px] normal-case text-muted-foreground/90">
+            <TimelineRail>
+              <TrackMarkers markers={markers} />
+              {todayLineStyle ? (
+                <span
+                  className="absolute inset-y-0 z-[1] w-px bg-primary/80"
+                  style={todayLineStyle}
+                />
+              ) : null}
+              {timelineMode === "medium" || timelineMode === "long" || timelineMode === "xlong" ? (
+                <TimelineLabels markers={markers} />
+              ) : null}
+            </TimelineRail>
+            <div className="absolute inset-x-2 bottom-0.5 flex items-center justify-between">
+              <span>{formatShortDate(timelineBounds.start)}</span>
+              <span>{formatShortDate(timelineBounds.end)}</span>
+            </div>
+          </div>
+        </>
       ) : null}
     </div>
   );
@@ -235,7 +244,7 @@ export function TreePeriodCell({
 }: {
   descendantPeriod: PeriodRange | null;
   markers: TimelineMarker[];
-  node: Pick<YarukotoNode, "dueDate" | "startDate">;
+  node: Pick<YarukotoNode, "dueDate" | "startDate" | "status">;
   timelineBounds: PeriodBounds | null;
   todayLineStyle: TimelineLineStyle | null;
 }) {
@@ -246,6 +255,10 @@ export function TreePeriodCell({
     ? getPeriodBarStyle(descendantPeriod, timelineBounds)
     : null;
   const isInvalidRange = isInvalidDateRange(node);
+  const isCompleted = node.status === "Done";
+  const barClassName = isCompleted
+    ? "bg-zinc-400/70"
+    : isInvalidRange ? "bg-amber-500" : due.barClassName;
   const periodLabel =
     node.startDate || node.dueDate
       ? formatPeriodLabel(node.startDate, node.dueDate, language)
@@ -265,7 +278,8 @@ export function TreePeriodCell({
           <span
             className={cn(
               "truncate text-[10px] font-medium",
-              isInvalidRange ? "text-amber-800" : due.textClassName,
+              isInvalidRange ? "text-amber-800"
+                : isCompleted ? "text-muted-foreground" : due.textClassName,
             )}
             title={periodLabel}
           >
@@ -275,10 +289,9 @@ export function TreePeriodCell({
       </div>
       <TimelineTrack
         aggregateBarStyle={aggregateBarStyle}
-        barClassName={due.barClassName}
+        barClassName={barClassName}
         barStyle={periodStyle}
         boundsLabel={periodLabel ?? "timeline"}
-        isInvalidRange={isInvalidRange}
         markers={markers}
         todayLineStyle={todayLineStyle}
       />

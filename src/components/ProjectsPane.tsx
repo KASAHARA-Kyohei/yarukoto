@@ -6,6 +6,7 @@ import type { ThemeId } from "@/app/theme";
 import { Button } from "@/components/ui/button";
 import {
   getNodeDisplayTitle,
+  nodeTitleClass,
   statusBadgeClass,
 } from "@/domain/nodes/nodeAppearance";
 import type { YarukotoNode } from "@/domain/nodes/types";
@@ -109,7 +110,9 @@ export function ProjectsPane({
             onClick={() => onSelectRoot(root.id)}
             type="button"
           >
-            <span className="block truncate font-medium">
+            <span
+              className={cn("block truncate font-medium", nodeTitleClass(root.status))}
+            >
               {getNodeDisplayTitle(root, language)}
             </span>
             <span

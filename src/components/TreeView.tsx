@@ -11,6 +11,7 @@ import { TaskProgressInline } from "./TaskProgress";
 import { NodeEditButton } from "./NodeEditButton";
 import {
   getNodeDisplayTitle,
+  nodeTitleClass,
   priorityBadgeClass,
   priorityLabel,
   statusBadgeClass,
@@ -283,7 +284,12 @@ export function TreeView({
                         data-node-focus-id={node.id}
                         type="button"
                       >
-                        <span className={hasChildren ? "font-semibold" : "font-medium"}>
+                        <span
+                          className={cn(
+                            hasChildren ? "font-semibold" : "font-medium",
+                            nodeTitleClass(node.status),
+                          )}
+                        >
                           {getNodeDisplayTitle(node, language)}
                         </span>
                         {hasChildren ? (

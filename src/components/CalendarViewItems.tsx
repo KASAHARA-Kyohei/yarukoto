@@ -6,7 +6,10 @@ import {
   type CalendarRangeSegment,
   type CalendarWeekModel,
 } from "@/domain/nodes/calendar";
-import { getNodeDisplayTitle } from "@/domain/nodes/nodeAppearance";
+import {
+  getNodeDisplayTitle,
+  nodeTitleClass,
+} from "@/domain/nodes/nodeAppearance";
 import type { YarukotoNode } from "@/domain/nodes/types";
 import { cn } from "@/lib/utils";
 import { NodeEditButton } from "./NodeEditButton";
@@ -111,7 +114,14 @@ export function CalendarRangeBar({
         type="button"
         onClick={() => onSelectNode(segment.node.id)}
       >
-        <span className={segment.showsTitle ? "truncate" : "sr-only"}>{title}</span>
+        <span
+          className={cn(
+            segment.showsTitle ? "truncate" : "sr-only",
+            nodeTitleClass(segment.node.status),
+          )}
+        >
+          {title}
+        </span>
       </button>
       <NodeEditButton
         className="mr-0.5 text-current"
@@ -158,7 +168,9 @@ export function CalendarSingleDayItem({
         <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded bg-background/65 px-1 text-[9px] font-semibold text-muted-foreground">
           {getSingleDayKindLabel(item.kind, t)}
         </span>
-        <span className="truncate font-medium">{title}</span>
+        <span className={cn("truncate font-medium", nodeTitleClass(item.node.status))}>
+          {title}
+        </span>
       </button>
       <NodeEditButton
         className="mr-0.5 text-current"

@@ -17,6 +17,7 @@ import type {
 } from "@/domain/nodes/kanban";
 import {
   getNodeDisplayTitle,
+  nodeTitleClass,
   priorityBadgeClass,
   priorityLabel,
   statusBadgeClass,
@@ -402,6 +403,7 @@ function KanbanCardSurface({
           <p
             className={cn(
               "line-clamp-2 text-sm font-medium leading-5 text-foreground",
+              nodeTitleClass(card.node.status),
               !overlay && "pr-5",
             )}
           >

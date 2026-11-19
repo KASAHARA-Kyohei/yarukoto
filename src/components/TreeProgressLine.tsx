@@ -1,6 +1,6 @@
 import { useLanguage } from "@/app/LanguageProvider";
 import type { TimelineLineStyle } from "@/domain/nodes/period";
-import type { ProgressLinePoint } from "@/domain/nodes/progressLine";
+import { buildProgressLineVertices, type ProgressLinePoint } from "@/domain/nodes/progressLine";
 
 // TreeView rows are 44px high with a 4px bottom gap. The 8px period bar
 // sits 6px into the track, below its 16px label, 2px gap, and 1px row border.
@@ -23,11 +23,7 @@ export function TreeProgressLine({
 
   const height = rowCount * ROW_PITCH;
   const todayPosition = Number.parseFloat(todayLineStyle.left);
-  const vertices = [
-    `${todayPosition},0`,
-    ...points.map((point) => `${point.position},${point.rowIndex * ROW_PITCH + BAR_CENTER}`),
-    `${todayPosition},${height}`,
-  ].join(" ");
+  const vertices = buildProgressLineVertices(points, rowCount, todayPosition, ROW_PITCH, BAR_CENTER);
 
   return (
     <div

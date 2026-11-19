@@ -10,6 +10,33 @@ export type ProgressLinePoint = {
   rowIndex: number;
 };
 
+export function buildProgressLineVertices(
+  points: ProgressLinePoint[],
+  rowCount: number,
+  todayPosition: number,
+  rowPitch: number,
+  barCenter: number,
+): string {
+  const vertices = [`${todayPosition},0`];
+  let nextRow = 0;
+
+  for (const { position, rowIndex } of points) {
+    if (rowIndex > nextRow) {
+      // Return to today before the gap and stay there through untracked rows.
+      if (nextRow > 0) vertices.push(`${todayPosition},${nextRow * rowPitch}`);
+      vertices.push(`${todayPosition},${rowIndex * rowPitch}`);
+    }
+    vertices.push(`${position},${rowIndex * rowPitch + barCenter}`);
+    nextRow = rowIndex + 1;
+  }
+
+  if (nextRow > 0 && nextRow < rowCount) {
+    vertices.push(`${todayPosition},${nextRow * rowPitch}`);
+  }
+  vertices.push(`${todayPosition},${rowCount * rowPitch}`);
+  return vertices.join(" ");
+}
+
 export function hasProgressLinePeriod(node: YarukotoNode, progress?: TaskProgressInfo) {
   return node.type === "Task" && node.status !== "Done" &&
     progress !== undefined && progress.value < 100 &&

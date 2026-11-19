@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildProgressLinePoints } from "./progressLine";
+import { buildProgressLinePoints, buildProgressLineVertices } from "./progressLine";
 import { buildTaskProgressMap } from "./progress";
 import type { YarukotoNode } from "./types";
 
@@ -45,6 +45,28 @@ describe("progress line", () => {
       .toEqual([["first", 0], ["last", 2]]);
     nodes[1].status = "Doing";
     expect(points(nodes).map(({ nodeId }) => nodeId)).toEqual(["first", "middle", "last"]);
+  });
+
+  it("keeps the line on today through completed rows before, between, and after tracked rows", () => {
+    const nodes = [
+      task("completed-before", { status: "Done" }),
+      task("behind", { dueDate: today }),
+      task("completed-between", { status: "Done" }),
+      task("ahead", { startDate: today }),
+      task("completed-after", { status: "Done" }),
+    ];
+
+    expect(buildProgressLineVertices(points(nodes), nodes.length, 50, 48, 29)).toBe(
+      "50,0 50,48 25,77 50,96 50,144 75,173 50,192 50,240",
+    );
+  });
+
+  it("connects consecutive tracked rows directly", () => {
+    const nodes = [task("behind", { dueDate: today }), task("ahead", { startDate: today })];
+
+    expect(buildProgressLineVertices(points(nodes), nodes.length, 50, 48, 29)).toBe(
+      "50,0 25,29 75,77 50,96",
+    );
   });
 
   it("excludes a parent at 100% even if its own status is Doing", () => {

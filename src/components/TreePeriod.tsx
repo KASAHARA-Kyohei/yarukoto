@@ -200,27 +200,40 @@ export function TreePeriodHeader({
   timelineMode: TimelineMode | null;
   todayLineStyle: TimelineLineStyle | null;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="pr-2">
       {timelineBounds ? (
-        <div className="relative h-7 overflow-hidden rounded-md bg-muted/25 text-[10px] normal-case text-muted-foreground/90">
-          <TimelineRail>
-            <TrackMarkers markers={markers} />
-            {todayLineStyle ? (
-              <span
-                className="absolute inset-y-0 z-[1] w-px bg-primary/80"
-                style={todayLineStyle}
-              />
-            ) : null}
-            {timelineMode === "medium" || timelineMode === "long" || timelineMode === "xlong" ? (
-              <TimelineLabels markers={markers} />
-            ) : null}
-          </TimelineRail>
-          <div className="absolute inset-x-2 bottom-0.5 flex items-center justify-between">
-            <span>{formatShortDate(timelineBounds.start)}</span>
-            <span>{formatShortDate(timelineBounds.end)}</span>
+        <>
+          <div className="mb-1 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[9px] normal-case">
+            <span className="inline-flex items-center gap-1 text-muted-foreground">
+              <span aria-hidden="true" className="h-2.5 w-px bg-primary/80" />
+              {t.timelineToday}
+            </span>
+            <span className="inline-flex items-center gap-1 text-destructive" title={t.progressLineHelp}>
+              <span aria-hidden="true" className="h-px w-3 bg-destructive" />
+              {t.progressLine}
+            </span>
           </div>
-        </div>
+          <div className="relative h-7 overflow-hidden rounded-md bg-muted/25 text-[10px] normal-case text-muted-foreground/90">
+            <TimelineRail>
+              <TrackMarkers markers={markers} />
+              {todayLineStyle ? (
+                <span
+                  className="absolute inset-y-0 z-[1] w-px bg-primary/80"
+                  style={todayLineStyle}
+                />
+              ) : null}
+              {timelineMode === "medium" || timelineMode === "long" || timelineMode === "xlong" ? (
+                <TimelineLabels markers={markers} />
+              ) : null}
+            </TimelineRail>
+            <div className="absolute inset-x-2 bottom-0.5 flex items-center justify-between">
+              <span>{formatShortDate(timelineBounds.start)}</span>
+              <span>{formatShortDate(timelineBounds.end)}</span>
+            </div>
+          </div>
+        </>
       ) : null}
     </div>
   );

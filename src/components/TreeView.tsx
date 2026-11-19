@@ -7,6 +7,7 @@ import {
 import { getSelectionScrollTop } from "@/app/selectionScroll";
 import { SHORTCUT_KEYS } from "@/app/shortcutKeys";
 import { TreePeriodCell, TreePeriodHeader } from "./TreePeriod";
+import { TreeProgressLine } from "./TreeProgressLine";
 import { TaskProgressInline } from "./TaskProgress";
 import { NodeEditButton } from "./NodeEditButton";
 import {
@@ -18,6 +19,8 @@ import {
   typeBadgeClass,
 } from "@/domain/nodes/nodeAppearance";
 import type { TaskProgressInfo } from "@/domain/nodes/progress";
+import { buildProgressLinePoints, hasProgressLinePeriod } from "@/domain/nodes/progressLine";
+import { toDateKey } from "@/utils/date";
 import {
   getTimelineMarkers,
   getNodePeriodDates,
@@ -111,28 +114,36 @@ export function TreeView({
   visibleNodes: FlatTreeNode[];
 }) {
   const { language, t } = useLanguage();
+  const todayKey = toDateKey(new Date());
   const periodRanges = useMemo(
     () => [
       ...visibleNodes.map(({ node }) => getNodePeriodDates(node)),
       ...visibleNodes.map(({ descendantPeriod }) => descendantPeriod),
+      ...(visibleNodes.some(({ node }) => hasProgressLinePeriod(node, taskProgressById.get(node.id)))
+        ? [{ start: todayKey, end: todayKey }]
+        : []),
     ],
-    [visibleNodes],
+    [taskProgressById, todayKey, visibleNodes],
   );
   const timelineMode = useMemo(
     () => getTimelineModeFromRanges(periodRanges),
     [periodRanges],
   );
   const timelineBounds = useMemo(
-    () => getTimelineBoundsFromRanges(periodRanges),
-    [periodRanges],
+    () => getTimelineBoundsFromRanges(periodRanges, todayKey),
+    [periodRanges, todayKey],
   );
   const markers = useMemo(
     () => getTimelineMarkers(timelineBounds, timelineMode, language),
     [language, timelineBounds, timelineMode],
   );
   const todayLineStyle = useMemo(
-    () => getTodayLineStyle(timelineBounds),
-    [timelineBounds],
+    () => getTodayLineStyle(timelineBounds, todayKey),
+    [timelineBounds, todayKey],
+  );
+  const progressLinePoints = useMemo(
+    () => buildProgressLinePoints(visibleNodes, taskProgressById, timelineBounds, todayKey),
+    [taskProgressById, timelineBounds, todayKey, visibleNodes],
   );
   const periodColumnMinWidth = useMemo(
     () => getTimelinePeriodColumnMinWidth(timelineMode),
@@ -211,141 +222,149 @@ export function TreeView({
               todayLineStyle={todayLineStyle}
             />
           </div>
-          {visibleNodes.map(
-            ({
-              childCount,
-              descendantPeriod,
-              guideColumns,
-              isLastSibling,
-              node,
-              depth,
-              hasChildren,
-            }) => {
-              const isSelected = node.id === selectedId;
-              const isExpanded = expandedIds.has(node.id);
-              const isInvalidRange = isInvalidDateRange(node);
-              const taskProgress = taskProgressById.get(node.id) ?? null;
-              return (
-                <div
-                  className={cn(
-                    "group mb-1 grid h-11 items-center rounded-md border text-sm transition-colors",
-                    isInvalidRange && "border-amber-300/70",
-                    isSelected
-                      ? "border-primary/70 bg-background"
-                      : "border-transparent hover:bg-muted",
-                  )}
-                  key={node.id}
-                  onClick={() => onSelectNode(node.id)}
-                  ref={(element) => registerRowElement(node.id, element)}
-                  style={{ gridTemplateColumns: treeColumns }}
-                >
-                  <div className="relative flex min-w-0 items-center gap-1 self-stretch pr-1 pl-2">
-                    <IndentGuides
-                      depth={depth}
-                      guideColumns={guideColumns}
-                      hasExpandedChildren={hasChildren && isExpanded}
-                      isLastSibling={isLastSibling}
-                    />
-                    <div
-                      className="relative flex min-w-0 flex-1 items-center"
-                      style={{ marginLeft: depth * INDENT_STEP }}
-                    >
-                      <div className="mr-2 flex size-7 shrink-0 items-center justify-center">
-                        {hasChildren ? (
-                          <ShortcutTooltip
-                            keys={isExpanded ? SHORTCUT_KEYS.collapseNode : SHORTCUT_KEYS.expandNode}
-                            label={isExpanded ? t.collapse : t.expand}
-                          >
-                            <button
-                              aria-label={isExpanded ? t.collapse : t.expand}
-                              className="grid h-7 w-7 place-items-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                onToggleExpanded(node.id);
-                              }}
-                              type="button"
-                            >
-                              {isExpanded ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </button>
-                          </ShortcutTooltip>
-                        ) : depth > 0 ? (
-                          <span aria-hidden="true" className={cn("size-1 rounded-full", GUIDE_COLOR)} />
-                        ) : null}
-                      </div>
-                      <button
-                        className={cn(
-                          "min-w-0 truncate rounded-md px-2 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                          isSelected && "bg-accent",
-                        )}
-                        data-node-focus-id={node.id}
-                        type="button"
+          <div className="relative flow-root">
+            {visibleNodes.map(
+              ({
+                childCount,
+                descendantPeriod,
+                guideColumns,
+                isLastSibling,
+                node,
+                depth,
+                hasChildren,
+              }) => {
+                const isSelected = node.id === selectedId;
+                const isExpanded = expandedIds.has(node.id);
+                const isInvalidRange = isInvalidDateRange(node);
+                const taskProgress = taskProgressById.get(node.id) ?? null;
+                return (
+                  <div
+                    className={cn(
+                      "group mb-1 grid h-11 items-center rounded-md border text-sm transition-colors",
+                      isInvalidRange && "border-amber-300/70",
+                      isSelected
+                        ? "border-primary/70 bg-background"
+                        : "border-transparent hover:bg-muted",
+                    )}
+                    key={node.id}
+                    onClick={() => onSelectNode(node.id)}
+                    ref={(element) => registerRowElement(node.id, element)}
+                    style={{ gridTemplateColumns: treeColumns }}
+                  >
+                    <div className="relative flex min-w-0 items-center gap-1 self-stretch pr-1 pl-2">
+                      <IndentGuides
+                        depth={depth}
+                        guideColumns={guideColumns}
+                        hasExpandedChildren={hasChildren && isExpanded}
+                        isLastSibling={isLastSibling}
+                      />
+                      <div
+                        className="relative flex min-w-0 flex-1 items-center"
+                        style={{ marginLeft: depth * INDENT_STEP }}
                       >
-                        <span
+                        <div className="mr-2 flex size-7 shrink-0 items-center justify-center">
+                          {hasChildren ? (
+                            <ShortcutTooltip
+                              keys={isExpanded ? SHORTCUT_KEYS.collapseNode : SHORTCUT_KEYS.expandNode}
+                              label={isExpanded ? t.collapse : t.expand}
+                            >
+                              <button
+                                aria-label={isExpanded ? t.collapse : t.expand}
+                                className="grid h-7 w-7 place-items-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onToggleExpanded(node.id);
+                                }}
+                                type="button"
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                              </button>
+                            </ShortcutTooltip>
+                          ) : depth > 0 ? (
+                            <span aria-hidden="true" className={cn("size-1 rounded-full", GUIDE_COLOR)} />
+                          ) : null}
+                        </div>
+                        <button
                           className={cn(
-                            hasChildren ? "font-semibold" : "font-medium",
-                            nodeTitleClass(node.status),
+                            "min-w-0 truncate rounded-md px-2 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            isSelected && "bg-accent",
                           )}
+                          data-node-focus-id={node.id}
+                          type="button"
                         >
-                          {getNodeDisplayTitle(node, language)}
-                        </span>
-                        {hasChildren ? (
-                          <span className="ml-2 rounded-full border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                            {childCount}
+                          <span
+                            className={cn(
+                              hasChildren ? "font-semibold" : "font-medium",
+                              nodeTitleClass(node.status),
+                            )}
+                          >
+                            {getNodeDisplayTitle(node, language)}
                           </span>
-                        ) : null}
-                      </button>
+                          {hasChildren ? (
+                            <span className="ml-2 rounded-full border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              {childCount}
+                            </span>
+                          ) : null}
+                        </button>
+                      </div>
+                      <NodeEditButton
+                        disabled={editDisabled}
+                        node={node}
+                        onEditNode={onEditNode}
+                      />
                     </div>
-                    <NodeEditButton
-                      disabled={editDisabled}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "justify-self-start px-1.5 py-0 text-[11px]",
+                        typeBadgeClass(node.type),
+                      )}
+                    >
+                      {node.type}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "justify-self-start px-1.5 py-0 text-[11px]",
+                        statusBadgeClass(node.status),
+                      )}
+                    >
+                      {node.status}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "justify-self-start px-1.5 py-0 text-[11px]",
+                        priorityBadgeClass(node.priority),
+                      )}
+                    >
+                      {priorityLabel(node.priority)}
+                    </Badge>
+                    <div className="min-w-0 pr-2">
+                      <TaskProgressInline progress={taskProgress} />
+                    </div>
+                    <TreePeriodCell
+                      descendantPeriod={descendantPeriod}
+                      markers={markers}
                       node={node}
-                      onEditNode={onEditNode}
+                      timelineBounds={timelineBounds}
+                      todayLineStyle={todayLineStyle}
                     />
                   </div>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "justify-self-start px-1.5 py-0 text-[11px]",
-                      typeBadgeClass(node.type),
-                    )}
-                  >
-                    {node.type}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "justify-self-start px-1.5 py-0 text-[11px]",
-                      statusBadgeClass(node.status),
-                    )}
-                  >
-                    {node.status}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "justify-self-start px-1.5 py-0 text-[11px]",
-                      priorityBadgeClass(node.priority),
-                    )}
-                  >
-                    {priorityLabel(node.priority)}
-                  </Badge>
-                  <div className="min-w-0 pr-2">
-                    <TaskProgressInline progress={taskProgress} />
-                  </div>
-                  <TreePeriodCell
-                    descendantPeriod={descendantPeriod}
-                    markers={markers}
-                    node={node}
-                    timelineBounds={timelineBounds}
-                    todayLineStyle={todayLineStyle}
-                  />
-                </div>
-              );
-            },
-          )}
+                );
+              },
+            )}
+            <TreeProgressLine
+              points={progressLinePoints}
+              rowCount={visibleNodes.length}
+              todayLineStyle={todayLineStyle}
+              treeColumns={treeColumns}
+            />
+          </div>
         </div>
       )}
     </div>

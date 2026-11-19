@@ -76,7 +76,6 @@ function TimelineTrack({
   barClassName,
   barStyle,
   boundsLabel,
-  isInvalidRange,
   markers,
   todayLineStyle,
 }: {
@@ -84,12 +83,9 @@ function TimelineTrack({
   barClassName: string;
   barStyle: PeriodBarStyle | null;
   boundsLabel: string;
-  isInvalidRange: boolean;
   markers: TimelineMarker[];
   todayLineStyle: TimelineLineStyle | null;
 }) {
-  const effectiveBarClassName = isInvalidRange ? "bg-amber-500" : barClassName;
-
   return (
     <div className="relative h-6 overflow-hidden rounded-md bg-muted/55">
       <TimelineRail>
@@ -130,27 +126,27 @@ function TimelineTrack({
               aria-label={boundsLabel}
               className={cn(
                 "absolute top-1.5 h-2 rounded-full shadow-[inset_0_-1px_0_rgba(255,255,255,0.18)]",
-                effectiveBarClassName,
+                barClassName,
               )}
               style={barStyle}
             />
             <span
               className={cn(
                 "absolute top-2 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-background shadow-sm",
-                effectiveBarClassName,
+                barClassName,
               )}
               style={{ left: barStyle.endMarkerLeft }}
             />
             {barStyle.truncatedLeft ? (
               <TruncationMarks
-                barClassName={effectiveBarClassName}
+                barClassName={barClassName}
                 side="left"
                 top={4}
               />
             ) : null}
             {barStyle.truncatedRight ? (
               <TruncationMarks
-                barClassName={effectiveBarClassName}
+                barClassName={barClassName}
                 side="right"
                 top={4}
               />
@@ -248,7 +244,7 @@ export function TreePeriodCell({
 }: {
   descendantPeriod: PeriodRange | null;
   markers: TimelineMarker[];
-  node: Pick<YarukotoNode, "dueDate" | "startDate">;
+  node: Pick<YarukotoNode, "dueDate" | "startDate" | "status">;
   timelineBounds: PeriodBounds | null;
   todayLineStyle: TimelineLineStyle | null;
 }) {
@@ -259,6 +255,10 @@ export function TreePeriodCell({
     ? getPeriodBarStyle(descendantPeriod, timelineBounds)
     : null;
   const isInvalidRange = isInvalidDateRange(node);
+  const isCompleted = node.status === "Done";
+  const barClassName = isCompleted
+    ? "bg-zinc-400/70"
+    : isInvalidRange ? "bg-amber-500" : due.barClassName;
   const periodLabel =
     node.startDate || node.dueDate
       ? formatPeriodLabel(node.startDate, node.dueDate, language)
@@ -278,7 +278,8 @@ export function TreePeriodCell({
           <span
             className={cn(
               "truncate text-[10px] font-medium",
-              isInvalidRange ? "text-amber-800" : due.textClassName,
+              isInvalidRange ? "text-amber-800"
+                : isCompleted ? "text-muted-foreground" : due.textClassName,
             )}
             title={periodLabel}
           >
@@ -288,10 +289,9 @@ export function TreePeriodCell({
       </div>
       <TimelineTrack
         aggregateBarStyle={aggregateBarStyle}
-        barClassName={due.barClassName}
+        barClassName={barClassName}
         barStyle={periodStyle}
         boundsLabel={periodLabel ?? "timeline"}
-        isInvalidRange={isInvalidRange}
         markers={markers}
         todayLineStyle={todayLineStyle}
       />
